@@ -1,0 +1,28 @@
+# Segredos e configuração de máquina
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# Java, Maven e IDE
+**/target/
+**/.classpath
+**/.project
+**/.settings/
+.idea/
+*.iml
+.vscode/
+
+# Node / Next.js
+**/node_modules/
+**/.next/
+**/out/
+**/coverage/
+
+# SO e arquivos temporários
+.DS_Store
+Thumbs.db
+*.log
+*.tmp

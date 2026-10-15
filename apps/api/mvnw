@@ -1,0 +1,35 @@
+#!/bin/sh
+# Inicializador reprodutível do Maven; não exige instalação global.
+set -eu
+VERSION="3.9.11"
+EXPECTED_SHA512="03e2d65d4483a3396980629f260e25cac0d8b6f7f2791e4dc20bc83f9514db8d0f05b0479e699a5f34679250c49c8e52e961262ded468a20de0be254d8207076"
+DIST_URL="https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/$VERSION/apache-maven-$VERSION-bin.zip"
+MAVEN_USER_HOME="${MAVEN_USER_HOME:-${HOME}/.m2}"
+MAVEN_HOME="$MAVEN_USER_HOME/wrapper/dists/apache-maven-$VERSION"
+if [ ! -x "$MAVEN_HOME/bin/mvn" ]; then
+  TMP_DIR="$(mktemp -d)"
+  trap 'rm -rf "$TMP_DIR"' EXIT HUP INT TERM
+  if command -v curl >/dev/null 2>&1; then
+    curl --fail --location --silent --show-error "$DIST_URL" --output "$TMP_DIR/maven.zip"
+  elif command -v wget >/dev/null 2>&1; then
+    wget -q "$DIST_URL" -O "$TMP_DIR/maven.zip"
+  else
+    echo "Instale curl ou wget para obter o Maven." >&2
+    exit 1
+  fi
+  if command -v sha512sum >/dev/null 2>&1; then
+    printf '%s  %s\n' "$EXPECTED_SHA512" "$TMP_DIR/maven.zip" | sha512sum -c -
+  elif command -v shasum >/dev/null 2>&1; then
+    printf '%s  %s\n' "$EXPECTED_SHA512" "$TMP_DIR/maven.zip" | shasum -a 512 -c -
+  else
+    echo "É necessário sha512sum ou shasum para verificar o download." >&2
+    exit 1
+  fi
+  command -v unzip >/dev/null 2>&1 || { echo "Instale unzip." >&2; exit 1; }
+  unzip -q "$TMP_DIR/maven.zip" -d "$TMP_DIR"
+  mkdir -p "$(dirname "$MAVEN_HOME")"
+  if [ ! -d "$MAVEN_HOME" ]; then
+    mv "$TMP_DIR/apache-maven-$VERSION" "$MAVEN_HOME"
+  fi
+fi
+exec "$MAVEN_HOME/bin/mvn" "$@"

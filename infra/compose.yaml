@@ -1,0 +1,36 @@
+name: nite-connect
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${DB_NAME:-niteconnect}
+      POSTGRES_USER: ${DB_USERNAME:-niteconnect}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Configure DB_PASSWORD no arquivo .env na raiz do projeto}
+    ports:
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+
+  api-tests:
+    image: maven:3.9.11-eclipse-temurin-21
+    profiles: ["test"]
+    working_dir: /workspace/apps/api
+    volumes:
+      - ../:/workspace
+      - maven_cache:/root/.m2
+      # Testcontainers necessita do Docker Engine do host. Linux: socket local.
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      TESTCONTAINERS_HOST_OVERRIDE: host.docker.internal
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command: ["mvn", "--batch-mode", "verify"]
+
+volumes:
+  postgres_data:
+  maven_cache:
