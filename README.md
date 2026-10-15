@@ -361,25 +361,28 @@ O projeto encontra-se na fase inicial de desenvolvimento, com um protótipo visu
 
 Os recursos apresentados na interface não devem ser considerados funcionalidades concluídas até que sejam implementados e validados.
 
-## 15. Como executar o protótipo
+## 15. Como executar localmente
 
-Para visualizar a interface inicial:
+A API requer Java 21 e PostgreSQL. No Windows, o Docker Desktop pode fornecer o PostgreSQL local:
 
-1. Clone o repositório ou baixe seus arquivos.
-2. Abra a pasta do projeto no Visual Studio Code.
-3. Localize o arquivo HTML principal.
-4. Abra o arquivo no navegador ou utilize uma extensão de servidor local, como o Live Server.
+1. Preencha `DB_PASSWORD` no `.env` da raiz do projeto. O arquivo é ignorado pelo Git; não o envie ao GitHub.
+2. Inicie o Docker Desktop.
+3. Na raiz do projeto, suba o banco:
 
-Exemplo de clonagem:
+   ```powershell
+   docker compose --env-file .env -f infra/compose.yaml up -d db
+   ```
 
-```bash
-git clone URL_DO_REPOSITORIO
-cd nome-do-repositorio
-```
+4. Inicie a API:
 
-Substitua `URL_DO_REPOSITORIO` pelo endereço real do repositório e `nome-do-repositorio` pelo nome da pasta criada.
+   ```powershell
+   Set-Location apps/api
+   .\mvnw.cmd spring-boot:run
+   ```
 
-**Importante:** essa execução é válida para o protótipo estático. A versão completa poderá exigir instalação de dependências, configuração do backend, criação do banco de dados e variáveis de ambiente.
+O Spring Boot importa o `.env` da raiz durante a execução a partir de `apps/api`. Para validar a compilação e os testes, execute `.\mvnw.cmd verify` nesse diretório; os testes de integração usam Testcontainers e precisam do Docker Desktop ativo. A API expõe a verificação de saúde em `http://localhost:8080/actuator/health`.
+
+Para parar o banco sem apagar os dados locais, execute na raiz `docker compose --env-file .env -f infra/compose.yaml stop db`.
 
 ## 16. Organização sugerida do repositório
 

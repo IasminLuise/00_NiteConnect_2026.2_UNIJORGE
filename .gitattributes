@@ -1,0 +1,4 @@
+# Line endings previsíveis em ambientes Windows e Linux
+* text=auto
+apps/api/mvnw text eol=lf
+apps/api/mvnw.cmd text eol=crlf
