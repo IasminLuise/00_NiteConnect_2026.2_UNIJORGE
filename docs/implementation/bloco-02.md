@@ -53,7 +53,7 @@ atualiza proposta com auditoria na mesma transação; origem é única.
 - [x] B02.4: participação/saída/retorno, transferência/vacância e históricos.
 - [x] B02.5: autorização contextual, isolamento e revogação imediata.
 - [x] B02.6: propostas/decisões/conversão única e auditoria transacional.
-- [x] B02.7: testes negativos/concorrência/regressão, revisão e documentação; validação local concluída, revisão de PR/CI acompanhada na entrega.
+- [x] B02.7: testes negativos/concorrência/regressão, revisão e documentação; validação local concluída, PR #4 revisado, checks aprovados e merge realizado.
 
 Cada frente começa com testes que demonstram o comportamento ausente, segue com
 implementação e validação direcionada. Encerramento: `mvnw.cmd --batch-mode verify`
@@ -87,6 +87,28 @@ progresso, indicadores, calendário, documentos, AV3 ou frontend é antecipada.
 | T23 | Versões obsoletas, período inválido, paginação, estado/decisão inválidos e justificativas obrigatórias; regras unitárias e limites compartilhados do Bloco 01 |
 | T24 | Suíte integral inclui os 58 testes do Bloco 01; única adequação troca `/projects` por `/activities` no teste de rotas ainda não implementadas |
 
+### Rastreabilidade da especificação consolidada
+
+| Requisito | Entrega no Bloco 02 | Evidência principal |
+|---|---|---|
+| RF-008 | Projeto formal independente da equipe, dados e situação | `ProjectService`, `ProjectsBoundaryTest` |
+| RF-009 | Participações com entrada, saída, responsabilidade e períodos preservados | `ProjectDirectory`, `ProjectsBoundaryTest`, `Block02IntegrityTest` |
+| RF-014 (projetos) | Consulta do histórico pessoal sem conteúdo gerencial | `GET /api/v1/me/projects/history`, `GET /api/v1/me/projects/leadership/history`, `ProjectsBoundaryTest` |
+| RF-029 | Proposta separada, decisão e conversão com origem única | `ProposalService`, `ProposalsBoundaryTest` |
+| RF-030 | Estados e liderança contextual com transferência e histórico | `ProjectService`, `Block02RulesTest`, `ProjectsBoundaryTest` |
+| CA-08 | Vacância ou gestor indisponível sem excluir o projeto | `ProjectsBoundaryTest`, `Block02RevocationTest` |
+| CA-15 | Pausa e retomada explícitas e históricas | `ProjectsBoundaryTest` |
+| CA-16 | Autorizações no backend e auditoria transacional | `ProjectAccess`, `Block02IntegrityTest`, `Block02RevocationTest` |
+
+Para RF-010, RF-015, RF-016 e RF-031, o contrato de integração disponível é a
+identidade estável do projeto, seu estado e suas consultas autorizadas de
+participação/liderança em `projects.application` e `access.application`.
+Atividades poderão referenciar o identificador do projeto; andamento e alertas
+deverão considerar o estado (especialmente `PAUSADO`) e a liderança efetiva.
+Os DTOs, regras de cálculo, critérios de alerta e endpoints desses quatro RFs
+serão definidos nos blocos correspondentes; nenhum percentual ou sinalização
+automática foi implementado no Bloco 02.
+
 ## Revisão e limitações
 
 Revisão independente de código e revisão incremental do histórico pessoal de
@@ -105,9 +127,11 @@ a espera; diagnóstico com pg_locks comprovou lock concedido e outro pendente
 para a mesma chave. O teste passou a sincronizar pela espera real em pg_locks.
 Esses ajustes são de teste e não alteram o mecanismo de autorização.
 
-Validação local usa PostgreSQL real isolado, principais JWT fictícios para testes
-de autorização e testes criptográficos preservados do Bloco 01. Não representa
-homologação institucional, novo teste manual com Microsoft ou migração de produção.
+Validação automatizada usa PostgreSQL real isolado, principais JWT fictícios para
+testes de autorização e testes criptográficos preservados do Bloco 01. O ensaio
+local posterior com Microsoft Entra está registrado nas
+[evidências de homologação técnica](homologacao-bloco-02-local.md). Nenhuma dessas
+verificações equivale ao aceite institucional ou à migração de produção.
 O advisory lock global continua sendo um compromisso explícito de baixo volume.
 
 ## Resultado da validação local
@@ -121,8 +145,30 @@ Em 15/10/2026, após a última alteração de código e testes:
 - `git diff --check`: sem problemas de whitespace.
 
 A primeira execução integrada de 45 cenários já havia passado; o verify final
-inclui esses comportamentos e todas as correções posteriores. Apenas documentação
-e metadados Git são atualizados após essa execução; não invalidam os testes.
-Não foram executados frontend/build Next.js ou homologação institucional, pois
-não pertencem ao escopo. Não foi alterado `.env`, credencial ou banco externo.
-O status do GitHub Actions deve ser verificado no PR; esta evidência é local.
+inclui esses comportamentos e todas as correções posteriores. Na branch de
+funcionalidade, apenas documentação e metadados Git foram atualizados após
+essa execução. Não foram executados frontend/build Next.js ou homologação
+institucional, pois não pertencem ao escopo. Não foi alterado `.env`, credencial
+ou banco externo durante a implementação funcional.
+
+## Estado posterior da entrega (16/10/2026)
+
+- O [PR #4](https://github.com/IasminLuise/00_NiteConnect_2026.2_UNIJORGE/pull/4)
+  foi integrado à `main` no commit `8458ec39a0051a1a8800c25aa9be8378c44753ee`;
+  os checks `verify-api` constam como aprovados.
+- A suíte foi reexecutada na branch de infraestrutura após a integração: 111
+  testes, sem falhas, erros ou testes ignorados; Flyway V1–V3 foi verificado em
+  PostgreSQL 17 pelo Testcontainers. A branch acrescentou suporte de implantação,
+  sem alterar os módulos funcionais de projetos e propostas.
+- A API integrada foi iniciada em Docker no computador local. O Postman Web com
+  Desktop Agent e OAuth PKCE confirmou `GET /api/v1/me` e
+  `GET /api/v1/projects` autenticados com HTTP 200. As negativas sem token
+  retornaram HTTP 401. As evidências detalhadas ficam no
+  [registro local](homologacao-bloco-02-local.md).
+- O [staging Cloudflare + Neon](staging-bloco-02.md) está preparado, mas o
+  Container não foi implantado porque a contratação do Workers Paid não foi
+  autorizada. Aceite institucional formal e migração de produção seguem pendentes.
+
+A matriz T01–T24 acima representa cobertura automatizada com identidades
+sintéticas; as duas consultas autenticadas manuais não exercitam todos esses
+cenários com contas institucionais distintas.
