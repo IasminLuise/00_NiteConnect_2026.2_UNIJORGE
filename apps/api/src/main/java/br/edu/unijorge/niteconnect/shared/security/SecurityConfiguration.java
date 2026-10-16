@@ -33,6 +33,16 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/projects", "/api/v1/projects/*", "/api/v1/me/projects",
+                                "/api/v1/me/projects/history", "/api/v1/me/projects/leadership/history", "/api/v1/projects/*/history", "/api/v1/projects/*/members",
+                                "/api/v1/projects/*/members/history", "/api/v1/projects/*/leadership", "/api/v1/projects/*/leadership/history",
+                                "/api/v1/proposals", "/api/v1/proposals/*").access(authenticatedJwt)
+                        .requestMatchers(HttpMethod.POST, "/api/v1/projects", "/api/v1/projects/*/members",
+                                "/api/v1/projects/*/leadership-transfers", "/api/v1/proposals",
+                                "/api/v1/proposals/*/decisions", "/api/v1/proposals/*/convert").access(authenticatedJwt)
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/projects/*", "/api/v1/projects/*/status",
+                                "/api/v1/proposals/*").access(authenticatedJwt)
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/projects/*/members/*").access(authenticatedJwt)
                         .requestMatchers(HttpMethod.GET, "/api/v1/me", "/api/v1/members", "/api/v1/members/*",
                                 "/api/v1/members/*/history", "/api/v1/invitations", "/api/v1/audit-events")
                             .access(authenticatedJwt)
