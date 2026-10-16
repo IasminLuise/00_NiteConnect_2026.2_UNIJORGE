@@ -1,178 +1,148 @@
-# Staging institucional — Bloco 02
+# Staging do Bloco 02 — Cloudflare + Neon
 
-## Estado e pré-requisitos
+## Estado
 
-Este pacote prepara a implantação; não comprova execução na VM ou aceite
-institucional. O backend ainda não possui frontend. A homologação usa a API com
-Postman/cliente OAuth institucional, contas de teste aprovadas e dados sintéticos.
+O repositório está preparado para executar a API Java em Cloudflare Containers e
+usar PostgreSQL gerenciado no Neon. A configuração ainda não foi implantada em
+uma conta Cloudflare nem conectada a um projeto Neon. O aceite institucional e
+a migração de produção continuam pendentes.
 
-O operador precisa confirmar:
+Este repositório contém o backend; `apps/web` ainda não é um frontend integrado.
+A homologação funcional usa cliente HTTP/Postman com access token institucional
+e contas de teste autorizadas. Login Microsoft não concede autorização por si só.
 
-- VM Linux x86_64 com Docker Engine e Docker Compose, disco para imagem/volume e
-  acesso administrativo institucional. O artefato inicial é linux/amd64.
-- URL HTTPS, DNS e proxy reverso no mesmo host apontando para
-  http://127.0.0.1:8080. A API é publicada só em loopback; o banco não tem porta
-  publicada. Encaminhar Authorization sem registrar tokens no proxy.
-- Saída de rede para Microsoft Entra/JWKS.
-- Tenant, client ID da API e escopo delegado aprovados; identidade administrativa
-  de teste e pelo menos duas outras identidades para testar isolamento contextual.
-- Operador, testadores, janela e responsável pelo aceite definidos pela instituição.
+## Topologia
 
-Administradores Docker podem inspecionar variáveis dos contêineres. O arquivo de
-configuração deve ficar fora do Git, protegido e acessível somente aos operadores.
-Não usar dados acadêmicos reais ou copiar o banco de produção.
+- Cloudflare Worker recebe HTTPS e encaminha as requisições para um Durable
+  Object/Container que executa a imagem Java 21.
+- Cloudflare Container é efêmero. Dados e schema ficam no PostgreSQL do Neon.
+- API usa `DB_URL` com endpoint pooled Neon (`-pooler`) e TLS.
+- Flyway usa `FLYWAY_URL` com endpoint direto, sem `-pooler`, e TLS. Separar a
+  conexão de migração evita depender de estado de sessão por meio do PgBouncer.
+- A instância é `basic` (1 GiB) e `max_instances=1` como ponto inicial de
+  staging. Medir memória, tempo de inicialização, cold starts e custo antes de
+  homologar e aumentar capacidade.
+- O acesso à internet do Container permite a conexão PostgreSQL TCP/TLS ao Neon
+  e consulta às chaves públicas do Microsoft Entra. Os endpoints continuam
+  autenticados pela API.
+- Cloudflare Containers está em beta e não oferece SLA de produção segundo a
+  documentação atual. A instituição deve aceitar essa limitação para staging.
 
-## Artefato validado
+## Pré-requisitos institucionais
 
-Backend CI executa Maven verify, constrói a imagem do JAR testado e exercita o
-Compose descartável. Somente push na main aprovado nessas etapas publica o
-artefato nite-connect-staging-<SHA> no GitHub Actions, disponível por 14 dias:
+1. Acesso a uma conta Cloudflare autorizada com Workers Paid/Containers
+   habilitados.
+2. Projeto/branch e banco de staging vazios no Neon. Escolher região conforme
+   latência e política institucional de dados.
+3. Tenant Microsoft Entra, audience/client ID e scope delegado aprovados para a
+   API; contas de teste, incluindo um `GESTOR_GERAL`, autorizadas.
+4. URL `workers.dev` temporária ou domínio HTTPS controlado pela instituição,
+   operador de implantação, testadores e pessoa responsável pelo aceite.
 
-- api-image.tar: imagem nite-connect-api:<SHA>, sem credenciais.
-- compose.staging.yaml: contrato de execução daquele release.
-- RELEASE.txt: commit completo, plataforma e ID da imagem.
-- RUNBOOK.md e SHA256SUMS: procedimento e integridade dos arquivos.
+Nenhuma conta, banco, DNS, domínio, segredo ou identidade é provisionada por CI.
+Não usar dados reais de produção no staging.
 
-Baixar da execução bem-sucedida correspondente ao commit da main, confirmar o SHA
-no GitHub e transferir por canal institucional autenticado. Checksums detectam
-corrupção; a procedência é a execução CI autenticada do repositório.
-Na VM, dentro do diretório do bundle:
+## Configuração segura
 
-~~~bash
-sha256sum -c SHA256SUMS
-cat RELEASE.txt
-docker load --input api-image.tar
-~~~
-
-Conferir o ID carregado com IMAGE_ID do RELEASE e o SHA da tag. Não substituir
-por latest, reconstruir na VM ou usar bundle de PR. Não há registry,
-deploy automático ou credenciais SSH no workflow.
-
-## Configuração externa
-
-O operador cria /etc/nite-connect/staging.env fora do checkout, com permissão
-0600 e diretório protegido. Preencher no gerenciador/editor seguro, sem histórico
-de shell/transcrição; não enviar valores ao chat:
-
-| Variável | Valor |
-|---|---|
-| STAGING_IMAGE_TAG | SHA completo de RELEASE, conferido no GitHub |
-| DB_PASSWORD | Senha exclusiva do banco de staging |
-| ENTRA_TENANT_ID | UUID do tenant autorizado |
-| ENTRA_AUDIENCE | Client ID da API, audience do access token v2 |
-| ENTRA_REQUIRED_SCOPE | Nome do escopo delegado, sem prefixo de URI |
-| STAGING_API_PORT | Opcional; padrão 8080 em loopback |
-
-Usar a sintaxe de env-file do Compose; valores com caracteres especiais devem
-ser representados corretamente, por exemplo com aspas simples para preservar $.
-ENTRA_ENABLED=true é fixado pelo Compose. Sem parâmetros obrigatórios o Compose
-recusa iniciar. Não colocar opções de bootstrap nesse arquivo.
-
-Não imprimir docker compose config ou docker inspect em logs: podem conter
-segredos. Para validar sem exibir valores:
-
-~~~bash
-docker compose --env-file /etc/nite-connect/staging.env -f compose.staging.yaml config --quiet
-~~~
-
-O banco é niteconnect_staging, usuário niteconnect, no volume exclusivo do
-projeto nite-connect-staging. DB_URL aponta para o serviço db; não recebe URL
-externa. Trocar DB_PASSWORD no arquivo não altera senha de banco já criado:
-uma rotação exige procedimento coordenado no PostgreSQL e na aplicação.
-
-## Primeira inicialização e administrador
-
-Iniciar somente o banco:
-
-~~~bash
-docker compose --env-file /etc/nite-connect/staging.env -f compose.staging.yaml up -d --wait db
-~~~
-
-O operador disponibiliza no próprio processo, por mecanismo seguro, as variáveis
-NITE_BOOTSTRAP_OBJECT_ID, NITE_BOOTSTRAP_NAME, NITE_BOOTSTRAP_INSTITUTIONAL_EMAIL
-e NITE_BOOTSTRAP_REASON, com a identidade institucional previamente conferida.
-O comando transmite os nomes, sem valores escritos na linha de comando:
-
-~~~bash
-docker compose --env-file /etc/nite-connect/staging.env -f compose.staging.yaml run --rm --no-deps \
-  -e NITE_BOOTSTRAP_OBJECT_ID -e NITE_BOOTSTRAP_NAME \
-  -e NITE_BOOTSTRAP_INSTITUTIONAL_EMAIL -e NITE_BOOTSTRAP_REASON \
-  -e NITE_BOOTSTRAP_ROLE=GESTOR_GERAL \
-  api --spring.main.web-application-type=none --nite.bootstrap.enabled=true
-unset NITE_BOOTSTRAP_OBJECT_ID NITE_BOOTSTRAP_NAME NITE_BOOTSTRAP_INSTITUTIONAL_EMAIL NITE_BOOTSTRAP_REASON
-~~~
-
-Esse processo aplica Flyway V1–V3, provisiona o administrador transacionalmente e
-encerra sem servidor HTTP. Conferir saída zero antes de continuar. O bootstrap
-recusa banco já provisionado; não repetir em atualizações. A execução normal da
-imagem força bootstrap desabilitado. Os demais integrantes ingressam por convite
-autenticado, com papéis atribuídos pela API.
-
-~~~bash
-docker compose --env-file /etc/nite-connect/staging.env -f compose.staging.yaml up -d api
-curl --fail http://127.0.0.1:8080/actuator/health
-docker compose --env-file /etc/nite-connect/staging.env -f compose.staging.yaml exec -T db \
-  psql -U niteconnect -d niteconnect_staging -c \
-  'select version, success from public.flyway_schema_history order by installed_rank;'
-~~~
-
-Se STAGING_API_PORT foi alterado, ajustar curl/proxy. Esperado: health UP,
-versões 1, 2 e 3 bem-sucedidas. Conferir também pelo domínio HTTPS aprovado.
-Sem token, /api/v1/projects deve retornar 401. A API deve continuar saudável
-após reinício; o volume não deve ser apagado.
-
-## Atualização e recuperação
-
-Conferir novo bundle, preservar o release anterior e providenciar snapshot/backup
-restaurável do banco de staging antes de alteração de schema. Parar a API antiga,
-atualizar a tag no arquivo externo e iniciar uma instância. O startup
-valida/aplica Flyway antes de atender requisições; falha impede o serviço.
-
-Falha: parar a API, preservar logs/volume e diagnosticar. Reverter apenas a imagem
-quando compatível com o schema; caso contrário, usar recuperação de staging
-aprovada pelo operador. Não reescrever migrações, fazer downgrade SQL ou executar
-down --volumes no staging institucional. Reconstrução com perda dos dados de
-teste exige autorização do responsável.
-
-Logs locais têm rotação (10 MiB, três arquivos por serviço); ajustar ao padrão
-operacional institucional. Não gravar tokens ou dados pessoais nas evidências.
-Retenção e política de backup serão institucionais.
-
-## Roteiro de aceite
-
-Registrar data, URL, SHA completo, execução CI, versões Flyway, testadores e
-responsável pelo aceite. Usar contratos dos Blocos 01 e 02; o token deve ser
-access token v2 para a API. Login Microsoft sozinho não concede autorização.
-
-| Grupo | Execução no staging | Evidência esperada |
-|---|---|---|
-| Autenticação | Administrador real de teste faz GET /api/v1/me; testar sem token e integrante não vinculado | 200 para identidade provisionada; negações corretas |
-| T01–T05, T13 | Administração cria dois projetos; integrantes ingressam; gestor altera o próprio e tenta o alheio | Persistência e vínculos independentes; acesso alheio recusado |
-| T06–T10, T21 | Transferir liderança, explicitar vacância, saída/retorno, desligamento e retirada de autoridade | Uma liderança vigente; históricos preservados; nova requisição perde acesso |
-| T11–T12 | Ativar, pausar, retomar, concluir e reabrir com motivos e versões atuais | Histórico completo e estado final correto |
-| T14–T16 | Propor, aprovar e converter; repetir e enviar duas conversões concorrentes | Origem preservada, um projeto e conflito na tentativa duplicada |
-| T17, T22–T23 | Integrante inexistente/inativo, versões antigas, motivo ausente e datas inválidas | Erro correspondente sem alteração parcial |
-| T18–T20, T24 | Conferir CI do release e versões na VM | Rollback de auditoria, V2→V3, instalação limpa e 58 testes anteriores comprovados pela suíte isolada |
-
-Não injetar triggers de falha no banco institucional: T18 é coberto pelo teste
-isolado automatizado. Corridas de liderança/conversão também têm testes
-automatizados; verificações no staging avaliam o release implantado.
-
-Registrar cada caso como aprovado/reprovado/não executado, resultado esperado,
-observado e evidência sem segredos. Falha relevante impede aceite.
-Somente o responsável institucional designado registra a homologação formal.
-Pacote pronto, CI verde e smoke local não substituem esse registro.
-
-## Validação local do pacote
-
-Após executar mvnw.cmd --batch-mode verify em apps/api, na raiz:
+Na pasta `infra/cloudflare`, instale dependências com `npm ci`. Configure cada
+valor com o prompt interativo do Wrangler; não coloque segredos em argumentos,
+arquivos versionados ou logs:
 
 ~~~powershell
-docker build --platform linux/amd64 -t nite-connect-api:smoke-local apps/api
-pwsh -NoProfile -File infra/tests/staging-smoke.ps1 -ImageTag smoke-local
+npx wrangler secret put DB_URL
+npx wrangler secret put DB_USERNAME
+npx wrangler secret put DB_PASSWORD
+npx wrangler secret put FLYWAY_URL
+npx wrangler secret put ENTRA_TENANT_ID
+npx wrangler secret put ENTRA_AUDIENCE
+npx wrangler secret put ENTRA_REQUIRED_SCOPE
 ~~~
 
-O teste cria projeto Compose com nome aleatório, porta efêmera, banco/segredo
-descartáveis; verifica rede, usuário sem root, health, HTTP 401, migrações e
-bootstrap e reinício. Ao terminar remove somente recursos desse projeto descartável e
-restaura variáveis de processo anteriores.
+Os dois URLs são JDBC. Converter localmente os dados apresentados pelo Neon,
+sem copiar a senha ao chat:
+
+~~~text
+Aplicação: jdbc:postgresql://<host-com--pooler>/<database>?sslmode=require
+Flyway:    jdbc:postgresql://<host-direto>/<database>?sslmode=require
+~~~
+
+Use o mesmo usuário/senha exclusivos de staging, salvo se a política do projeto
+definir um papel de migração separado. O valor `DB_URL` usa o host `-pooler`; o
+`FLYWAY_URL` usa o host direto. O Wrangler guarda os valores como secrets do
+Worker e o código os transmite somente ao processo Java do Container, que
+precisa deles para abrir as conexões JDBC.
+
+`ENTRA_ENABLED=true` é fixado na configuração. Não adicione dados de bootstrap
+como secrets permanentes do serviço.
+
+## Bootstrap inicial
+
+O banco precisa estar vazio e pertencer exclusivamente ao staging. O CI da
+`main` disponibiliza por 14 dias o JAR verificado como artefato
+`nite-connect-staging-bootstrap-<SHA>`. Para criar o primeiro `GESTOR_GERAL`,
+o operador autorizado baixa o JAR da execução correspondente ao commit e o
+executa localmente uma única vez com as variáveis temporárias
+`NITE_BOOTSTRAP_OBJECT_ID`, `NITE_BOOTSTRAP_NAME`,
+`NITE_BOOTSTRAP_INSTITUTIONAL_EMAIL` e `NITE_BOOTSTRAP_REASON`, além de
+`DB_URL`, `DB_USERNAME` e `DB_PASSWORD` apontando para o endpoint direto do
+Neon. Execute `java -jar <JAR> --spring.main.web-application-type=none
+--nite.bootstrap.enabled=true`; o runtime normal mantém o bootstrap desativado.
+Forneça valores por mecanismo seguro do executor, nunca na linha de comando ou
+em log persistente, e remova-os logo após a execução. Não repita o bootstrap em
+atualizações.
+
+A execução deve terminar com código zero e registrar Flyway V1–V3 aplicadas.
+Depois, configure os secrets do Worker com `DB_URL` pooled e `FLYWAY_URL`
+direto, publique o Container e valide `/actuator/health` e
+`/api/v1/projects` sem token (esperado: HTTP 401). Se o bootstrap falhar,
+preserve o banco e investigue; não limpe nem recrie o branch sem autorização.
+
+## Deploy manual
+
+O CI valida a API, constrói a imagem no PR e valida tipos/bundle Wrangler. Não
+executa `wrangler deploy`, não usa credenciais cloud, não cria banco nem publica
+artefato de implantação. Após merge e configuração de conta/secrets pelo
+operador autorizado:
+
+~~~powershell
+Set-Location infra/cloudflare
+npm ci
+npx wrangler deploy
+~~~
+
+O primeiro deploy pode levar alguns minutos para distribuir a imagem. Acompanhe
+o estado do Worker e Container no painel Cloudflare e confira uma requisição que
+chegue à API. Configure domínio próprio apenas após validar a URL temporária e
+aprovar a rota institucional. A URL, SHA, release e quem executou devem constar
+no registro de homologação.
+
+## Atualizações, migrações e recuperação
+
+Cada release inicia com secrets existentes. Flyway valida/aplica migrações na
+inicialização do Container usando conexão Neon direta; mantenha apenas uma
+instância durante atualização de schema. Nunca edite migrações já aplicadas.
+Crie e valide uma branch/snapshot Neon recuperável antes de mudança de schema.
+Retorne à imagem anterior somente quando compatível com o schema atual; não faça
+downgrade automático. O disco do Container é efêmero e não é cópia de segurança.
+
+## Roteiro de aceite institucional
+
+Registrar data, URL, SHA completo, execução CI, versão Flyway, executor,
+testadores e responsável institucional. Usar identidades autorizadas e dados
+sintéticos.
+
+| Grupo | Validação no staging | Evidência |
+|---|---|---|
+| Autenticação | `GET /api/v1/me`, ausência de token e integrante sem vínculo | Respostas e negações esperadas |
+| T01–T05, T13 | Criar projetos, ingressar integrantes, gestor próprio/alheio | Persistência, vínculos e isolamento |
+| T06–T10, T21 | Transferência/vacância de liderança, saída/retorno, desligamento e revogação | Uma liderança vigente e períodos preservados |
+| T11–T12 | Pausar, retomar, concluir e reabrir com justificativas | Histórico completo e estado final |
+| T14–T16 | Proposta, aprovação, conversão repetida e concorrente | Origem preservada e projeto único |
+| T17, T22–T23 | Integrante inexistente/inativo, versão antiga e dados inválidos | Rejeição sem alteração parcial |
+| T18–T20, T24 | Falha de auditoria, migrações e suíte anterior | CI com rollback, V1–V3 e 111 testes preservados |
+
+Falhas de integração, concorrência e auditoria são verificadas pela suíte local
+com Testcontainers. Não injetar falhas artificiais no banco de homologação.
+Marcar cada caso aprovado/reprovado/não executado e registrar evidência sem
+segredos. Somente a pessoa responsável designada pela instituição concede o
+aceite formal. CI verde e deploy técnico não concluem a homologação.

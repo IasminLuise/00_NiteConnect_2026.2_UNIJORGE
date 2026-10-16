@@ -1,118 +1,42 @@
-# NITE Connect — ambiente de staging do Bloco 02
+# NITE Connect — staging Cloudflare + Neon
 
 ## Objetivo
 
-Preparar uma implantação repetível do backend integrado do Bloco 02 em uma VM
-administrada pela instituição, para homologação com Microsoft Entra e dados de
-teste. A implantação deve ser separada de produção e manualmente promovida por
-um operador, sem executar qualquer operação de produção.
+Preparar uma implantação repetível do backend Java do Bloco 02 em Cloudflare Containers, usando um PostgreSQL exclusivo de staging no Neon. O ambiente serve à homologação institucional com Microsoft Entra e dados sintéticos. Não executa promoção automática para produção.
 
-## Decisões de escopo
+## Decisões aprovadas
 
-- O alvo aprovado para este desenho é uma VM/host sob administração institucional.
-- A implantação será conteinerizada com Docker Compose, sem dependência de
-  provedor cloud específico.
-- O backend será o artefato da `main` integrado pela PR #4, identificado por SHA
-  imutável. Não haverá deploy automático nem promoção para produção.
-- A aplicação usará um PostgreSQL exclusivo para staging, sem cópia de dados de
-  produção. Dados funcionais de teste serão sintéticos; as identidades usadas
-  para autenticação serão contas de teste aprovadas pela instituição.
-- A VM fornecerá o proxy reverso institucional e o certificado HTTPS. O
-  contêiner da API ficará publicado somente em loopback; PostgreSQL não terá
-  porta publicada no host.
-- A configuração de Entra, o segredo do banco e dados usados no bootstrap inicial
-  ficarão em arquivo operacional protegido na VM, fora do repositório e dos
-  artefatos de build. Nenhum `.env` local será lido, alterado ou copiado.
-- A promoção fica manual: CI valida e empacota a imagem; operador transfere o
-  artefato para a VM e inicia a implantação após conferir o SHA e os checks.
+- Cloudflare Workers + Containers executam a API Spring Boot existente; o Worker encaminha as requisições HTTP para um Durable Object que gerencia o Container.
+- Neon fornece PostgreSQL gerenciado. A API usa endpoint pooled com TLS; Flyway usa endpoint direto com TLS, pois migrações exigem conexão de sessão.
+- O Dockerfile é mantido porque Cloudflare Containers recebe uma imagem Linux. Docker Compose, banco local de runtime, VM, proxy institucional e bundle manual são removidos deste caminho.
+- A implantação permanece manual. CI testa e empacota a imagem e valida o Worker, sem credenciais Cloudflare/Neon nem deploy automático.
+- O schema é criado/aplicado pelas migrações Flyway existentes. Nenhum dado de produção será copiado.
+- Segredos de Neon e parâmetros autorizados do Entra serão armazenados como secrets do Worker e passados ao processo Java apenas em runtime. Não entram em arquivos versionados, artefatos ou logs.
+- Nenhum recurso será criado em Cloudflare ou Neon pelo código da CI. Provisionamento real precisa de conta autorizada, branch/banco de staging e parâmetros institucionais.
 
-## Componentes e responsabilidades
+## Componentes
 
-1. `apps/api/Dockerfile`: imagem de runtime Java 21 sem toolchain Maven, copiando
-   apenas o JAR produzido e validado pelo CI; processo sem root.
-2. `apps/api/.dockerignore`: restringe o contexto da imagem e exclui credenciais,
-   histórico Git, fontes de teste e arquivos temporários.
-3. `.github/workflows/backend-ci.yml`: depois de `mvn verify`, constrói e testa a
-   imagem a partir do JAR validado nos PRs e pushes cobertos. Exporta o bundle
-   para validar o empacotamento, mas só publica o arquivo Docker identificável
-   pelo SHA em push na `main`. Não usa registry nem credenciais de deploy.
-4. `infra/compose.staging.yaml`: define API e PostgreSQL, rede privada, volume
-   persistente de staging, verificação de saúde do PostgreSQL, reinício após
-   falha e bind da API em `127.0.0.1:8080`. PostgreSQL não expõe porta no host.
-5. `docs/implementation/staging-bloco-02.md`: registra pré-requisitos da VM,
-   obtenção e conferência do artefato, configuração externa, bootstrap único,
-   inicialização, verificação, execução da homologação e recuperação do staging.
+1. `apps/api/Dockerfile` e `.dockerignore`: imagem mínima da aplicação Java 21, construída a partir do JAR verificado, sem Maven e sem root.
+2. `infra/cloudflare/`: Worker TypeScript, binding Durable Object/Container, configuração Wrangler e dependências fixadas por lockfile.
+3. `.github/workflows/backend-ci.yml`: preserva `mvn verify` e PostgreSQL Testcontainers, constrói a imagem e executa typecheck/dry-run do Worker. Não publica nem implanta.
+4. `docs/implementation/staging-bloco-02.md`: configuração segura Cloudflare/Neon, bootstrap, deploy manual, verificação e roteiro T01–T24.
 
-O banco será dedicado à homologação. Flyway executará V1–V3 na inicialização da
-primeira instância da API. A implantação inicia uma única instância durante a
-migração; JPA permanece em `ddl-auto: validate`. A API usa `/actuator/health`,
-cuja resposta não revela detalhes internos.
+## Conexões e inicialização
 
-## Segredos e autenticação
+- `DB_URL`: JDBC para host pooled Neon (`-pooler`) com `sslmode=require`.
+- `FLYWAY_URL`: JDBC para host direto Neon, sem `-pooler`, também com TLS.
+- `DB_USERNAME` e `DB_PASSWORD`: papel exclusivo de staging.
+- `ENTRA_ENABLED=true`, tenant, audience e scope são obrigatórios no Worker.
+- O Container usa `basic` (1 GiB) como ponto inicial e uma instância para staging; limites reais de memória, cold start e custo precisam ser avaliados no ambiente antes de ampliar o uso.
+- Cada inicialização aplica/verifica Flyway e valida o schema com JPA. Dados persistentes ficam no Neon; disco local do Container é descartável.
+- Bootstrap de `GESTOR_GERAL` é uma operação única executada por operador autorizado contra o banco vazio, usando o JAR aprovado e conexão direta. O comando normal mantém `nite.bootstrap.enabled=false`.
 
-O operador cria na VM um arquivo de ambiente fora do checkout, acessível apenas
-aos administradores operacionais. Ele contém somente os valores necessários à
-conexão PostgreSQL e à validação Entra (`DB_PASSWORD`, `ENTRA_ENABLED`,
-`ENTRA_TENANT_ID`, `ENTRA_AUDIENCE` e `ENTRA_REQUIRED_SCOPE`). A configuração
-efêmera do bootstrap administrativo é fornecida apenas ao processo one-shot de
-bootstrap e removida antes da execução normal. Tokens, senhas e identificadores
-pessoais não entram no repositório, nos logs de deploy, no artefato ou neste
-documento.
+## Limites e aceite
 
-O estágio exige uma identidade administrativa de teste provisionada como
-`GESTOR_GERAL` e identidades institucionais de teste para os demais perfis. O
-login é feito pelo fluxo institucional aprovado, por exemplo via cliente OAuth
-de teste/Postman; a API valida access tokens e não fornece tela de login neste
-bloco. Conta ou token não será criado por código de infraestrutura.
+Containers da Cloudflare estão em beta e não oferecem SLA de produção conforme documentação atual. O ambiente pode atender à homologação, mas essa limitação precisa ser considerada antes de produção.
 
-## Implantação e verificação
+O aceite institucional exige implantação real, URL HTTPS, identidades de teste aprovadas, execução da matriz funcional e responsável designado. CI verde, dry-run e configuração no Git não equivalem a homologação. Região Neon, domínio/rota Cloudflare e configurações Entra dependem de escolha e autorização institucional.
 
-1. Confirmar que a execução de CI pertence ao SHA integrado na `main` e que todos
-   os checks requeridos terminaram com sucesso.
-2. Baixar o arquivo da imagem Docker daquela execução, verificar o SHA documentado e
-   transferi-lo à VM por canal institucional autenticado.
-3. Confirmar Docker Engine/Compose e arquitetura compatível com a imagem. Criar
-   o arquivo operacional de ambiente com permissões restritas; conferir que o
-   proxy HTTPS encaminhará somente para o bind local da API.
-4. Criar o banco vazio do estágio e iniciar uma instância. Confirmar no log de
-   inicialização que Flyway aplicou V1, V2 e V3 e que a aplicação iniciou sem
-   erro. Nenhum dado real de produção será importado.
-5. Executar o bootstrap inicial uma única vez com a identidade de teste
-   previamente autorizada pela instituição; remover imediatamente as opções de
-   bootstrap e iniciar a API no modo normal.
-6. Verificar healthcheck pela rota interna e pelo domínio HTTPS, autenticação
-   Entra, mapeamento de identidade e papel. Rodar a matriz T01–T24 do Bloco 02
-   com perfis representativos e registrar resultado, SHA, versão Flyway,
-   executor e aceite do responsável institucional.
+## Substituição da decisão anterior
 
-O aceite requer evidências de execução; ter CI verde ou testes automatizados
-aprovados não conclui a homologação institucional. Os testes manuais devem usar
-valores sintéticos, salvo as identidades de teste explicitamente autorizadas.
-
-## Recuperação e limites
-
-Esta especificação não autoriza criar VM, DNS, certificados, contas Entra, custos
-de provedor, banco externo ou recursos de produção. A instituição precisa
-informar host/arquitetura, procedimento de acesso, DNS/proxy TLS, janela, operador
-e responsável pelo aceite antes da implantação real.
-
-Nenhuma migração Flyway aplicada será removida ou reescrita. Se a implantação de
-staging falhar, parar a API e diagnosticar mantendo o volume intacto. A volta à
-versão anterior do contêiner é permitida apenas se compatível com o schema
-existente; caso contrário, restaurar o snapshot de staging ou reconstruir o banco
-de teste conforme o operador institucional. Não executar downgrade ou reset
-automático.
-
-O host e a imagem inicial são escolhas de staging de baixa disponibilidade; não
-definem arquitetura de produção nem uma política de backup institucional.
-
-## Evidências de contexto
-
-- Backend Java 21 / Spring Boot 4.1.1 e PostgreSQL 17; o CI executa `mvn verify`.
-- No início deste trabalho, o Compose continha PostgreSQL local e serviço de
-  Testcontainers, sem API de runtime; não havia Dockerfile, registry ou deploy.
-- A API mantém deny-all enquanto Entra estiver desabilitado, expõe apenas o
-  healthcheck e aplica Flyway automaticamente na inicialização.
-- A homologação local do Bloco 01 não comprova homologação do Bloco 02 em VM.
-- O aceite depende de host, proxy, parâmetros institucionais e testadores, ainda
-  não fornecidos; esta especificação não presume seus valores.
+Esta especificação substitui a proposta anterior de VM/Docker Compose. Nenhuma VM foi provisionada. A implementação anterior era apenas configuração versionada e testes descartáveis locais; Compose e smoke test correspondentes são removidos nesta revisão. O Dockerfile permanece somente como formato de imagem requerido por Cloudflare Containers.

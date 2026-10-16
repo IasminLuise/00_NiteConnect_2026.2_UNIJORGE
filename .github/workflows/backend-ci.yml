@@ -3,17 +3,17 @@ on:
   pull_request:
     paths:
       - 'apps/api/**'
-      - 'infra/compose.staging.yaml'
-      - 'infra/tests/**'
+      - 'infra/cloudflare/**'
       - 'docs/implementation/staging-bloco-02.md'
+      - 'docs/superpowers/specs/2026-10-16-bloco-02-staging-design.md'
       - '.github/workflows/backend-ci.yml'
   push:
     branches: [main, 'chore/**', 'feat/**', 'fix/**', 'infra/**']
     paths:
       - 'apps/api/**'
-      - 'infra/compose.staging.yaml'
-      - 'infra/tests/**'
+      - 'infra/cloudflare/**'
       - 'docs/implementation/staging-bloco-02.md'
+      - 'docs/superpowers/specs/2026-10-16-bloco-02-staging-design.md'
       - '.github/workflows/backend-ci.yml'
 permissions:
   contents: read
@@ -32,33 +32,28 @@ jobs:
           cache-dependency-path: apps/api/pom.xml
       - name: Verify and run PostgreSQL integration tests
         run: mvn --batch-mode -f apps/api/pom.xml verify
-      - name: Build staging runtime from verified JAR
+      - name: Build Cloudflare Container image
         run: docker build --platform linux/amd64 --tag nite-connect-api:${{ github.sha }} apps/api
-      - name: Smoke test isolated staging stack
-        shell: pwsh
-        run: ./infra/tests/staging-smoke.ps1 -ImageTag ${{ github.sha }}
-      - name: Export staging bundle
-        env:
-          RELEASE_SHA: ${{ github.sha }}
-        run: |
-          mkdir staging-bundle
-          docker save --output staging-bundle/api-image.tar "nite-connect-api:$RELEASE_SHA"
-          cp infra/compose.staging.yaml staging-bundle/
-          cp docs/implementation/staging-bloco-02.md staging-bundle/RUNBOOK.md
-          {
-            printf 'SOURCE_COMMIT=%s\n' "$RELEASE_SHA"
-            printf 'IMAGE=nite-connect-api:%s\n' "$RELEASE_SHA"
-            printf 'PLATFORM=linux/amd64\n'
-            docker image inspect "nite-connect-api:$RELEASE_SHA" --format 'IMAGE_ID={{.Id}}'
-          } > staging-bundle/RELEASE.txt
-          cd staging-bundle
-          sha256sum api-image.tar compose.staging.yaml RUNBOOK.md RELEASE.txt > SHA256SUMS
-          sha256sum -c SHA256SUMS
-      - name: Upload staging bundle
+      - name: Configure Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: infra/cloudflare/package-lock.json
+      - name: Install Worker dependencies
+        run: npm ci
+        working-directory: infra/cloudflare
+      - name: Typecheck Worker and generate binding types
+        run: npm run typecheck
+        working-directory: infra/cloudflare
+      - name: Validate Wrangler bundle without deployment
+        run: npm run dry-run
+        working-directory: infra/cloudflare
+      - name: Publish verified JAR for the one-time bootstrap
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v4
         with:
-          name: nite-connect-staging-${{ github.sha }}
-          path: staging-bundle/
+          name: nite-connect-staging-bootstrap-${{ github.sha }}
+          path: apps/api/target/nite-connect-api-0.0.1-SNAPSHOT.jar
           if-no-files-found: error
           retention-days: 14

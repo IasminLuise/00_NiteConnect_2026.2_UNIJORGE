@@ -16,9 +16,9 @@ HTTP e limitações de homologação estão em
 A fonte funcional é a especificação consolidada em `docs/product` e as decisões
 posteriores explicitamente aprovadas.
 
-O pacote de staging em VM institucional usa Docker Compose, imagem Java 21
-validada no CI e PostgreSQL isolado. Pré-requisitos, configuração externa,
-bootstrap, implantação manual e roteiro de aceite estão no
+O staging do Bloco 02 está preparado para Cloudflare Workers/Containers e
+PostgreSQL no Neon. O pacote não foi implantado em contas externas; pré-requisitos,
+secrets, bootstrap, deploy manual e roteiro de aceite estão no
 [runbook de staging do Bloco 02](docs/implementation/staging-bloco-02.md).
 
 Validação local (Java 21 e Docker disponíveis):
