@@ -7,6 +7,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 class AttendanceReviewRegressionTest extends AttendanceTestSupport {
+    @Test void agendaRejectsMaximumEndDateAndKeepsOptionalFiltersWorking() throws Exception {
+        mvc.perform(get("/api/v1/agenda/events").param("to",java.time.LocalDate.MAX.toString()).with(token(MEMBER)))
+                .andExpect(status().isBadRequest());
+        mvc.perform(get("/api/v1/agenda/events").param("to","2026-10-16").with(token(MEMBER)))
+                .andExpect(status().isOk());
+        mvc.perform(get("/api/v1/agenda/events").param("from","2026-10-16").with(token(MEMBER)))
+                .andExpect(status().isOk());
+    }
     @Test void cancellationStillAllowsAuditedCorrectionOfExistingOpenPeriod() throws Exception {
         UUID event=event(),attendance=checkIn(event,qr(event));
         UUID period=jdbc.queryForObject("select id from nite_connect.participation_periods where attendance_id=?",UUID.class,attendance);

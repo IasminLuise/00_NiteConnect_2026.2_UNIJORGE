@@ -81,7 +81,7 @@ Revisão independente em duas leituras: quatro achados corrigidos, segunda leitu
 sem novos defeitos concretos. Revisão estática não foi apresentada como teste.
 Contratos em `bloco-04-api.md`.
 
-### Verificações após o código final
+### Validação inicial do Bloco 04
 
 Na pasta `apps/api`:
 
@@ -115,6 +115,21 @@ armazenamento institucional: não se aplicam ao backend local deste escopo.
 Também testados: QR expirado/renovado/encerrado, retorno em outra identidade,
 presença simultânea em dois encontros, autoaprovação administrativa, confirmação
 de correção, presença ausente por decisão e as quatro regressões da revisão.
+
+### Revisão posterior — data extrema da agenda
+
+O teste HTTP com `to=LocalDate.MAX` reproduziu `DateTimeException` não tratada em
+`AgendaService.list()` antes da correção. A consulta agora rejeita esse limite
+com HTTP 400 antes de calcular o dia seguinte, de forma equivalente à proteção
+existente em `ParticipationQueries.range()`, preservando os filtros opcionais.
+Regressão também verifica HTTP 200 com somente `from` ou somente `to` usuais.
+
+Após essa alteração, `mvnw.cmd --batch-mode verify` passou com **185 testes**
+(157 anteriores e 28 novos), sem falhas, erros ou ignorados, e gerou o JAR.
+Log local ignorado: `apps/api/target/bloco04-extreme-verify.log`.
+Esse resultado integral substitui a contagem inicial de 184 para o código atual.
+Não houve alteração de contratos, banco, configuração ou permissões neste ajuste;
+somente documentação foi editada depois da validação. `git diff --check` passou.
 
 ## Refinamentos da revisão
 

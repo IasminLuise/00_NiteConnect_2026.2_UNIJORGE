@@ -68,6 +68,7 @@ public class AgendaService {
     @Transactional(readOnly=true) public Event read(UUID actor,UUID id) { access.requireActive(actor);return repo.event(id); }
     @Transactional(readOnly=true) public PageResult<Event> list(UUID actor,LocalDate from,LocalDate to,int page,int size) {
         access.requireActive(actor);if(from!=null && to!=null && from.isAfter(to)) throw ApiException.invalid("Período invertido");
+        if(LocalDate.MAX.equals(to)) throw ApiException.invalid("Data final fora do intervalo permitido");
         String where="from nite_connect.calendar_events where true";var args=new ArrayList<Object>();
         if(from!=null) { where+=" and ends_at>?";args.add(ts(from.atStartOfDay(clock.getZone()).toInstant())); }
         if(to!=null) { where+=" and starts_at<?";args.add(ts(to.plusDays(1).atStartOfDay(clock.getZone()).toInstant())); }

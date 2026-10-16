@@ -31,6 +31,8 @@ startsAt < endsAt, expectedMemberIds (lista explícita, até 1000 ATIVOS distint
 reason. FERIADO não admite participantes esperados nem sessão de presença.
 Event: id, mesmos metadados públicos, status
 `AGENDADO|ABERTO|ENCERRADO|CANCELADO`, version. Criação sempre AGENDADO.
+Na consulta de agenda, `to=LocalDate.MAX` retorna 400, pois o limite inclusivo
+não pode ser convertido para o início do dia seguinte. Filtros isolados continuam opcionais.
 
 Command: expectedVersion, reason, confirmed opcional (obrigatório no cancelamento).
 Sessão somente dentro do intervalo do encontro; janela técnica de até 120 segundos.
