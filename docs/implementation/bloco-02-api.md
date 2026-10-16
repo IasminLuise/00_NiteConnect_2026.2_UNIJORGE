@@ -92,6 +92,18 @@ Na pasta `apps/api`, Java 21 e Docker disponíveis:
 .\mvnw.cmd --batch-mode verify
 ```
 
-Os testes usam identidades fictícias e PostgreSQL 17 isolado por Testcontainers.
-Nenhum teste migra o banco local de desenvolvimento ou produção. Não é necessário
-novo serviço externo, credencial, configuração Entra ou alteração de `.env`.
+Os testes automatizados usam identidades fictícias e PostgreSQL 17 isolado por
+Testcontainers. Nenhum deles migra o banco local de desenvolvimento ou produção.
+Para executar essa suíte, não é necessário novo serviço externo, credencial,
+configuração Entra ou alteração de `.env`.
+
+Em 16/10/2026, a suíte integral passou com 111 testes e PostgreSQL 17 via
+Testcontainers. No ensaio local da API integrada em `127.0.0.1:8081`, o Postman
+Web com Desktop Agent e OAuth PKCE recebeu HTTP 200 em `GET /api/v1/me` e
+`GET /api/v1/projects`; a listagem de projetos estava vazia. As chamadas sem
+token a essas rotas receberam HTTP 401. A URL `8081` identifica somente o
+ensaio local; o contrato HTTP é independente da porta de implantação. Consulte
+as [evidências de execução](homologacao-bloco-02-local.md) e o
+[roteiro de staging](staging-bloco-02.md). Os demais fluxos do Bloco 02 foram
+verificados automaticamente com identidades sintéticas; o aceite institucional
+formal continua pendente.
