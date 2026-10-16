@@ -33,6 +33,20 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/activities", "/api/v1/activities/*",
+                                "/api/v1/me/activities", "/api/v1/me/activities/history", "/api/v1/activities/*/history",
+                                "/api/v1/activities/*/assignees", "/api/v1/activities/*/assignees/history",
+                                "/api/v1/activities/*/assignee-candidates", "/api/v1/projects/*/activities",
+                                "/api/v1/projects/*/activity-assignee-candidates").access(authenticatedJwt)
+                        .requestMatchers(HttpMethod.POST, "/api/v1/activities", "/api/v1/activities/*/collaborators").access(authenticatedJwt)
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/activities/*", "/api/v1/activities/*/status").access(authenticatedJwt)
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/activities/*/executor").access(authenticatedJwt)
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/activities/*/collaborators/*").access(authenticatedJwt)
+                        .requestMatchers(HttpMethod.GET, "/api/v1/activities/*/evidence", "/api/v1/activities/*/evidence/*",
+                                "/api/v1/activities/*/evidence/*/download", "/api/v1/me/activities/evidence",
+                                "/api/v1/me/activities/evidence/*", "/api/v1/me/activities/evidence/*/download").access(authenticatedJwt)
+                        .requestMatchers(HttpMethod.POST, "/api/v1/activities/*/evidence", "/api/v1/activities/*/evidence/uploads",
+                                "/api/v1/activities/*/evidence/*/withdraw").access(authenticatedJwt)
                         .requestMatchers(HttpMethod.GET, "/api/v1/projects", "/api/v1/projects/*", "/api/v1/me/projects",
                                 "/api/v1/me/projects/history", "/api/v1/me/projects/leadership/history", "/api/v1/projects/*/history", "/api/v1/projects/*/members",
                                 "/api/v1/projects/*/members/history", "/api/v1/projects/*/leadership", "/api/v1/projects/*/leadership/history",

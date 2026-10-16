@@ -317,7 +317,9 @@ class IdentityBoundaryTest {
     void basicAuthenticationAndUnimplementedRoutesStayDenied() throws Exception {
         mvc.perform(get("/api/v1/me").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic("user", "test-only-password")))
                 .andExpect(status().isUnauthorized());
-        mvc.perform(get("/api/v1/activities").with(token(ADMIN_OID))).andExpect(status().isForbidden());
+        mvc.perform(get("/api/v1/activities").with(token(ADMIN_OID))).andExpect(status().isOk());
+        mvc.perform(get("/api/v1/activities/" + UUID.randomUUID() + "/unsupported-operation").with(token(ADMIN_OID)))
+                .andExpect(status().isForbidden());
         mvc.perform(delete("/api/v1/members/" + MEMBER).with(token(ADMIN_OID))).andExpect(status().isForbidden());
     }
 

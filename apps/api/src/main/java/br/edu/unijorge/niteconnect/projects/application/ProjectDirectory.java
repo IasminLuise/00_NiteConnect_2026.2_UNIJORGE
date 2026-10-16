@@ -29,6 +29,12 @@ public class ProjectDirectory {
             rs.getObject("ended_by", UUID.class), rs.getString("end_reason"));
     public ProjectDirectory(JdbcTemplate jdbc) { this.jdbc = jdbc; }
 
+    /** Explicit activity-module contract: current project scopes visible to a member. */
+    public List<UUID> currentProjectIds(UUID member) {
+        return jdbc.query("select project_id from nite_connect.project_memberships where member_id=? and ended_at is null order by project_id",
+                (rs, row) -> rs.getObject(1, UUID.class), member);
+    }
+
     public Project require(UUID id) {
         return jdbc.query("select * from nite_connect.projects where id=?", PROJECT, id).stream()
                 .findFirst().orElseThrow(ApiException::notFound);
