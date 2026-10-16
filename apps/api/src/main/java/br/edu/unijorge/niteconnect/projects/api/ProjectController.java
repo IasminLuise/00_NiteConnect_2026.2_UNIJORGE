@@ -1,6 +1,7 @@
 package br.edu.unijorge.niteconnect.projects.api;
 
 import br.edu.unijorge.niteconnect.identity.application.IdentityDirectory;
+import br.edu.unijorge.niteconnect.members.application.MemberDirectory;
 import br.edu.unijorge.niteconnect.projects.application.ProjectDirectory;
 import br.edu.unijorge.niteconnect.projects.application.ProjectService;
 import br.edu.unijorge.niteconnect.projects.domain.Project;
@@ -58,9 +59,15 @@ public class ProjectController {
         return projects.history(identities.member(jwt), id, page, size);
     }
     @GetMapping("/api/v1/projects/{id}/members")
-    PageResult<ProjectDirectory.TeamMember> team(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id,
+    PageResult<ProjectService.TeamMember> team(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id,
             @RequestParam(defaultValue="0") int page, @RequestParam(defaultValue="20") int size) {
         return projects.team(identities.member(jwt), id, page, size);
+    }
+    @GetMapping("/api/v1/projects/{id}/member-candidates")
+    PageResult<MemberDirectory.Candidate> candidates(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id,
+            @RequestParam(required=false) String query, @RequestParam(defaultValue="0") int page,
+            @RequestParam(defaultValue="20") int size) {
+        return projects.candidates(identities.member(jwt), id, query, page, size);
     }
     @PostMapping("/api/v1/projects/{id}/members") @ResponseStatus(HttpStatus.CREATED)
     ProjectDirectory.Participation join(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id, @Valid @RequestBody ProjectContracts.Join input) {

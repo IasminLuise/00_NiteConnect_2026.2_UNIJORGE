@@ -36,6 +36,7 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.GET, "/api/v1/projects", "/api/v1/projects/*", "/api/v1/me/projects",
                                 "/api/v1/me/projects/history", "/api/v1/me/projects/leadership/history", "/api/v1/projects/*/history", "/api/v1/projects/*/members",
                                 "/api/v1/projects/*/members/history", "/api/v1/projects/*/leadership", "/api/v1/projects/*/leadership/history",
+                                "/api/v1/projects/*/member-candidates",
                                 "/api/v1/proposals", "/api/v1/proposals/*").access(authenticatedJwt)
                         .requestMatchers(HttpMethod.POST, "/api/v1/projects", "/api/v1/projects/*/members",
                                 "/api/v1/projects/*/leadership-transfers", "/api/v1/proposals",

@@ -172,3 +172,16 @@ ou banco externo durante a implementação funcional.
 A matriz T01–T24 acima representa cobertura automatizada com identidades
 sintéticas; as duas consultas autenticadas manuais não exercitam todos esses
 cenários com contas institucionais distintas.
+
+## Correção incremental: identificação de integrantes (16/10/2026)
+
+Na branch `fix/bloco-02-identificacao-integrantes`, a listagem de equipe passa
+a incluir `memberName` sem remover os campos existentes. Uma rota paginada
+permite ao gestor contextual ou à administração pesquisar por nome integrantes
+ATIVOS sem participação vigente no projeto. A leitura de nomes usa o contrato
+do módulo `members`; a inclusão continua conferindo estado e vínculo na
+operação. O [contrato HTTP](bloco-02-api.md) descreve entrada, saída e limites.
+
+`mvnw.cmd --batch-mode verify` foi executado com Java 21 e PostgreSQL 17 via
+Testcontainers: **115 testes, 0 falhas, 0 erros, 0 ignorados**, preservando os
+111 testes anteriores. Flyway V1–V3 continuou válido, sem nova migração.
