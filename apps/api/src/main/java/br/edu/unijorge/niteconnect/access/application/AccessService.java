@@ -1,0 +1,94 @@
+package br.edu.unijorge.niteconnect.access.application;
+
+import br.edu.unijorge.niteconnect.access.domain.GlobalRole;
+import br.edu.unijorge.niteconnect.audit.application.AuditTrail;
+import br.edu.unijorge.niteconnect.members.application.MemberDirectory;
+import br.edu.unijorge.niteconnect.members.domain.Member;
+import br.edu.unijorge.niteconnect.members.domain.MemberStatus;
+import br.edu.unijorge.niteconnect.shared.api.ApiException;
+import br.edu.unijorge.niteconnect.shared.security.AdministrativeTransactions;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+@Service
+public class AccessService {
+    private final JdbcTemplate jdbc;
+    private final MemberDirectory members;
+    private final AuditTrail audit;
+    private final AdministrativeTransactions transactions;
+
+    public AccessService(JdbcTemplate jdbc, MemberDirectory members, AuditTrail audit, AdministrativeTransactions transactions) {
+        this.jdbc = jdbc; this.members = members; this.audit = audit; this.transactions = transactions;
+    }
+    public Member requireActive(UUID id) {
+        Member member = members.require(id);
+        if (member.status() != MemberStatus.ATIVO) throw ApiException.forbidden();
+        return member;
+    }
+    public boolean isAdministrator(UUID id) {
+        return !globalRoles(id).isEmpty();
+    }
+    public void requireAdministrator(UUID id) {
+        requireActive(id);
+        if (!isAdministrator(id)) throw ApiException.forbidden();
+    }
+    public List<String> effectiveRoles(UUID id) {
+        requireActive(id);
+        List<String> roles = new ArrayList<>();
+        roles.add("INTEGRANTE");
+        globalRoles(id).forEach(role -> roles.add(role.name()));
+        return List.copyOf(roles);
+    }
+    public List<GlobalRole> globalRoles(UUID id) {
+        return jdbc.query("select role from nite_connect.role_assignments where member_id=? order by role",
+                (rs, row) -> GlobalRole.valueOf(rs.getString(1)), id);
+    }
+    public void ensureAnotherAdministrator(UUID target) {
+        if (!isAdministrator(target)) return;
+        boolean another = jdbc.query("select distinct member_id from nite_connect.role_assignments where member_id<>?",
+                        (rs, row) -> rs.getObject(1, UUID.class), target).stream()
+                .anyMatch(id -> members.require(id).status() == MemberStatus.ATIVO);
+        if (!another) throw ApiException.conflict("É necessário preservar um administrador ativo");
+    }
+    @Transactional
+    public List<String> grant(UUID actor, UUID target, GlobalRole role, long expectedVersion, String reason) {
+        transactions.lock();
+        requireAdministrator(actor);
+        requireActive(target);
+        members.checkVersion(members.require(target), expectedVersion);
+        if (globalRoles(target).contains(role)) throw ApiException.conflict("Papel já atribuído");
+        jdbc.update("insert into nite_connect.role_assignments(member_id,role,granted_by,reason) values (?,?,?,?)",
+                target, role.name(), actor, reason);
+        members.touch(target, expectedVersion);
+        audit.record(actor, target, "ROLE_GRANTED", null, role.name(), reason);
+        return effectiveRoles(target);
+    }
+    @Transactional
+    public void revoke(UUID actor, UUID target, GlobalRole role, long expectedVersion, String reason) {
+        transactions.lock();
+        requireAdministrator(actor);
+        Member member = members.require(target);
+        members.checkVersion(member, expectedVersion);
+        List<GlobalRole> roles = globalRoles(target);
+        if (!roles.contains(role)) throw ApiException.notFound();
+        if (member.status() == MemberStatus.ATIVO && roles.size() == 1) ensureAnotherAdministrator(target);
+        jdbc.update("delete from nite_connect.role_assignments where member_id=? and role=?", target, role.name());
+        members.touch(target, expectedVersion);
+        audit.record(actor, target, "ROLE_REVOKED", role.name(), null, reason);
+    }
+    /** Used only by the local, one-shot bootstrap transaction. */
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.MANDATORY)
+    public void initialGlobalAdministrator(UUID member, GlobalRole role, String reason) {
+        if (jdbc.queryForObject("select count(*) from nite_connect.role_assignments", Long.class) != 0) {
+            throw ApiException.conflict("Provisionamento inicial já realizado");
+        }
+        jdbc.update("insert into nite_connect.role_assignments(member_id,role,granted_by,reason) values (?,?,?,?)",
+                member, role.name(), member, reason);
+        audit.record(member, member, "ROLE_GRANTED", null, role.name(), reason);
+    }
+}

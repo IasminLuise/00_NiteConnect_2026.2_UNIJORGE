@@ -1,6 +1,33 @@
 # 00_NiteConnect_2026.2_UNIJORGE
 Repositório para desenvolvimento do Sistema de Gerenciamento do Núcleo de Inovação e Tecnologia da UNIJORGE.
 
+## Implementação atual — backend
+
+A base atual usa Java 21, Spring Boot 4.1.1, Maven e PostgreSQL 17 em
+`apps/api`, como monólito modular. `apps/web` permanece reservado ao frontend.
+As propostas de tecnologias e autenticação nas seções iniciais abaixo são
+anteriores à especificação funcional consolidada e não orientam a implementação.
+
+O Bloco 01 implementa identidade Microsoft Entra, integrantes, convites,
+papéis administrativos e auditoria. A API permanece deny-all até a configuração
+institucional ser habilitada. Configuração, provisionamento inicial, contratos
+HTTP e limitações de homologação estão em
+[Bloco 01 — contrato HTTP e operação](docs/implementation/bloco-01-api.md).
+A fonte funcional é a especificação consolidada em `docs/product` e as decisões
+posteriores explicitamente aprovadas.
+
+Validação local (Java 21 e Docker disponíveis):
+
+```powershell
+Set-Location apps/api
+.\mvnw.cmd --batch-mode verify
+```
+
+Para subir o PostgreSQL local, configure `DB_PASSWORD` fora do controle de versão
+e use `docker compose -f infra/compose.yaml up -d db` na raiz. Para iniciar a API,
+execute `.\mvnw.cmd spring-boot:run` em `apps/api`. Não há senha própria nem
+credenciais institucionais versionadas; a homologação Microsoft é uma etapa externa.
+
 # NITE CONNECT
 ### Sistema Integrado de Gestão de Participação, Projetos e Atividades do NITE
 
