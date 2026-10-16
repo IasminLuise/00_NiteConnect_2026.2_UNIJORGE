@@ -32,10 +32,10 @@ um operador, sem executar qualquer operação de produção.
    apenas o JAR produzido e validado pelo CI; processo sem root.
 2. `apps/api/.dockerignore`: restringe o contexto da imagem e exclui credenciais,
    histórico Git, fontes de teste e arquivos temporários.
-3. `.github/workflows/backend-ci.yml`: depois de `mvn verify`, constrói a imagem
-   a partir do JAR testado apenas para o commit integrado na `main` e publica um
-   arquivo Docker identificável pelo SHA como artefato da execução. Não publica
-   imagem em registry e não usa credenciais de deploy.
+3. `.github/workflows/backend-ci.yml`: depois de `mvn verify`, constrói e testa a
+   imagem a partir do JAR validado nos PRs e pushes cobertos. Exporta o bundle
+   para validar o empacotamento, mas só publica o arquivo Docker identificável
+   pelo SHA em push na `main`. Não usa registry nem credenciais de deploy.
 4. `infra/compose.staging.yaml`: define API e PostgreSQL, rede privada, volume
    persistente de staging, verificação de saúde do PostgreSQL, reinício após
    falha e bind da API em `127.0.0.1:8080`. PostgreSQL não expõe porta no host.
@@ -109,8 +109,8 @@ definem arquitetura de produção nem uma política de backup institucional.
 ## Evidências de contexto
 
 - Backend Java 21 / Spring Boot 4.1.1 e PostgreSQL 17; o CI executa `mvn verify`.
-- O Compose atual contém PostgreSQL local e serviço de Testcontainers, sem API de
-  runtime. O repositório não contém Dockerfile, registry ou deploy pipeline.
+- No início deste trabalho, o Compose continha PostgreSQL local e serviço de
+  Testcontainers, sem API de runtime; não havia Dockerfile, registry ou deploy.
 - A API mantém deny-all enquanto Entra estiver desabilitado, expõe apenas o
   healthcheck e aplica Flyway automaticamente na inicialização.
 - A homologação local do Bloco 01 não comprova homologação do Bloco 02 em VM.

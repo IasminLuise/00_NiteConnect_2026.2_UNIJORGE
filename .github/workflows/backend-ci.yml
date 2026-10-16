@@ -3,11 +3,17 @@ on:
   pull_request:
     paths:
       - 'apps/api/**'
+      - 'infra/compose.staging.yaml'
+      - 'infra/tests/**'
+      - 'docs/implementation/staging-bloco-02.md'
       - '.github/workflows/backend-ci.yml'
   push:
-    branches: [main, 'chore/**', 'feat/**', 'fix/**']
+    branches: [main, 'chore/**', 'feat/**', 'fix/**', 'infra/**']
     paths:
       - 'apps/api/**'
+      - 'infra/compose.staging.yaml'
+      - 'infra/tests/**'
+      - 'docs/implementation/staging-bloco-02.md'
       - '.github/workflows/backend-ci.yml'
 permissions:
   contents: read
@@ -26,3 +32,33 @@ jobs:
           cache-dependency-path: apps/api/pom.xml
       - name: Verify and run PostgreSQL integration tests
         run: mvn --batch-mode -f apps/api/pom.xml verify
+      - name: Build staging runtime from verified JAR
+        run: docker build --platform linux/amd64 --tag nite-connect-api:${{ github.sha }} apps/api
+      - name: Smoke test isolated staging stack
+        shell: pwsh
+        run: ./infra/tests/staging-smoke.ps1 -ImageTag ${{ github.sha }}
+      - name: Export staging bundle
+        env:
+          RELEASE_SHA: ${{ github.sha }}
+        run: |
+          mkdir staging-bundle
+          docker save --output staging-bundle/api-image.tar "nite-connect-api:$RELEASE_SHA"
+          cp infra/compose.staging.yaml staging-bundle/
+          cp docs/implementation/staging-bloco-02.md staging-bundle/RUNBOOK.md
+          {
+            printf 'SOURCE_COMMIT=%s\n' "$RELEASE_SHA"
+            printf 'IMAGE=nite-connect-api:%s\n' "$RELEASE_SHA"
+            printf 'PLATFORM=linux/amd64\n'
+            docker image inspect "nite-connect-api:$RELEASE_SHA" --format 'IMAGE_ID={{.Id}}'
+          } > staging-bundle/RELEASE.txt
+          cd staging-bundle
+          sha256sum api-image.tar compose.staging.yaml RUNBOOK.md RELEASE.txt > SHA256SUMS
+          sha256sum -c SHA256SUMS
+      - name: Upload staging bundle
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: nite-connect-staging-${{ github.sha }}
+          path: staging-bundle/
+          if-no-files-found: error
+          retention-days: 14
