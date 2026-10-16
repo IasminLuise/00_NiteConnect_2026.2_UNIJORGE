@@ -83,12 +83,12 @@ public class AccessService {
     }
     /** Used only by the local, one-shot bootstrap transaction. */
     @Transactional(propagation = org.springframework.transaction.annotation.Propagation.MANDATORY)
-    public void initialCoordinator(UUID member, String reason) {
+    public void initialGlobalAdministrator(UUID member, GlobalRole role, String reason) {
         if (jdbc.queryForObject("select count(*) from nite_connect.role_assignments", Long.class) != 0) {
             throw ApiException.conflict("Provisionamento inicial já realizado");
         }
-        jdbc.update("insert into nite_connect.role_assignments(member_id,role,granted_by,reason) values (?,'COORDENADOR',?,?)",
-                member, member, reason);
-        audit.record(member, member, "ROLE_GRANTED", null, "COORDENADOR", reason);
+        jdbc.update("insert into nite_connect.role_assignments(member_id,role,granted_by,reason) values (?,?,?,?)",
+                member, role.name(), member, reason);
+        audit.record(member, member, "ROLE_GRANTED", null, role.name(), reason);
     }
 }

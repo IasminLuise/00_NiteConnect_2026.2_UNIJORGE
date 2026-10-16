@@ -1,6 +1,7 @@
 package br.edu.unijorge.niteconnect.identity.application;
 
 import br.edu.unijorge.niteconnect.access.application.AccessService;
+import br.edu.unijorge.niteconnect.access.domain.GlobalRole;
 import br.edu.unijorge.niteconnect.audit.application.AuditTrail;
 import br.edu.unijorge.niteconnect.members.application.MemberAdministration;
 import br.edu.unijorge.niteconnect.members.application.MemberDirectory;
@@ -27,12 +28,12 @@ public class BootstrapService {
         this.access=access; this.audit=audit; this.transactions=transactions;
     }
     @Transactional
-    public void provision(UUID tenant, UUID object, String name, String email, String reason) {
+    public void provision(UUID tenant, UUID object, String name, String email, GlobalRole role, String reason) {
         transactions.lock();
         if (!identities.isEmpty()) throw ApiException.conflict("Provisionamento inicial já realizado");
         Member member = members.create(name, email, MemberStatus.ATIVO);
         identities.link(tenant, object, member.id());
-        access.initialCoordinator(member.id(), reason);
+        access.initialGlobalAdministrator(member.id(), role, reason);
         administration.recordStatus(member.id(), member.id(), null, MemberStatus.ATIVO, reason);
         audit.record(member.id(), member.id(), "ADMIN_BOOTSTRAPPED", null, MemberStatus.ATIVO.name(), reason);
     }

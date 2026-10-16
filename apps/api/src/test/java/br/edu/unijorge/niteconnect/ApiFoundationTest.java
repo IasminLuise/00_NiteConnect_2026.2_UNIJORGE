@@ -14,12 +14,13 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Testcontainers
 @AutoConfigureMockMvc
-@SpringBootTest
+@SpringBootTest(properties = "nite.entra.enabled=false")
 class ApiFoundationTest {
 
     @Container
@@ -50,6 +51,15 @@ class ApiFoundationTest {
     void allUnimplementedRoutesAreDenied() throws Exception {
         mockMvc.perform(get("/api/administracao"))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void disabledEntraDeniesEvenAnAuthenticatedJwtPrincipal() throws Exception {
+        mockMvc.perform(get("/api/v1/me").with(jwt().jwt(token -> token
+                        .claim("tid", "11111111-1111-4111-8111-111111111111")
+                        .claim("oid", "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"))))
+                .andExpect(status().isForbidden())
+                .andExpect(result -> assertThat(result.getHandler()).isNull());
     }
 
     @Test

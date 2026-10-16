@@ -33,7 +33,8 @@ As decisões abaixo foram aprovadas pelo responsável nesta implementação:
 - PENDENTE_INGRESSO, AFASTADO e DESLIGADO não possuem acesso operacional.
 - Convite possui e-mail do cadastro e object ID previamente conferido pela
   administração no tenant autorizado. Aceite exige exatamente essa identidade.
-- Primeiro Coordenador é provisionado por comando administrativo local explícito.
+- Primeiro administrador global (COORDENADOR ou GESTOR_GERAL) é provisionado
+  por comando administrativo local explícito, com o papel escolhido informado.
 
 COORDENADOR e GESTOR_GERAL têm administração global neste bloco. INTEGRANTE é
 o acesso básico de qualquer integrante ATIVO. Liderança de projeto fica no
@@ -116,7 +117,7 @@ a autoridade é consultada novamente. Versões evitam sobrescrita silenciosa.
 Falha de vínculo, integridade ou auditoria desfaz toda a operação. Leituras
 não usam esse lock; não há cache de autorização ou infraestrutura adicional.
 
-## Primeiro Coordenador
+## Primeiro administrador global
 
 Operação local de implantação, somente com identificadores reais previamente
 conferidos pela instituição. Nunca colocar dados reais em arquivos versionados.
@@ -131,6 +132,7 @@ ser substituídos pelo operador; não são contas pré-criadas):
 java -jar target/nite-connect-api-0.0.1-SNAPSHOT.jar `
   --spring.main.web-application-type=none `
   --nite.bootstrap.enabled=true `
+  --nite.bootstrap.role=GESTOR_GERAL `
   "--nite.bootstrap.object-id=$bootstrapObjectId" `
   "--nite.bootstrap.name=$bootstrapName" `
   "--nite.bootstrap.institutional-email=$bootstrapEmail" `
@@ -140,12 +142,14 @@ java -jar target/nite-connect-api-0.0.1-SNAPSHOT.jar `
 As variáveis acima precisam ser fornecidas pelo operador; não executar com valores
 vazios. Não registrar histórico de shell/transcrições com dados pessoais. Como
 alternativa, use variáveis de ambiente Spring `NITE_BOOTSTRAP_OBJECT_ID`,
-`NITE_BOOTSTRAP_NAME`, `NITE_BOOTSTRAP_INSTITUTIONAL_EMAIL` e
-`NITE_BOOTSTRAP_REASON`, mantendo apenas os dois flags não sensíveis no comando.
+`NITE_BOOTSTRAP_ROLE`, `NITE_BOOTSTRAP_NAME`,
+`NITE_BOOTSTRAP_INSTITUTIONAL_EMAIL` e `NITE_BOOTSTRAP_REASON`, mantendo os flags
+não sensíveis no comando.
 
 O processo exige modo `none`, valida propriedades, adquire o lock, recusa banco
-que já contenha identidade ou papel, cria integrante ativo, identidade,
-COORDENADOR, histórico e auditoria na mesma transação, e encerra. Não inicia
+que já contenha identidade ou papel, valida o papel global escolhido, cria
+integrante ativo, identidade, o papel informado, histórico e auditoria na mesma
+transação, e encerra. Não inicia
 servidor nem endpoint de bootstrap. Remova as opções/variáveis de bootstrap
 antes da execução normal. Outros administradores são convidados e recebem
 papel pela API após o ingresso. Não há mecanismo público de recuperação

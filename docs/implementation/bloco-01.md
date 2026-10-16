@@ -129,14 +129,23 @@ Revisão somente leitura por agente independente: código, testes, migração,
 contratos e trechos pertinentes do PDF. Sem defeitos bloqueantes ou achados
 P0/P1/P2. Relatórios Surefire conferidos, sem repetir a suíte.
 
-Melhorias P3 registradas para revisão posterior (sem correção obrigatória):
+Melhorias P3 atendidas após a revisão:
 
-1. Adicionar teste de bootstrap em modo web: guard existente recusa a operação,
-   mas falta testar esse caminho e a ausência de gravações no banco.
-2. Adicionar principal JWT simulado com Entra desabilitado ao teste da fundação:
-   reforça a cobertura da condição `decoder != null`; o guard está implementado.
-3. Ajustar nome ou completar `expiredInvitationRequiresExplicitRevocationBeforeReplacement`:
-   o teste atual comprova rejeição de aceite expirado, sem exercitar substituição.
+1. `webBootstrapIsRejectedWithoutProvisioningAnyRecords`: inicialização servlet
+   rejeitada pelo guard, sem registros nas seis tabelas, em PostgreSQL isolado.
+2. `disabledEntraDeniesEvenAnAuthenticatedJwtPrincipal`: Entra explicitamente
+   desabilitado; principal JWT simulado recebe 403 antes de alcançar um handler.
+3. `expiredInvitationRequiresExplicitRevocationBeforeReplacement`: cobre aceite
+   expirado rejeitado, substituição bloqueada antes da revogação, revogação
+   explícita, novo convite aceito, identidade única e auditoria preservada.
+
+Validação após os ajustes: Java 21, comando
+`mvnw.cmd --batch-mode -Dtest=BootstrapProcessTest,ApiFoundationTest,IdentityBoundaryTest test`:
+BUILD SUCCESS, 35 testes, zero falhas/erros/ignorados, PostgreSQL 17 via
+Testcontainers. Apenas testes e este registro foram alterados; as verificações
+anteriores de EntraConfigurationTest (3) e EntraTokenValidationTest (20), bem
+como o empacotamento, continuam válidas e não foram repetidas. Os novos testes
+usam as proteções já existentes; nenhum comportamento de produção foi alterado.
 
 Limites mantidos após a revisão:
 

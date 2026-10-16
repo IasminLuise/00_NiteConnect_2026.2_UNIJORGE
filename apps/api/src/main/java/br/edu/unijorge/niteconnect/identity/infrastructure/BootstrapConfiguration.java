@@ -2,6 +2,7 @@ package br.edu.unijorge.niteconnect.identity.infrastructure;
 
 import br.edu.unijorge.niteconnect.identity.application.BootstrapService;
 import br.edu.unijorge.niteconnect.identity.application.EntraProperties;
+import br.edu.unijorge.niteconnect.access.domain.GlobalRole;
 import jakarta.validation.constraints.*;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -27,13 +28,13 @@ public class BootstrapConfiguration {
             throw new IllegalStateException("Bootstrap exige spring.main.web-application-type=none");
         }
         return args -> {
-            service.provision(entra.tenantId(), properties.objectId(), properties.name(), properties.institutionalEmail(), properties.reason());
+            service.provision(entra.tenantId(), properties.objectId(), properties.name(), properties.institutionalEmail(), properties.role(), properties.reason());
             context.close();
         };
     }
     @Validated
     @ConfigurationProperties("nite.bootstrap")
-    public record Properties(@NotNull UUID objectId, @NotBlank @Size(max=160) String name,
+    public record Properties(@NotNull UUID objectId, @NotNull GlobalRole role, @NotBlank @Size(max=160) String name,
                              @NotBlank @Email @Size(max=254) String institutionalEmail,
                              @NotBlank @Size(max=1000) String reason) {}
 }

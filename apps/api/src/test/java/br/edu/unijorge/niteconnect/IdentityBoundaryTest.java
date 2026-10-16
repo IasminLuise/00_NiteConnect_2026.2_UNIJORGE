@@ -157,7 +157,7 @@ class IdentityBoundaryTest {
         mvc.perform(post("/api/v1/invitations").with(token(ADMIN_OID)).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"memberId\":\"" + target + "\",\"objectId\":\"" + oid + "\",\"expiresAt\":\"" + java.time.Instant.now().plusSeconds(3600) + "\",\"reason\":\"Ingresso autorizado\"}"))
                 .andExpect(status().isCreated());
-        return jdbc.queryForObject("select id from nite_connect.invitations where member_id=?", UUID.class, target);
+        return jdbc.queryForObject("select id from nite_connect.invitations where member_id=? and accepted_at is null and revoked_at is null", UUID.class, target);
     }
 
     @Test
@@ -274,6 +274,26 @@ class IdentityBoundaryTest {
         jdbc.update("update nite_connect.invitations set created_at=current_timestamp - interval '2 days',expires_at=current_timestamp - interval '1 day' where id=?", invitation);
         mvc.perform(post("/api/v1/invitations/" + invitation + "/accept").with(token(oid))).andExpect(status().isConflict());
         assertThat(jdbc.queryForObject("select count(*) from nite_connect.identity_accounts where member_id=?", Integer.class, target)).isZero();
+        mvc.perform(post("/api/v1/invitations").with(token(ADMIN_OID)).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"memberId\":\"" + target + "\",\"objectId\":\"" + oid + "\",\"expiresAt\":\"" + java.time.Instant.now().plusSeconds(3600) + "\",\"reason\":\"Substituição de convite expirado\"}"))
+                .andExpect(status().isConflict());
+        assertThat(jdbc.queryForObject("select count(*) from nite_connect.invitations where member_id=?", Integer.class, target)).isEqualTo(1);
+
+        mvc.perform(delete("/api/v1/invitations/" + invitation).with(token(ADMIN_OID))
+                .contentType(MediaType.APPLICATION_JSON).content("{\"reason\":\"Revogar convite expirado para substituição\"}"))
+                .andExpect(status().isNoContent());
+        UUID replacement = invite(target, oid);
+        assertThat(replacement).isNotEqualTo(invitation);
+        mvc.perform(post("/api/v1/invitations/" + invitation + "/accept").with(token(oid))).andExpect(status().isConflict());
+        mvc.perform(post("/api/v1/invitations/" + replacement + "/accept").with(token(oid)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.id").value(target.toString()));
+        mvc.perform(get("/api/v1/me").with(token(oid))).andExpect(status().isOk());
+        assertThat(jdbc.queryForObject("select count(*) from nite_connect.invitations where member_id=?", Integer.class, target)).isEqualTo(2);
+        assertThat(jdbc.queryForObject("select revoked_at is not null and accepted_at is null from nite_connect.invitations where id=?", Boolean.class, invitation)).isTrue();
+        assertThat(jdbc.queryForObject("select accepted_at is not null and revoked_at is null from nite_connect.invitations where id=?", Boolean.class, replacement)).isTrue();
+        assertThat(jdbc.queryForObject("select count(*) from nite_connect.identity_accounts where member_id=?", Integer.class, target)).isEqualTo(1);
+        assertThat(jdbc.queryForObject("select count(*) from nite_connect.audit_events where member_id=? and action='INVITATION_REVOKED'", Integer.class, target)).isEqualTo(1);
+        assertThat(jdbc.queryForObject("select count(*) from nite_connect.audit_events where member_id=? and action='INVITATION_ACCEPTED'", Integer.class, target)).isEqualTo(1);
     }
 
     @Test
