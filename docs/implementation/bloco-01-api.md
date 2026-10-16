@@ -174,8 +174,17 @@ Testes criptográficos usam chaves efêmeras de teste; testes de autorização
 simulam somente o principal e usam aplicação, migrações e PostgreSQL reais.
 Bootstrap é testado inicializando a aplicação em modo sem servidor.
 
-Homologação institucional pendente: registro da API/cliente e escopo delegado,
-consentimento, tenant/audience reais, conferência dos object IDs e execução com
-uma conta institucional autorizada. Sem esses dados, testes automatizados não
-comprovam integração real com o ambiente Microsoft da instituição. GitHub Actions
-e revisão do PR são evidências separadas da execução local.
+Homologação técnica no ambiente local realizada em 15/10/2026: uma conta
+institucional real obteve access token delegado com o cliente OAuth de teste;
+o Postman enviou esse token à API. Após provisionamento administrativo explícito
+da identidade como integrante ATIVO e GESTOR_GERAL no PostgreSQL local,
+`GET /api/v1/me` retornou HTTP 200. O vínculo, o papel e a auditoria foram
+conferidos sem registrar token, credenciais ou identificadores pessoais neste
+documento. Isso comprova a emissão e aceitação do token institucional e a
+autorização desse integrante no ambiente testado.
+
+A execução não cobre login pelo futuro frontend, convite autenticado de outra
+conta real, todas as rotas administrativas, implantação em produção ou aceite
+institucional formal para esse ambiente. Os testes automatizados cobrem regras
+e falhas separadamente; o PR #2 passou no GitHub Actions e foi integrado à
+`main`. Consulte o resultado e os limites em `docs/implementation/bloco-01.md`.
