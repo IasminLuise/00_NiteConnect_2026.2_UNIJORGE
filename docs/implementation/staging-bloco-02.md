@@ -3,9 +3,13 @@
 ## Estado
 
 O repositório está preparado para executar a API Java em Cloudflare Containers e
-usar PostgreSQL gerenciado no Neon. A configuração ainda não foi implantada em
-uma conta Cloudflare nem conectada a um projeto Neon. O aceite institucional e
-a migração de produção continuam pendentes.
+usar PostgreSQL gerenciado no Neon. O projeto Neon `nite-connect-staging` foi
+provisionado em `aws-sa-east-1`, com branch `main` e banco
+`niteconnect_staging`; o banco foi verificado vazio. Nenhum Worker foi
+implantado e nenhum secret foi configurado no Cloudflare. A conta Cloudflare
+está no plano Gratuito; Containers exige o plano Workers Pago, cuja contratação
+e cobrança por uso não foram autorizadas. O aceite institucional e a migração
+de produção continuam pendentes.
 
 Este repositório contém o backend; `apps/web` ainda não é um frontend integrado.
 A homologação funcional usa cliente HTTP/Postman com access token institucional
@@ -32,13 +36,15 @@ e contas de teste autorizadas. Login Microsoft não concede autorização por si
 
 ## Pré-requisitos institucionais
 
-1. Acesso a uma conta Cloudflare autorizada com Workers Paid/Containers
-   habilitados.
-2. Projeto/branch e banco de staging vazios no Neon. Escolher região conforme
-   latência e política institucional de dados.
-3. Tenant Microsoft Entra, audience/client ID e scope delegado aprovados para a
+1. Contratação autorizada do plano Cloudflare Workers Pago, necessário para
+   Containers, e definição do limite de gasto mensal para o uso excedente.
+2. Acesso à conta Cloudflare autorizada com Workers/Containers habilitados.
+3. Projeto/branch e banco de staging vazios no Neon. O ambiente atual é
+   `nite-connect-staging` (`aws-sa-east-1`), branch `main`, banco
+   `niteconnect_staging`; revalidar antes do bootstrap.
+4. Tenant Microsoft Entra, audience/client ID e scope delegado aprovados para a
    API; contas de teste, incluindo um `GESTOR_GERAL`, autorizadas.
-4. URL `workers.dev` temporária ou domínio HTTPS controlado pela instituição,
+5. URL `workers.dev` temporária ou domínio HTTPS controlado pela instituição,
    operador de implantação, testadores e pessoa responsável pelo aceite.
 
 Nenhuma conta, banco, DNS, domínio, segredo ou identidade é provisionada por CI.
