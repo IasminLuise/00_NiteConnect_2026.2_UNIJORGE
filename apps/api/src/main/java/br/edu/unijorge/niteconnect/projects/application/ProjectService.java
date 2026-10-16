@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.annotation.Propagation;
 import java.time.LocalDate;
 import java.util.Objects;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -77,8 +78,18 @@ public class ProjectService {
         permissions.requireManage(actor, id); return projects.history(id, page, size);
     }
     @Transactional(readOnly=true)
-    public PageResult<ProjectDirectory.TeamMember> team(UUID actor, UUID id, int page, int size) {
-        permissions.requireRead(actor, id); return projects.team(id, page, size);
+    public PageResult<TeamMember> team(UUID actor, UUID id, int page, int size) {
+        permissions.requireRead(actor, id);
+        var result = projects.team(id, page, size);
+        var names = members.names(result.items().stream().map(ProjectDirectory.TeamMember::memberId).toList());
+        List<TeamMember> items = result.items().stream().map(item -> new TeamMember(item.id(), item.memberId(),
+                names.get(item.memberId()), item.responsibility(), item.startedAt())).toList();
+        return new PageResult<>(items, result.page(), result.size(), result.total());
+    }
+    @Transactional(readOnly=true)
+    public PageResult<MemberDirectory.Candidate> candidates(UUID actor, UUID id, String query, int page, int size) {
+        permissions.requireManage(actor, id);
+        return members.candidates(id, query, page, size);
     }
     @Transactional(readOnly=true)
     public PageResult<ProjectDirectory.Participation> participationHistory(UUID actor, UUID id, int page, int size) {
@@ -137,4 +148,5 @@ public class ProjectService {
         permissions.requireManage(actor, project); return projects.leadershipHistory(project, page, size);
     }
     public record Leadership(UUID memberId, boolean effective) {}
+    public record TeamMember(UUID id, UUID memberId, String memberName, String responsibility, java.time.Instant startedAt) {}
 }

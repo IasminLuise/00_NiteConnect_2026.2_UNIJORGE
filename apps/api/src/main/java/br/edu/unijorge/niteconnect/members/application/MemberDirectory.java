@@ -9,6 +9,9 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import java.util.Locale;
+import java.util.Collection;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.UUID;
 
 /** Explicit member-module contract. Other modules do not query member tables directly. */
@@ -24,6 +27,38 @@ public class MemberDirectory {
         return jdbc.query("select * from nite_connect.members where id=?", MAPPER, id).stream()
                 .findFirst().orElseThrow(ApiException::notFound);
     }
+    /** Minimal read contract for project team display; never exposes member contact details. */
+    public Map<UUID, String> names(Collection<UUID> ids) {
+        if (ids.isEmpty()) return Map.of();
+        String placeholders = String.join(",", java.util.Collections.nCopies(ids.size(), "?"));
+        Map<UUID, String> result = new HashMap<>();
+        jdbc.query("select id,name from nite_connect.members where id in (" + placeholders + ")",
+                (rs, row) -> Map.entry(rs.getObject("id", UUID.class), rs.getString("name")), ids.toArray())
+                .forEach(entry -> result.put(entry.getKey(), entry.getValue()));
+        return result;
+    }
+    /** Read-only candidate contract: one controlled query joins current project participation. */
+    public PageResult<Candidate> candidates(UUID project, String query, int page, int size) {
+        PageResult.validate(page, size);
+        if (query == null || query.strip().codePointCount(0, query.strip().length()) < 2 || query.length() > 160) {
+            throw ApiException.invalid("Informe ao menos 2 caracteres para pesquisar integrantes");
+        }
+        String escaped = query.strip().replace("!", "!!").replace("%", "!%").replace("_", "!_");
+        String pattern = "%" + escaped + "%";
+        String where = """
+                 from nite_connect.members m
+                 where m.status='ATIVO' and m.name ilike ? escape '!'
+                   and not exists (
+                     select 1 from nite_connect.project_memberships p
+                     where p.project_id=? and p.member_id=m.id and p.ended_at is null
+                   )
+                """;
+        long total = jdbc.queryForObject("select count(*)" + where, Long.class, pattern, project);
+        return new PageResult<>(jdbc.query("select m.id,m.name" + where + " order by m.name,m.id limit ? offset ?",
+                (rs, row) -> new Candidate(rs.getObject("id", UUID.class), rs.getString("name")),
+                pattern, project, size, (long) page * size), page, size, total);
+    }
+    public record Candidate(UUID id, String name) {}
     public PageResult<Member> list(int page, int size, MemberStatus status) {
         PageResult.validate(page, size);
         String where = status == null ? "" : " where status=?";

@@ -4,7 +4,8 @@ Todas as rotas exigem Bearer Microsoft Entra e integrante ATIVO, além das
 permissões abaixo. Entra desabilitado continua deny-all. Erros, UUIDs, paginação
 e ProblemDetail seguem o Bloco 01: 400 inválido, 401 token ausente/inválido,
 403 autoridade insuficiente, 404 inexistente ou recurso de outro contexto,
-409 versão/estado/vínculo conflitante. Sem dados pessoais de colegas.
+409 versão/estado/vínculo conflitante. A consulta de equipe expõe somente o nome
+necessário à identificação, sem contato ou dados administrativos dos colegas.
 
 Listas: `{items, page, size, total}`, `page=0`, `size=20`, máximo 100.
 Projetos ordenados por título/id; períodos e eventos por data/id.
@@ -32,7 +33,8 @@ edição, decisão e conversão. Versões inteiras >=0. Inclusões novas começa
 | PATCH `/api/v1/projects/{id}` | title, description, startsOn?, endsOn?, expectedVersion, reason | Gestor contextual/administração; 200 Projeto; campos de dados substituídos integralmente |
 | PATCH `/api/v1/projects/{id}/status` | status, expectedVersion, reason | Administração; 200 Projeto |
 | GET `/api/v1/projects/{id}/history` | page, size | Gestor contextual/administração; Page de eventos de estado, incluindo criação |
-| GET `/api/v1/projects/{id}/members` | page, size | Participante/administração; resumo sem e-mail, estado administrativo ou motivos |
+| GET `/api/v1/projects/{id}/members` | page, size | Participante vigente/administração; `id` da participação, `memberId`, `memberName`, `responsibility`, `startedAt`; sem e-mail, estado administrativo ou motivos |
+| GET `/api/v1/projects/{id}/member-candidates` | query, page, size | Gestor contextual/administração; Page de `{id, name}` para integrantes ATIVOS sem participação vigente no projeto |
 | POST `/api/v1/projects/{id}/members` | memberId, responsibility, expectedVersion, reason | Gestor contextual/administração; 201 período; exige alvo ATIVO |
 | DELETE `/api/v1/projects/{id}/members/{memberId}` | expectedVersion, reason | Gestor contextual/administração; 204, encerra período vigente; liderança precisa ser encerrada antes |
 | GET `/api/v1/projects/{id}/members/history` | page, size | Gestor contextual/administração; Page de períodos completos |
@@ -50,6 +52,21 @@ o estado atual do integrante é verificado sem apagar o vínculo histórico.
 Transições aprovadas: PLANEJAMENTO→ATIVO; ATIVO→PAUSADO/CONCLUIDO;
 PAUSADO→ATIVO/CONCLUIDO; CONCLUIDO→ATIVO. Repetição de estado é 409.
 Nenhum estado impede por si só manutenção autorizada de dados/equipe.
+
+### Identificação e seleção de integrantes
+
+`memberName` é aditivo na resposta de equipe; `id`, `memberId`,
+`responsibility` e `startedAt` permanecem compatíveis. A consulta em lote dos
+nomes passa pelo contrato de leitura do módulo `members`. A pesquisa de
+candidatos também usa esse contrato e filtra apenas participações **vigentes**;
+um integrante com período encerrado pode ser encontrado e incluído novamente.
+
+`query` é obrigatório, tem de 2 a 160 caracteres e é aplicado ao nome sem
+diferenciar maiúsculas/minúsculas. `%` e `_` são tratados como caracteres
+literais. A paginação segue o limite geral de 100 itens; a resposta não inclui
+e-mail, CPF, papéis ou histórico. O resultado da busca não reserva a vaga:
+`POST /members` verifica novamente o estado ATIVO e a ausência de participação
+vigente, com `expectedVersion` do projeto.
 
 ## Propostas
 
@@ -97,7 +114,8 @@ Testcontainers. Nenhum deles migra o banco local de desenvolvimento ou produçã
 Para executar essa suíte, não é necessário novo serviço externo, credencial,
 configuração Entra ou alteração de `.env`.
 
-Em 16/10/2026, a suíte integral passou com 111 testes e PostgreSQL 17 via
+Em 16/10/2026, antes da correção de identificação de integrantes, a suíte
+integral passou com 111 testes e PostgreSQL 17 via
 Testcontainers. No ensaio local da API integrada em `127.0.0.1:8081`, o Postman
 Web com Desktop Agent e OAuth PKCE recebeu HTTP 200 em `GET /api/v1/me` e
 `GET /api/v1/projects`; a listagem de projetos estava vazia. As chamadas sem
@@ -107,3 +125,8 @@ as [evidências de execução](homologacao-bloco-02-local.md) e o
 [roteiro de staging](staging-bloco-02.md). Os demais fluxos do Bloco 02 foram
 verificados automaticamente com identidades sintéticas; o aceite institucional
 formal continua pendente.
+
+Após a correção de identificação e pesquisa, `mvnw.cmd --batch-mode verify`
+passou novamente em 16/10/2026 com **115 testes, 0 falhas, 0 erros e 0
+ignorados**. Os quatro testes adicionais cobrem nomes e campos compatíveis,
+elegibilidade e paginação, limites de acesso e revalidação na inclusão.
