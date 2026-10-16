@@ -13,6 +13,10 @@ import org.springframework.web.method.annotation.HandlerMethodValidationExceptio
 
 @RestControllerAdvice
 public class ApiErrors {
+    @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+    ProblemDetail uploadTooLarge(Exception ex) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.PAYLOAD_TOO_LARGE, "Anexo excede o limite permitido");
+    }
     @ExceptionHandler(ApiException.class)
     ProblemDetail domain(ApiException ex) {
         return ProblemDetail.forStatusAndDetail(ex.status(), ex.getMessage());

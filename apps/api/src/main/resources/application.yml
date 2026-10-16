@@ -21,6 +21,10 @@ spring:
     url: ${FLYWAY_URL:${spring.datasource.url}}
     user: ${FLYWAY_USERNAME:${spring.datasource.username}}
     password: ${FLYWAY_PASSWORD:${spring.datasource.password}}
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 11MB
 management:
   endpoints:
     web:

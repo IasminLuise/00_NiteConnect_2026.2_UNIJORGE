@@ -59,6 +59,29 @@ public class MemberDirectory {
                 pattern, project, size, (long) page * size), page, size, total);
     }
     public record Candidate(UUID id, String name) {}
+
+    /** Assignment selection differs from team recruitment: require existing project participation. */
+    public PageResult<Candidate> activityCandidates(UUID project, String query, Collection<UUID> excluded, int page, int size) {
+        PageResult.validate(page, size);
+        if (query == null || query.strip().codePointCount(0, query.strip().length()) < 2 || query.length() > 160) {
+            throw ApiException.invalid("Informe ao menos 2 caracteres para pesquisar integrantes");
+        }
+        String pattern = "%" + query.strip().replace("!", "!!").replace("%", "!%").replace("_", "!_") + "%";
+        var args = new java.util.ArrayList<Object>(); args.add(pattern);
+        String where = " from nite_connect.members m where m.status='ATIVO' and m.name ilike ? escape '!'";
+        if (project != null) {
+            where += " and exists(select 1 from nite_connect.project_memberships p where p.project_id=? and p.member_id=m.id and p.ended_at is null)";
+            args.add(project);
+        }
+        if (!excluded.isEmpty()) {
+            where += " and m.id not in (" + String.join(",", java.util.Collections.nCopies(excluded.size(), "?")) + ")";
+            args.addAll(excluded);
+        }
+        long total = jdbc.queryForObject("select count(*)" + where, Long.class, args.toArray());
+        args.add(size); args.add((long) page * size);
+        return new PageResult<>(jdbc.query("select m.id,m.name" + where + " order by m.name,m.id limit ? offset ?",
+                (rs, row) -> new Candidate(rs.getObject("id", UUID.class), rs.getString("name")), args.toArray()), page, size, total);
+    }
     public PageResult<Member> list(int page, int size, MemberStatus status) {
         PageResult.validate(page, size);
         String where = status == null ? "" : " where status=?";
