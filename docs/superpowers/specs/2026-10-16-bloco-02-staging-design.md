@@ -33,7 +33,7 @@ Preparar uma implantação repetível do backend Java do Bloco 02 em Cloudflare 
 
 ## Limites e aceite
 
-Containers da Cloudflare estão em beta e não oferecem SLA de produção conforme documentação atual. O ambiente pode atender à homologação, mas essa limitação precisa ser considerada antes de produção.
+Cloudflare Containers está geralmente disponível desde abril de 2026. Esta implementação usa a política padrão; a política alternativa `durable_object` permanece em beta e não é usada aqui. Tamanho da instância, cold starts, custo e requisitos de disponibilidade ainda precisam ser verificados com carga e no plano contratado.
 
 O aceite institucional exige implantação real, URL HTTPS, identidades de teste aprovadas, execução da matriz funcional e responsável designado. CI verde, dry-run e configuração no Git não equivalem a homologação. Região Neon, domínio/rota Cloudflare e configurações Entra dependem de escolha e autorização institucional.
 

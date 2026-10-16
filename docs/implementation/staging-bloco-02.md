@@ -25,8 +25,10 @@ e contas de teste autorizadas. Login Microsoft não concede autorização por si
 - O acesso à internet do Container permite a conexão PostgreSQL TCP/TLS ao Neon
   e consulta às chaves públicas do Microsoft Entra. Os endpoints continuam
   autenticados pela API.
-- Cloudflare Containers está em beta e não oferece SLA de produção segundo a
-  documentação atual. A instituição deve aceitar essa limitação para staging.
+- Cloudflare Containers está disponível no Workers Paid. Esta implementação
+  usa a política padrão; a política alternativa `durable_object` permanece em
+  beta e não é usada aqui. Validar sizing, cold starts, custo e requisitos de
+  disponibilidade no plano contratado.
 
 ## Pré-requisitos institucionais
 
