@@ -19,7 +19,7 @@ class Block03MigrationTest {
         jdbc.update("insert into nite_connect.members(id,name,institutional_email,status) values (?,'Migração','migration@unijorge.com.br','ATIVO')",member);
         jdbc.update("insert into nite_connect.projects(id,title,description,created_by) values (?,'Projeto anterior','Preservado',?)",project,member);
         jdbc.update("insert into nite_connect.audit_events(id,actor_id,entity_type,entity_id,action,reason) values (?,?,'PROJECT',?,'PROJECT_CREATED','Anterior à V4')",event,member,project);
-        var flyway=Flyway.configure().dataSource(postgres.getJdbcUrl(),postgres.getUsername(),postgres.getPassword()).load();
+        var flyway=Flyway.configure().dataSource(postgres.getJdbcUrl(),postgres.getUsername(),postgres.getPassword()).target("4").load();
         assertThat(flyway.migrate().migrationsExecuted).isEqualTo(1);flyway.validate();
         assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("4");
         assertThat(jdbc.queryForObject("select title from nite_connect.projects where id=?",String.class,project)).isEqualTo("Projeto anterior");

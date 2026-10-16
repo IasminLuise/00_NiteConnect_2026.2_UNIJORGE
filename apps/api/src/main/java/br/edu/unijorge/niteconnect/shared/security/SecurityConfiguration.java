@@ -33,6 +33,16 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/agenda/events", "/api/v1/agenda/events/*", "/api/v1/agenda/events/*/participants",
+                                "/api/v1/me/attendance", "/api/v1/me/work-logs", "/api/v1/me/absence-justifications", "/api/v1/me/attendance/corrections",
+                                "/api/v1/me/participation-summary", "/api/v1/me/participation-history", "/api/v1/attendance/records",
+                                "/api/v1/attendance/summary", "/api/v1/attendance/history", "/api/v1/attendance/justifications", "/api/v1/attendance/corrections").access(authenticatedJwt)
+                        .requestMatchers(HttpMethod.POST, "/api/v1/agenda/events", "/api/v1/agenda/events/*/session", "/api/v1/agenda/events/*/close", "/api/v1/agenda/events/*/cancel",
+                                "/api/v1/me/attendance/check-in", "/api/v1/me/attendance/check-out", "/api/v1/me/attendance/*/return", "/api/v1/me/work-logs",
+                                "/api/v1/me/absence-justifications", "/api/v1/me/absence-justifications/*/complements", "/api/v1/me/attendance/corrections",
+                                "/api/v1/attendance/records/*/reviews", "/api/v1/attendance/records/*/corrections",
+                                "/api/v1/attendance/justifications/*/decisions", "/api/v1/attendance/corrections/*/decisions").access(authenticatedJwt)
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/agenda/events/*").access(authenticatedJwt)
                         .requestMatchers(HttpMethod.GET, "/api/v1/activities", "/api/v1/activities/*",
                                 "/api/v1/me/activities", "/api/v1/me/activities/history", "/api/v1/activities/*/history",
                                 "/api/v1/activities/*/assignees", "/api/v1/activities/*/assignees/history",
