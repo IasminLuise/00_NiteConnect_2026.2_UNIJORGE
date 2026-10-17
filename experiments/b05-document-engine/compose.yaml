@@ -1,0 +1,65 @@
+name: nite-b05-lab
+services:
+  wopi-host:
+    build: ./wopi-host
+    image: nite-b05-wopi:local
+    user: "${B05_UID:-10001}:${B05_GID:-10001}"
+    ports: ["127.0.0.1:18085:8080"]
+    environment:
+      LAB_DATA: /data
+      LAB_FIXTURES: /fixtures
+      LAB_ORIGIN: http://localhost:18085
+      COLLABORA_INTERNAL: http://collabora:9980
+      COLLABORA_PUBLIC: http://localhost:19980
+    volumes:
+      - ./.runtime/data:/data
+      - ./fixtures/generated:/fixtures:ro
+    mem_limit: 512m
+    cpus: 1.0
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    networks:
+      lab:
+        ipv4_address: 172.30.50.2
+  collabora:
+    image: collabora/code:26.04.5.1.1@sha256:56541aad09403975646dfb87a3716e38afecce09b5f853391eb6d937a0ccd402
+    volumes:
+      - ./.runtime/coolwsd.xml:/etc/coolwsd/coolwsd.xml:ro
+    mem_limit: 3g
+    cpus: 2.0
+    pids_limit: 256
+    cap_add: [MKNOD, SYS_CHROOT, FOWNER, CHOWN]
+    networks:
+      lab:
+        ipv4_address: 172.30.50.3
+  gateway:
+    image: nginx:stable-alpine@sha256:970364228b1e4f932abc22d321932816782cca8a20b85a77552a7cfe9acfb3b5
+    ports: ["127.0.0.1:19980:8080"]
+    volumes:
+      - ./gateway/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on: [collabora]
+    mem_limit: 64m
+    cpus: 0.25
+    networks:
+      lab:
+        ipv4_address: 172.30.50.4
+  libreoffice:
+    profiles: [tools]
+    build: ./libreoffice
+    image: nite-b05-libreoffice:7.4.7
+    user: "${B05_UID:-10001}:${B05_GID:-10001}"
+    network_mode: none
+    volumes:
+      - ./fixtures/generated:/input:ro
+      - ./results/generated/libreoffice:/output
+    mem_limit: 1g
+    cpus: 1.0
+    pids_limit: 128
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+networks:
+  lab:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.50.0/24
