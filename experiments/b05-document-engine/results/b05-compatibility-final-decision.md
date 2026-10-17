@@ -127,6 +127,8 @@ Responsável por decisão institucional/aceite: a designar; aprovação não pre
 
 - Após alterações de instrumentação: 25 testes Python aprovados (13 novos), com
   RED→GREEN observado; sintaxe dos três runners/probes Node e parse PowerShell aprovados.
+- Revisão independente de `360fc24..86a5484`: nenhum achado importante/bloqueador.
+  Revisão somente leitura; testes não repetidos pelo revisor e sem consulta aos documentos pessoais.
 - Host Java não mudou: 28 testes do baseline/CI #9 permanecem válidos; não foram
   repetidos localmente. CI da branch nova valida código sintético, não modelos oficiais.
 - API principal e seus contratos não mudaram; seus 185 testes históricos não foram
@@ -139,7 +141,8 @@ Responsável por decisão institucional/aceite: a designar; aprovação não pre
 [PR baseline #9](https://github.com/IasminLuise/00_NiteConnect_2026.2_UNIJORGE/pull/9),
 [plano B05.0.1](../../../docs/implementation/bloco-05-compatibility-plan.md),
 [protocolo](../scripts/FIDELITY-B0501.md) e adendo no ADR-B05-001.
-O PR empilhado desta execução será registrado após sua criação, sem merge.
+[PR empilhado B05.0.1 #10](https://github.com/IasminLuise/00_NiteConnect_2026.2_UNIJORGE/pull/10),
+apontando à branch de #9, aberto sem merge.
 Modelos oficiais e produção preservados; nenhum conteúdo pessoal ou fonte binária
 foi versionado. Serviços de laboratório restaurados conforme conferência final da entrega.
 
