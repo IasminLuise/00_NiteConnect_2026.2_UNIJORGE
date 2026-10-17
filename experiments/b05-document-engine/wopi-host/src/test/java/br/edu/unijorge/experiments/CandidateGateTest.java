@@ -63,4 +63,31 @@ class CandidateGateTest {
         DocumentStoreTest.status(500,()->store.save(id,grant.token(),withHeader("SAVEDATE","image",""),info.modified(),null));
         assertEquals(info.version(),store.currentVersion(id));
     }
+    static byte[] withBody(String body) throws Exception {
+        var out=new java.io.ByteArrayOutputStream();
+        try(var zip=new java.util.zip.ZipOutputStream(out)) {
+            DocumentStoreTest.entry(zip,"[Content_Types].xml","<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"><Override PartName=\"/word/document.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml\"/></Types>");
+            DocumentStoreTest.entry(zip,"word/document.xml","<w:document xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:body>"+body+"</w:body></w:document>");
+        }
+        return out.toByteArray();
+    }
+    @Test void sameParagraphTextCannotMoveBetweenDifferentlyStyledRuns() throws Exception {
+        var gate=new ScriptedDocxGate(Map.of("F01.docx",List.of("")));var id=UUID.randomUUID();
+        gate.register(id,"F01.docx",withBody("<w:p><w:r><w:rPr><w:b/></w:rPr><w:t>A</w:t></w:r><w:r><w:t>B</w:t></w:r></w:p>"));
+        DocumentStoreTest.status(500,()->gate.validate(id,withBody("<w:p><w:r><w:rPr><w:b/></w:rPr><w:t>AB</w:t></w:r><w:r><w:t></w:t></w:r></w:p>"),2));
+    }
+    @Test void sameParagraphTextCannotMoveIntoFieldCache() throws Exception {
+        var gate=new ScriptedDocxGate(Map.of("F01.docx",List.of("")));var id=UUID.randomUUID();
+        String start="<w:p><w:r><w:fldChar w:fldCharType=\"begin\"/></w:r><w:r><w:instrText>SAVEDATE</w:instrText></w:r><w:r><w:fldChar w:fldCharType=\"separate\"/></w:r><w:r><w:t>";
+        String between="</w:t></w:r><w:r><w:fldChar w:fldCharType=\"end\"/></w:r><w:r><w:t>";
+        String end="</w:t></w:r></w:p>";
+        gate.register(id,"F01.docx",withBody(start+"A"+between+"B"+end));
+        DocumentStoreTest.status(500,()->gate.validate(id,withBody(start+"AB"+between+""+end),2));
+    }
+    @Test void cdataHeaderCacheChangesAreRejectedAndEquivalentSegmentsAccepted() throws Exception {
+        var gate=new ScriptedDocxGate(Map.of("F01.docx",List.of("")));var id=UUID.randomUUID();
+        gate.register(id,"F01.docx",withHeader("SAVEDATE","image","<![CDATA[cache A]]>"));
+        DocumentStoreTest.status(500,()->gate.validate(id,withHeader("SAVEDATE","image","<![CDATA[cache B]]>"),2));
+        gate.validate(id,withHeader("SAVEDATE","image","cache <![CDATA[A]]>"),2);
+    }
 }

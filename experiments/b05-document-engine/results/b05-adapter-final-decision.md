@@ -37,6 +37,8 @@ foi verificada no DOCX candidato; importação/cálculo no browser não foram ap
 ## Corpus, versões e controles
 
 Base `ac60d148ace51784aecfc7d648d2e95ffc524f8b`, branch `spike/b05-adaptador-docx`.
+[PR #11](https://github.com/IasminLuise/00_NiteConnect_2026.2_UNIJORGE/pull/11)
+aberto sobre #10, sem merge; commits e CI final registrados no PR.
 ONLYOFFICE Community 10.0.0.1, índice
 `sha256:ca17889f10b11141cc6441836aebdd2835cf3e1b49681b2fd6e155c94b7850b3`.
 Host em imagem experimental separada; motor não atualizado. CODE sem novos ensaios.
@@ -96,7 +98,7 @@ contratar, enviar documentos, solicitar consentimento amplo ou implantar serviç
 
 ## Entrega e limites de validação
 
-38 testes Python e 34 testes Java do host aprovados após mudanças; smoke cruzado
+40 testes Python e 37 testes Java do host aprovados após mudanças; smoke cruzado
 adaptador→gate Java integra a CI com aceite sintético e rejeição de REF. Isso
 não executa Word/browser nem documentos oficiais na CI. API principal/Flyway/
 frontend/infra institucional não mudaram; seus testes não foram repetidos.
@@ -104,6 +106,18 @@ frontend/infra institucional não mudaram; seus testes não foram repetidos.
 Evidências Word/browser e hashes identificáveis ficam privados. Serviços usados
 devem ser restaurados/parados sem remover volumes antes da entrega. Revisão
 independente e CI final são registradas no PR, sem aprovação automática G1/G2.
+
+Revisão independente de `ac60d14..83e1bdd`: quatro Important confirmados e
+corrigidos numa rodada, cada um com RED→GREEN: atributos sob namespace padrão,
+campo aninhado entre parágrafos, redistribuição de texto entre runs/cache e CDATA.
+Suítes finais verdes e smoke cruzado aprovado; nenhum Minor adiado. O revisor não
+reproduziu Word/browser, não avaliou modelos oficiais, recuperação durável/restart,
+estado remoto da CI ou aprovações institucionais. Permanecem os limites explicitados
+na matriz; CI é conferida separadamente e não substitui esses aceites.
+
+O veredito **não afirma que o editor ignorou erro depois da recusa**. A mensagem
+foi anterior ao PutFile recusado; o aviso posterior foi observado. Não se demonstrou
+confirmação de uma versão aceita nem recuperação durável no fluxo exigido.
 
 Arquivos: [baseline](b05-adapter-baseline.md), [sintéticos](b05-adapter-synthetic-tests.md),
 [save](b05-adapter-save-validation.md), [oficiais não executados](b05-adapter-official-models.md),

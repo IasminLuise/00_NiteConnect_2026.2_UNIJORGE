@@ -11,6 +11,15 @@ rejeição HTTP, roteiro ausente, CAS antigo e campo SAVEDATE→REF/imagem alter
 A suíte anterior de token/read-only/revogação/locks/falha de storage também foi
 reexecutada. Esses testes não demonstram UX em cada falha operacional.
 
+A revisão independente identificou redistribuição de texto entre runs/cache e
+CDATA ignorado. Três regressões Java observaram RED→GREEN. O gate final preserva
+a associação texto/estrutura e coalesce TEXT/CDATA; apenas aplica o prefixo
+independente ao alvo conhecido no baseline. A suíte final tem 37 testes Java.
+A candidata real capturada continua recusada pelo código final em replay offline;
+não se repetiu o navegador após essas correções, pois o HTTP/contrato de recusa
+permaneceu igual e o replay confirmou a mesma razão. Não se presume nova UX de
+aceite ou recuperação a partir dos testes unitários.
+
 ## Browser real
 
 Após inserir XYZ/solicitar save, o cliente mostrou **“All changes saved”** sem

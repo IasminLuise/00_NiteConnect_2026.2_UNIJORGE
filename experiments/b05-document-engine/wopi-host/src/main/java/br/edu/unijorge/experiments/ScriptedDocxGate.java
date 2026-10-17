@@ -14,13 +14,13 @@ import org.w3c.dom.*;
  */
 public final class ScriptedDocxGate implements CandidateGate {
     private static final String W="http://schemas.openxmlformats.org/wordprocessingml/2006/main";
-    private record Baseline(String name, Map<String,String> invariants, List<String> body) {}
+    private record Baseline(String name, byte[] source, List<String> body) {}
     private final Map<String,List<String>> scripts;
     private final Map<UUID,Baseline> sources=new HashMap<>();
     public ScriptedDocxGate(Map<String,List<String>> scripts){this.scripts=Map.copyOf(scripts);}
     @Override public void register(UUID id,String name,byte[] source) {
         DocxValidator.validate(source);
-        sources.put(id,new Baseline(name,snapshot(source),body(source)));
+        sources.put(id,new Baseline(name,source.clone(),body(source)));
     }
     @Override public void validate(UUID id,byte[] candidate,long nextNumber) {
         var baseline=sources.get(id);
@@ -31,7 +31,7 @@ public final class ScriptedDocxGate implements CandidateGate {
         if(expected.isEmpty())reject("BODY_UNSUPPORTED");
         expected.set(0,script.get((int)index)+expected.get(0));
         if(!expected.equals(body(candidate)))reject("UNEXPECTED_BODY");
-        if(!baseline.invariants().equals(snapshot(candidate)))reject("UNVERIFIED_FIELDS_OR_LAYOUT");
+        if(!snapshot(baseline.source(),script.get((int)index)).equals(snapshot(candidate,"")))reject("UNVERIFIED_FIELDS_OR_LAYOUT");
     }
     private static void reject(String reason){throw new DocumentStore.Failure(500,"SAVE_REJECTED_"+reason);}
     private static Map<String,Document> parse(byte[] data) {
@@ -68,12 +68,24 @@ public final class ScriptedDocxGate implements CandidateGate {
         }
         for(Node child=node.getFirstChild();child!=null;child=child.getNextSibling())collectText(child,text);
     }
-    private static Map<String,String> snapshot(byte[] data) {
+    private static Map<String,String> snapshot(byte[] data,String prefix) {
         var result=new TreeMap<String,String>();var xml=parse(data);
+        if(!prefix.isEmpty()) {
+            var paragraphs=xml.get("word/document.xml").getElementsByTagNameNS(W,"p");
+            if(paragraphs.getLength()==0)reject("BODY_TARGET_UNSUPPORTED");
+            var first=(Element)paragraphs.item(0);var descendants=first.getElementsByTagNameNS(W,"*");Element target=null;
+            for(int i=0;i<descendants.getLength();i++) {
+                var element=(Element)descendants.item(i);String name=element.getLocalName();
+                if(Set.of("fldSimple","fldChar","instrText").contains(name))reject("BODY_TARGET_UNSUPPORTED");
+                if(name.equals("t")){target=element;break;}
+            }
+            if(target==null||!(target.getParentNode() instanceof Element run)||!"r".equals(run.getLocalName())||run.getParentNode()!=first)reject("BODY_TARGET_UNSUPPORTED");
+            target.setTextContent(prefix+target.getTextContent());
+        }
         for(var part:xml.entrySet()) {
             // Volatile application/provenance metadata is audited separately, never a layout oracle.
             if(part.getKey().equals("docProps/core.xml")||part.getKey().equals("docProps/app.xml"))continue;
-            var value=new StringBuilder();canonical(part.getValue().getDocumentElement(),value,part.getKey().equals("word/document.xml"));
+            var value=new StringBuilder();canonical(part.getValue().getDocumentElement(),value);
             result.put(part.getKey(),value.toString());
         }
         try(var zip=new ZipInputStream(new ByteArrayInputStream(data))) {
@@ -85,7 +97,7 @@ public final class ScriptedDocxGate implements CandidateGate {
         return result;
     }
     private static void token(StringBuilder out,String value){out.append(value.length()).append(':').append(value);}
-    private static void canonical(Element element,StringBuilder out,boolean body) {
+    private static void canonical(Element element,StringBuilder out) {
         token(out,"{"+element.getNamespaceURI()+"}"+element.getLocalName());
         var attrs=new TreeMap<String,String>();
         for(int i=0;i<element.getAttributes().getLength();i++) {
@@ -95,13 +107,17 @@ public final class ScriptedDocxGate implements CandidateGate {
             attrs.put("{"+attr.getNamespaceURI()+"}"+attr.getLocalName(),attr.getNodeValue());
         }
         attrs.forEach((key,value)->{token(out,key);token(out,value);});out.append('|');
+        var characters=new StringBuilder();
         for(Node child=element.getFirstChild();child!=null;child=child.getNextSibling()) {
-            if(child instanceof Element nested)canonical(nested,out,body);
-            else if(child.getNodeType()==Node.TEXT_NODE) {
-                boolean wordText=W.equals(element.getNamespaceURI())&&Set.of("t","instrText","delText").contains(element.getLocalName());
-                if((wordText||!child.getNodeValue().isBlank())&&!(body&&W.equals(element.getNamespaceURI())&&"t".equals(element.getLocalName())))token(out,child.getNodeValue());
-            }
+            if(child instanceof Element nested){characterToken(element,out,characters);canonical(nested,out);}
+            else if(child.getNodeType()==Node.TEXT_NODE||child.getNodeType()==Node.CDATA_SECTION_NODE)characters.append(child.getNodeValue());
         }
+        characterToken(element,out,characters);
         out.append(';');
+    }
+    private static void characterToken(Element element,StringBuilder out,StringBuilder characters) {
+        boolean wordText=W.equals(element.getNamespaceURI())&&Set.of("t","instrText","delText").contains(element.getLocalName());
+        if(characters.length()>0&&(wordText||!characters.toString().isBlank()))token(out,characters.toString());
+        characters.setLength(0);
     }
 }

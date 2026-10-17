@@ -150,6 +150,28 @@ class AdapterTest(unittest.TestCase):
         self.assertEqual(2,record['transformed_fields'])
         self.assertTrue(adapter.verify_idempotence(out,record))
 
+    def test_default_word_namespace_keeps_field_attributes_qualified(self):
+        header = ('<hdr xmlns="' + W[1:-1] + '" xmlns:w="' + W[1:-1] + '"><p><fldSimple w:instr="SAVEDATE \\* MERGEFORMAT" w:dirty="true" w:fldLock="false"><r><t>cache</t></r></fldSimple></p></hdr>').encode()
+        data = replace_part(field_package(), 'word/header1.xml', header)
+        output, record = adapter.normalize_copy(data, policy(data))
+        with zipfile.ZipFile(io.BytesIO(output)) as z:
+            root = ET.fromstring(z.read('word/header1.xml'))
+        markers = list(root.iter(W + 'fldChar'))
+        self.assertEqual(['begin', 'separate', 'end'], [n.get(W + 'fldCharType') for n in markers])
+        self.assertEqual('true', markers[0].get(W + 'dirty'))
+        self.assertEqual('false', markers[0].get(W + 'fldLock'))
+        self.assertTrue(adapter.verify_idempotence(output, record))
+
+    def test_complex_field_spanning_paragraphs_denies_nested_simple(self):
+        data = field_package()
+        with zipfile.ZipFile(io.BytesIO(data)) as z:
+            header = z.read('word/header1.xml')
+        header = header.replace(b'<w:p>', b'<w:p><w:r><w:fldChar w:fldCharType="begin"/></w:r><w:r><w:instrText>IF</w:instrText></w:r></w:p><w:p>', 1)
+        header = header.replace(b'</w:hdr>', b'<w:p><w:r><w:fldChar w:fldCharType="end"/></w:r></w:p></w:hdr>')
+        data = replace_part(data, 'word/header1.xml', header)
+        with self.assertRaises(ValueError):
+            adapter.normalize_copy(data, policy(data))
+
 
 if __name__ == '__main__':
     unittest.main()

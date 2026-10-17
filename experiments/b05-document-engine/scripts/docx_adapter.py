@@ -139,16 +139,6 @@ def _check_simple(field):
     parent = field.parentNode
     if not _qualified(parent, 'p'):
         raise ValueError('Only direct paragraph fields supported')
-    depth = 0
-    for sibling in parent.childNodes:
-        if sibling is field:
-            break
-        if sibling.nodeType == Node.ELEMENT_NODE:
-            for marker in sibling.getElementsByTagNameNS(WNS, 'fldChar'):
-                kind = marker.getAttributeNS(WNS, 'fldCharType')
-                depth += 1 if kind == 'begin' else -1 if kind == 'end' else 0
-    if depth != 0:
-        raise ValueError('Nested complex/simple field unsupported')
     ancestor = parent
     while ancestor.nodeType == Node.ELEMENT_NODE:
         if ancestor.namespaceURI == 'http://schemas.openxmlformats.org/markup-compatibility/2006' or ancestor.localName in ('sdt', 'ins', 'del'):
@@ -191,15 +181,28 @@ def eligible(data, policy):
         if any(n.tag == W + 'documentProtection' and n.get(W + 'enforcement') not in ('0', 'false', 'off') for n in root.iter()):
             raise ValueError('Protected document unsupported')
         doc = minidom.parseString(blob)
-        for field in doc.getElementsByTagNameNS(WNS, 'fldSimple'):
+        # Field ranges can cross paragraphs. Follow the complete story in XML order.
+        depth = 0
+        for field in doc.getElementsByTagName('*'):
+            if _qualified(field, 'fldChar'):
+                kind = field.getAttributeNS(WNS, 'fldCharType')
+                depth += 1 if kind == 'begin' else -1 if kind == 'end' else 0
+                if depth < 0:
+                    raise ValueError('Unbalanced complex field')
+            if not _qualified(field, 'fldSimple'):
+                continue
             instruction = field.getAttributeNS(WNS, 'instr')
             if normalize_instruction(instruction).split(' ', 1)[0:1] != ['SAVEDATE']:
                 continue
             if not (name == 'word/document.xml' or name.startswith(('word/header', 'word/footer'))):
                 raise ValueError('Unexpected SAVEDATE story')
+            if depth:
+                raise ValueError('Nested complex/simple field unsupported across story')
             _check_simple(field)
             found.append({'part': name, 'instruction': instruction})
             parsed.setdefault(name, (doc, []))[1].append(field)
+        if depth:
+            raise ValueError('Unbalanced complex field')
     if found != expected:
         raise ValueError('Exact ordered field declaration mismatch')
     return parts, inv, parsed
@@ -213,22 +216,28 @@ def manifest(data, output, policy, changes, count):
 
 
 def normalize_copy(data, policy):
-    parts, _, parsed = eligible(data, policy)
+    parts, before, parsed = eligible(data, policy)
     changes, replacements, count = [], {}, 0
     for name, (doc, fields) in parsed.items():
         for field in fields:
             prefix = (field.prefix + ':') if field.prefix else ''
+            # Default namespaces never qualify attributes in serialized XML.
+            # The existing namespaced instruction supplies an in-scope Word prefix.
+            attribute_prefix = field.getAttributeNodeNS(WNS, 'instr').prefix
+            if not attribute_prefix:
+                raise ValueError('Explicit Word attribute namespace prefix required')
+            attribute_prefix += ':'
             def run(child_name, attr=None, value=None):
                 node = doc.createElementNS(WNS, prefix + 'r')
                 child = doc.createElementNS(WNS, prefix + child_name)
                 if attr:
-                    child.setAttributeNS(WNS, prefix + attr, value)
+                    child.setAttributeNS(WNS, attribute_prefix + attr, value)
                 node.appendChild(child)
                 return node, child
             begin, char = run('fldChar', 'fldCharType', 'begin')
             for flag in ('fldLock', 'dirty'):
                 if field.hasAttributeNS(WNS, flag):
-                    char.setAttributeNS(WNS, prefix + flag, field.getAttributeNS(WNS, flag))
+                    char.setAttributeNS(WNS, attribute_prefix + flag, field.getAttributeNS(WNS, flag))
             instruction, text = run('instrText')
             text.setAttributeNS('http://www.w3.org/XML/1998/namespace', 'xml:space', 'preserve')
             text.appendChild(doc.createTextNode(field.getAttributeNS(WNS, 'instr')))
@@ -252,7 +261,10 @@ def normalize_copy(data, policy):
         for entry in source.infolist():
             target.writestr(copy.copy(entry), replacements.get(entry.filename, parts[entry.filename]))
     output = out.getvalue()
-    checked_package(output)
+    _, after = checked_package(output)
+    semantic_fields = lambda values: [(f['part'], f['normalized'], f['cached'], f['locked'], f['complete']) for f in values]
+    if semantic_fields(before['fields']) != semantic_fields(after['fields']) or before['stories'] != after['stories']:
+        raise ValueError('Serialized field/story semantics changed')
     return output, manifest(data, output, policy, changes, count)
 
 

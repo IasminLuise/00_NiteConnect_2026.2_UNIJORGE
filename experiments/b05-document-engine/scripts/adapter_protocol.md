@@ -43,10 +43,16 @@ parágrafo do corpo original naquela versão. Acima: inserir XYZ, depois removê
 Outros parágrafos devem permanecer exatos. Esta versão não autoriza preenchimento
 arbitrário nem implementa o roteiro C2 de append. Documento/etapa sem script é negado.
 O baseline vem das fixtures de entrada, inclusive após restart, nunca da saída.
+O prefixo é aplicado à primeira ocorrência de texto de um run diretamente no
+primeiro parágrafo, preservando a associação entre texto, run, propriedades e
+cache. Alvo dentro de campo/contêiner não suportado é recusado. Não redistribuir
+texto entre runs para satisfazer uma comparação somente por parágrafo.
 
 `ScriptedDocxGate` verifica corpo e snapshot conservador de partes XML/mídia.
-Ignora prefixos de namespace, revisão rsid e conteúdo de texto do corpo que é
-verificado separadamente; metadados core/app são dinâmicos e não certificam layout.
+Ignora prefixos de namespace e revisão rsid. Compara todo texto associado à
+estrutura, incluindo caches/whitespace e segmentos TEXT/CDATA coalescidos, além
+da comparação por parágrafo; somente o prefixo esperado no alvo conhecido é
+autorizado. Metadados core/app são dinâmicos e não certificam layout.
 Nenhum outro delta do motor foi liberado. Não resolve cascata de estilos, equivalência
 de âncoras ou cálculo de campos; alterações desconhecidas são recusadas como não
 verificadas. Não chamar essa política de validador institucional completo.
