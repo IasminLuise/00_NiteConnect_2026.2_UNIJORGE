@@ -66,4 +66,19 @@ class WopiHttpTest {
         mvc.perform(post("/lab/revoke/"+session.id()).header("Origin","https://untrusted.invalid")).andExpect(status().isForbidden());
         mvc.perform(get("/wopi/files/"+id).param("access_token",session.token())).andExpect(status().isOk());
     }
+    @Test void integrityRejectionIsHttp500WithoutSuccessVersionAndPointerIsUnchanged()throws Exception {
+        var rejected=new DocumentStore(root.resolve("guarded"),Clock.systemUTC(),(document,bytes,number)->{throw new DocumentStore.Failure(500,"SAVE_REJECTED_TEST");});
+        rejected.seed(id,"F01.docx",DocumentStoreTest.docx("one"));var grant=rejected.issue(id,true,Duration.ofMinutes(10));
+        var before=rejected.info(id,grant.token());
+        var guarded=MockMvcBuilders.standaloneSetup(new WopiController(rejected)).setControllerAdvice(new WopiController.Errors()).build();
+        guarded.perform(post("/wopi/files/"+id+"/contents").param("access_token",grant.token())
+            .header("X-WOPI-Override","PUT").header("X-LOOL-WOPI-Timestamp",before.modified()).content(DocumentStoreTest.docx("two")))
+            .andExpect(status().isInternalServerError()).andExpect(header().doesNotExist("X-WOPI-ItemVersion"))
+            .andExpect(jsonPath("error").value("SAVE_REJECTED_TEST"));
+        Assertions.assertEquals(before.version(),rejected.currentVersion(id));
+        Assertions.assertEquals(1,rejected.versions(id).size());
+        try(var files=java.nio.file.Files.list(root.resolve("guarded").resolve(id.toString()).resolve("rejected"))) {
+            Assertions.assertEquals(2,files.count());
+        }
+    }
 }

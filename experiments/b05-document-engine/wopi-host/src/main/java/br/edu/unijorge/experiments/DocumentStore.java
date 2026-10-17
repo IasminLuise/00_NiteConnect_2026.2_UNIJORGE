@@ -26,10 +26,12 @@ public final class DocumentStore {
         public int status(){return status;}
         public String lock(){return lock;}
     }
-    private final Path root;private final Clock clock;
+    private final Path root;private final Clock clock;private final CandidateGate gate;
     private final Map<String,Grant> grants=new HashMap<>();private final Map<UUID,Lock> locks=new HashMap<>();
-    public DocumentStore(Path root,Clock clock)throws IOException{this.root=root.toAbsolutePath().normalize();this.clock=clock;Files.createDirectories(this.root);}
+    public DocumentStore(Path root,Clock clock)throws IOException{this(root,clock,(id,after,number)->{});}
+    public DocumentStore(Path root,Clock clock,CandidateGate gate)throws IOException{this.root=root.toAbsolutePath().normalize();this.clock=clock;this.gate=Objects.requireNonNull(gate);Files.createDirectories(this.root);}
     public synchronized void seed(UUID id,String name,byte[] bytes) {
+        gate.register(id,name,bytes);
         if(Files.exists(dir(id).resolve("current")))return;
         DocxValidator.validate(bytes);
         if(!name.matches("F[0-9]{2}\\.docx"))throw new Failure(400,"Nome de fixture inválido");
@@ -75,6 +77,16 @@ public final class DocumentStore {
             Instant expected=null;
             if(base!=null)try{expected=Instant.parse(base);}catch(java.time.format.DateTimeParseException ignored){/* invalid base conflicts */}
             if(expected==null||!before.modified().truncatedTo(java.time.temporal.ChronoUnit.MICROS).equals(expected.truncatedTo(java.time.temporal.ChronoUnit.MICROS)))throw new Failure(409,"Versão de origem alterada",held);
+            try { gate.validate(id,bytes,before.number()+1); }
+            catch(Failure rejected) {
+                // Private bounded quarantine, never exposed by the version/download routes.
+                io(()->{Path rejectedDir=dir(id).resolve("rejected");Files.createDirectories(rejectedDir);
+                    try(var entries=Files.list(rejectedDir)){if(entries.count()>=64)throw new IOException("Quarantine full");}
+                    String attempt=UUID.randomUUID().toString();
+                    durable(rejectedDir.resolve(attempt+".docx"),bytes);
+                    durable(rejectedDir.resolve(attempt+".txt"),(hash(bytes)+"\n"+before.version()+"\n"+clock.instant()+"\n"+rejected.getMessage()+"\n").getBytes(StandardCharsets.UTF_8));return null;});
+                throw rejected;
+            }
             io(()->{write(id,bytes,before);return null;});return info(id,token);
         }
     }

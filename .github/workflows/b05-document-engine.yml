@@ -27,6 +27,7 @@ jobs:
         run: |
           mvn --batch-mode -f experiments/b05-document-engine/wopi-host/pom.xml verify
           python -m unittest discover -s experiments/b05-document-engine/scripts -p 'test_*.py'
+          python experiments/b05-document-engine/scripts/adapter_ci.py
       - name: Generate synthetic fixtures and restrictive configuration
         run: |
           python experiments/b05-document-engine/scripts/generate_fixtures.py

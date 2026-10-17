@@ -151,3 +151,10 @@ Ensaio controlado posterior, comparação ONLYOFFICE e decisão NO-GO:
 Pesquisa focal B05.0.1, em branch derivada e PR empilhado: protocolo em
 `scripts/FIDELITY-B0501.md` e resultado em `results/b05-compatibility-final-decision.md`.
 Mantém NO-GO; acrescenta reproduções e diagnóstico, sem habilitar edição no produto.
+
+Pesquisa B05.0.2: `scripts/adapter_protocol.md`,
+`results/b05-adapter-final-decision.md`. Adaptador pré-editor por manifesto privado
+e validação opt-in `LAB_SAVE_SCRIPT` somente no host experimental. Parada no Gate C;
+sem normalização oficial ou integração de produto. Após Maven e testes Python,
+`python scripts/adapter_ci.py` verifica uma fixture sintética transformada contra
+o gate Java: aceite controlado e recusa de regressão REF. Não é ensaio de motor/Word.
