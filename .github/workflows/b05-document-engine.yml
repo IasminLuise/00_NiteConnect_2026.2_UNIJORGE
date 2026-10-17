@@ -1,0 +1,43 @@
+name: B05 document engine laboratory
+on:
+  workflow_dispatch:
+  pull_request:
+    paths: ['experiments/b05-document-engine/**', '.github/workflows/b05-document-engine.yml']
+  push:
+    branches: ['spike/b05-collabora-wopi-docx']
+    paths: ['experiments/b05-document-engine/**', '.github/workflows/b05-document-engine.yml']
+permissions:
+  contents: read
+jobs:
+  synthetic-laboratory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: experiments/b05-document-engine/wopi-host/pom.xml
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Verify isolated host and measurement regression
+        run: |
+          mvn --batch-mode -f experiments/b05-document-engine/wopi-host/pom.xml verify
+          python -m unittest discover -s experiments/b05-document-engine/scripts -p 'test_*.py'
+      - name: Generate synthetic fixtures and restrictive configuration
+        run: |
+          python experiments/b05-document-engine/scripts/generate_fixtures.py
+          python experiments/b05-document-engine/scripts/prepare_runtime.py
+      - name: Build engines and start local laboratory
+        run: |
+          python experiments/b05-document-engine/scripts/lab.py build wopi-host libreoffice
+          python experiments/b05-document-engine/scripts/lab.py up -d
+          python experiments/b05-document-engine/scripts/wait_ready.py
+      - name: Convert one exact synthetic version in both engines
+        run: python experiments/b05-document-engine/scripts/measure.py --fixtures F01
+      - name: Stop only this laboratory
+        if: always()
+        run: python experiments/b05-document-engine/scripts/lab.py down
