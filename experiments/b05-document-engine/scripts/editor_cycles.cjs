@@ -33,7 +33,8 @@ async function main() {
     await page.locator('option').last().waitFor({state:'attached', timeout:15000});
     await page.getByRole('checkbox').check();
     for (const scenario of scenarios.filter(s => s.scenario !== 'original' && (!args.scenario || s.scenario === args.scenario))) {
-      const count = scenario.scenario === 'noop' ? 1 : 3;
+      const persistedNoop = scenario.scenario === 'noop' && args['persistent-noop'] === 'true';
+      const count = scenario.scenario === 'noop' ? (persistedNoop ? 2 : 1) : 3;
       for (let cycle = 1; cycle <= count; cycle++) {
         const previous = await current(scenario.document);
         await page.locator('select').selectOption(scenario.document, {timeout:5000});
@@ -55,10 +56,16 @@ async function main() {
             window.app.map.sendUnoCommand('.uno:GoToStartOfDoc');
             window.app.map.sendUnoCommand('.uno:GoToEndOfPara');
           });
-          await frame.evaluate(text => window.app.map._textInput._sendText(text), scenario.scenario === 'noop' ? 'XYZ' : ` B${cycle}`);
+          if (persistedNoop && cycle === 2) {
+            await frame.evaluate(() => {
+              for (let i = 0; i < 3; i++) window.app.map.sendUnoCommand('.uno:SwBackspace');
+            });
+          } else {
+            await frame.evaluate(text => window.app.map._textInput._sendText(text), scenario.scenario === 'noop' ? 'XYZ' : ` B${cycle}`);
+          }
           // Wait for document state acknowledgement before issuing Undo/Save.
           await page.waitForTimeout(800);
-          if (scenario.scenario === 'noop') await frame.evaluate(() => window.app.map.sendUnoCommand('.uno:Undo'));
+          if (scenario.scenario === 'noop' && !persistedNoop) await frame.evaluate(() => window.app.map.sendUnoCommand('.uno:Undo'));
           // Explicitly request serialization even when Undo returned the document to an unmodified state.
           await frame.evaluate(() => window.app.map.save(false, false));
           const version = await saved(scenario.document, previous);
@@ -67,7 +74,9 @@ async function main() {
             '--document', scenario.document, '--previous', previous, '--version', version, '--out', out], {encoding:'utf8', timeout:90000});
           if (captured.status !== 0) throw new Error('Private capture failed');
           if (JSON.parse(captured.stdout).version !== version) throw new Error('Captured version differs from the observed save');
-          results.push({alias:scenario.alias, scenario:scenario.scenario, cycle, version, previous, transport:'browser-composition-and-UNO'});
+          results.push({alias:scenario.alias, scenario:scenario.scenario, cycle, version, previous,
+            operation:persistedNoop ? (cycle === 1 ? 'insert' : 'remove') : scenario.scenario,
+            transport:'browser-composition-and-UNO'});
           fs.writeFileSync(path.join(run, 'browser-cycles.json'), JSON.stringify(results, null, 2));
           console.log(`${scenario.alias} ${scenario.scenario} cycle ${cycle}: persisted`);
         } finally { await editor.close(); }

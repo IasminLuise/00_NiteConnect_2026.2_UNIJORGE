@@ -147,3 +147,7 @@ do corpus sintético. O laboratório padrão foi restaurado após encerrar as se
 Ensaio controlado posterior, comparação ONLYOFFICE e decisão NO-GO:
 `results/2026-10-17-fidelity-decision.md`. Instruções reproduzíveis em
 `scripts/FIDELITY.md`. Os modelos oficiais continuam intactos.
+
+Pesquisa focal B05.0.1, em branch derivada e PR empilhado: protocolo em
+`scripts/FIDELITY-B0501.md` e resultado em `results/b05-compatibility-final-decision.md`.
+Mantém NO-GO; acrescenta reproduções e diagnóstico, sem habilitar edição no produto.

@@ -1,0 +1,19 @@
+{
+  "baseline_commit": "360fc24d6a8d3203e06db5faf219105c3576e2ac",
+  "baseline_pr": 9,
+  "architecture": "linux/amd64",
+  "code": {
+    "tag": "26.04.5.1.1",
+    "platform_manifest": "sha256:56541aad09403975646dfb87a3716e38afecce09b5f853391eb6d937a0ccd402"
+  },
+  "onlyoffice": {
+    "tag": "10.0.0.1",
+    "manifest_index": "sha256:ca17889f10b11141cc6441836aebdd2835cf3e1b49681b2fd6e155c94b7850b3",
+    "platform_manifest": "sha256:bff1a9fd46f2b79ada776fd0447c3fccf66cbf44c1996ec9316efa8ac4ee3fd5",
+    "installed_sdk_all_js_sha256": "1367619eca9d6348997ab46b67ee18d5389028af78832b12b43b656259e3d25c"
+  },
+  "original_files_verified": 3,
+  "historical_checkpoints_verified": {"code": 16, "onlyoffice": 13},
+  "word_control_files_frozen": 10,
+  "private_hashes_or_document_contents_included": false
+}
