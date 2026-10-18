@@ -1,0 +1,31 @@
+name: B05 SDK prequalification
+on:
+  workflow_dispatch:
+  pull_request:
+    paths: ['experiments/b05-sdk-comparison/**', '.github/workflows/b05-sdk-prequalification.yml']
+permissions:
+  contents: read
+jobs:
+  structural-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Structural regressions only (no SDK/Word fidelity approval)
+        run: |
+          python -m pip install python-docx==1.2.0
+          python -m unittest discover -s experiments/b05-sdk-comparison/tests -v
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: experiments/b05-sdk-comparison/web/package-lock.json
+      - name: Verify pinned integrations compile
+        working-directory: experiments/b05-sdk-comparison/web
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm run build
+      # No official files, trial keys, private screenshots or runtime artifacts in CI.
