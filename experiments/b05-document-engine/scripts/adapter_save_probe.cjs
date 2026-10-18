@@ -3,7 +3,7 @@ const fs=require('node:fs'),path=require('node:path');
 const {createRequire}=require('node:module');
 const args=Object.fromEntries(process.argv.slice(2).reduce((p,v,i,a)=>i%2?p:[...p,[v.replace(/^--/,''),a[i+1]]],[]));
 const pw=createRequire(path.join(args.playwright,'package.json'))('playwright');
-const r=path.resolve(args.run),host='http://localhost:18086';
+const r=path.resolve(args.run),host=args.host||'http://localhost:18086';
 if(!r.startsWith(path.resolve(__dirname,'../.runtime')+path.sep))throw Error('Private run required');
 if(fs.existsSync(path.join(r,'save-ux.json')))throw Error('Fresh output required');
 const scenario=JSON.parse(fs.readFileSync(path.join(r,'scenarios.json')))[0];

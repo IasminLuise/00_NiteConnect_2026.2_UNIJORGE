@@ -4,14 +4,14 @@ on:
   pull_request:
     paths: ['experiments/b05-document-engine/**', '.github/workflows/b05-document-engine.yml']
   push:
-    branches: ['spike/b05-collabora-wopi-docx']
+    branches: ['spike/b05-docs-api-vs-wopi']
     paths: ['experiments/b05-document-engine/**', '.github/workflows/b05-document-engine.yml']
 permissions:
   contents: read
 jobs:
   synthetic-laboratory:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -23,6 +23,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
       - name: Verify isolated host and measurement regression
         run: |
           mvn --batch-mode -f experiments/b05-document-engine/wopi-host/pom.xml verify
@@ -31,14 +34,23 @@ jobs:
       - name: Generate synthetic fixtures and restrictive configuration
         run: |
           python experiments/b05-document-engine/scripts/generate_fixtures.py
-          python experiments/b05-document-engine/scripts/prepare_runtime.py
-      - name: Build engines and start local laboratory
+          python experiments/b05-document-engine/scripts/prepare_docs_api.py --out experiments/b05-document-engine/.runtime/b0503/ci
+          npm install --prefix "$RUNNER_TEMP/b05-browser" playwright@1.58.2
+          "$RUNNER_TEMP/b05-browser/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Build host and start ONLYOFFICE Docs API laboratory
         run: |
-          python experiments/b05-document-engine/scripts/lab.py build wopi-host libreoffice
-          python experiments/b05-document-engine/scripts/lab.py up -d
-          python experiments/b05-document-engine/scripts/wait_ready.py
-      - name: Convert one exact synthetic version in both engines
-        run: python experiments/b05-document-engine/scripts/measure.py --fixtures F01
+          docker build -t nite-b05-wopi:b0503 experiments/b05-document-engine/wopi-host
+          docker compose -f experiments/b05-document-engine/compose.docs-api.yaml -f experiments/b05-document-engine/.runtime/b0503/ci/compose.private.json up -d
+          python experiments/b05-document-engine/scripts/docs_api_wait.py
+      - name: Synthetic transport acceptance and conservative rejection (no fidelity approval)
+        run: |
+          export B05_CHROME=$(node -e "process.stdout.write(require(process.env.RUNNER_TEMP+'/b05-browser/node_modules/playwright').chromium.executablePath())")
+          for phase in control strict readonly; do
+            node experiments/b05-document-engine/scripts/docs_api_save_probe.cjs --run experiments/b05-document-engine/.runtime/b0503/ci --phase "$phase" --playwright "$RUNNER_TEMP/b05-browser/node_modules/playwright" --chrome "$B05_CHROME"
+          done
+          docker compose -f experiments/b05-document-engine/compose.docs-api.yaml -f experiments/b05-document-engine/.runtime/b0503/ci/compose.private.json restart wopi-host
+          python experiments/b05-document-engine/scripts/docs_api_wait.py
+          node experiments/b05-document-engine/scripts/docs_api_recovery_probe.cjs --run experiments/b05-document-engine/.runtime/b0503/ci --control control --rejected strict --playwright "$RUNNER_TEMP/b05-browser/node_modules/playwright" --chrome "$B05_CHROME"
       - name: Stop only this laboratory
         if: always()
-        run: python experiments/b05-document-engine/scripts/lab.py down
+        run: docker compose -f experiments/b05-document-engine/compose.docs-api.yaml -f experiments/b05-document-engine/.runtime/b0503/ci/compose.private.json stop
