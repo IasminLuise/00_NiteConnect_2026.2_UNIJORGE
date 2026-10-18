@@ -72,7 +72,7 @@ Nenhum dado privado acompanha a matriz pública.
 | T28 | Estado de erro/rejeição na UX | PASS | Screen estrita + recuperação pós-restart, sem falsa confirmação NITE |
 | T29 | Direitos Community/AGPL/branding/conexões | NOT-RUN | [licença](b05-docs-api-licensing.md), nenhuma aprovação presumida |
 | T30 | Riscos e lacunas G1 operacionais | PASS | [ADR](../ADR-B05-001.md), lacunas registradas; **G1 não aprovado** |
-| T31 | Revisão independente e CI sintética | BLOCKED | Fechamento pendente de revisão independente e execução remota |
+| T31 | Revisão independente e CI sintética | PASS | [Revisão e correções](b05-docs-api-review.md); [CI 39089268410](https://github.com/IasminLuise/00_NiteConnect_2026.2_UNIJORGE/actions/runs/39089268410), código `ffe2b0d`; sem approval formal/GO |
 | T32 | Parecer GO/NO-GO e contingência decidida | PASS | Este relatório + adendo ADR; nova solução depende de decisão institucional |
 
 ## Comparação e decisão
@@ -110,9 +110,18 @@ reexecutados porque `DocumentStore` mudou. API principal, Flyway/PostgreSQL e
 suíte de Blocos 01–04 não se aplicam: esses componentes não foram alterados.
 
 Os 177 hashes do congelamento histórico foram recalculados: todos intactos.
-O projeto Compose novo foi parado, sem apagar volumes/caches nem iniciar os
-projetos históricos. Revisão independente concluída e corrigida; CI remota do
-código corrigido ainda pendente neste checkpoint. A primeira execução remota
-falhou antes do smoke por diretório ausente, corrigido com RED→GREEN, sem
-atribuir essa falha ao motor. Evidências privadas e comandos de reprodução:
+O projeto Compose novo foi parado e o Docker Desktop devolvido ao estado parado
+inicial, sem apagar volumes/caches nem iniciar os projetos históricos. Revisão
+independente concluída e corrigida; [CI remota do código `ffe2b0d`](https://github.com/IasminLuise/00_NiteConnect_2026.2_UNIJORGE/actions/runs/39089268410)
+**success**, incluindo transporte aceito, recusa estrita, readonly e
+restart/recuperação/reabertura. A primeira execução remota falhou antes do smoke
+por diretório ausente, corrigido com RED→GREEN, sem atribuir essa falha ao motor.
+Os testes locais de Word/layout anteriores continuam válidos: as correções
+posteriores são de controle de sessão/checkpoint/preparação e não alteram o motor,
+a fixture ou o gate. Não foram repetidos ensaios oficiais, force save real ou
+Gates C/D/E. Nenhum componente do produto mudou.
+
+[PR #12](https://github.com/IasminLuise/00_NiteConnect_2026.2_UNIJORGE/pull/12)
+aberto sobre #11, sem merge. Este fechamento documental não modifica o código
+ensaiado em `ffe2b0d`. Evidências privadas e comandos de reprodução:
 [protocolo](../scripts/DOCS-API-B0503.md).
