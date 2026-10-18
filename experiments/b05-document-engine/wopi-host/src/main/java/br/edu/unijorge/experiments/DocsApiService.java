@@ -71,9 +71,10 @@ final class DocsApiService {
         return value;
     }
     synchronized JsonNode reopen(UUID id,String cap){
-        var previous=work(id,cap);if(!previous.path("closed").asBoolean())fail(409,"Sessão ainda não finalizada");
+        var previous=work(id,cap);if(!previous.path("closed").asBoolean()||!isActive(previous))fail(409,"Sessão não finalizada ou chave obsoleta");
         if(works.size()>=32)fail(400,"Limite de sessões");
         var next=previous.deepCopy();UUID nextId=UUID.randomUUID();next.put("id",nextId.toString());next.put("key","b0503-"+UUID.randomUUID());next.put("cap",random());next.put("expires",Instant.now().plusSeconds(3600).getEpochSecond());next.put("state","editing-local");next.put("closed",false);next.put("commits",0);next.put("dirtyEpoch",0);next.put("pendingForce","");next.set("receipts",DocsJwt.JSON.createObjectNode());
+        for(String name:List.of("candidateHash","reason","lastStatus"))next.remove(name);next.put("forceEpoch",-1);
         next.put("sourceVersion",store.currentVersion(document(previous)));next.put("headVersion",store.currentVersion(document(previous)));next.put("lastHash","");works.put(nextId,next);active(next);persist(next);return next.deepCopy();
     }
     synchronized JsonNode state(UUID id,String cap){
@@ -149,7 +150,7 @@ final class DocsApiService {
         if(!work.path("writable").asBoolean())fail(403,"Somente leitura");
         if(!"docx".equals(payload.path("filetype").asString("docx")))fail(415,"Tipo inválido");
         String operation=payload.path("userdata").asString("");
-        if(status==6&&!operation.isEmpty()&&!operation.equals(work.path("pendingForce").asString()))fail(409,"Checkpoint obsoleto");
+        if(status==6&&(operation.isEmpty()||work.path("pendingForce").asString().isEmpty()||!operation.equals(work.path("pendingForce").asString())))fail(409,"Checkpoint não solicitado ou obsoleto");
         work.put("state","candidate-received");persist(work);
         byte[] candidate;
         try{candidate=fetch.download(payload.path("url").asString(),work.path("key").asString());}

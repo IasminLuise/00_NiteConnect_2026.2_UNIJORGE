@@ -12,7 +12,7 @@ from fidelity import ROOT, private_path
 def prepare(target):
     target = private_path(ROOT / '.runtime', target)
     target.mkdir(parents=True, exist_ok=False)
-    for name in ('fixtures', 'wopi-data', 'docs-data', 'engine-cache', 'engine-logs', 'engine-keys'):
+    for name in ('fixtures', 'wopi-data', 'docs-data', 'engine-cache', 'engine-logs', 'engine-keys', 'browser'):
         (target / name).mkdir()
     shutil.copyfile(ROOT / 'fixtures/generated/F01.docx', target / 'fixtures/F01.docx')
     # Local comparison preserves the prior exact bytes; clean CI uses the existing source-free case.

@@ -40,40 +40,40 @@ gate; `NOT-RUN`, ausência de execução; `INCONCLUSIVE`, ensaio sem conclusão 
 Paths privados são relativos a `experiments/b05-document-engine/.runtime/b0503/`.
 Nenhum dado privado acompanha a matriz pública.
 
-| ID | Estado | Evidência / limite |
-|---|---|---|
-| T01 Docs API/WOPI documentados | PASS | [baseline](b05-docs-api-baseline.md), URLs oficiais consultadas |
-| T02 Community/build disponível | PASS | `active/browser/readonly/`, abertura editável do controle; direitos comerciais não inferidos |
-| T03 Configuração/JWT/contexto | PASS | `DocsSecurityTest`, `DocsApiHttpTest`; config assinada realmente aberta |
-| T04 Leitura/edição | PASS | `active/browser/readonly/`, controle; negativa de escrita do host em Java |
-| T05 Key/fonte/cache | PASS | `active/browser/recovery-after-restart/result.json`, fonte exata e key nova |
-| T06 Callback 2 + aceite | PASS | `active/browser/control-contract-fixed/`, somente controle estrutural |
-| T07 Force save real | NOT-RUN | B2 parou antes de B3; suporte implementado não é prova operacional |
-| T08 Fechamento normal | PASS | Timelines controle/estrito, status 2; sem promessa geral de latência |
-| T09 Evento não confirma host | PASS | Screens `pending.png`, commits zero e barra externa pendente |
-| T10 REF recusado | PASS | `DocsApiServiceTest.strictRefRejectionKeepsOldVersionAndDurableRecovery`; sintético Java, não indução real no editor |
-| T11 Estrutura recusada | PASS | `active/browser/strict-contract-fixed/`; gate mantém ponteiro e candidata |
-| T12 Replay | PASS | `DocsApiServiceTest.signedCallbackPersistsExactBytesAndReplayIsIdempotentAcrossRestart`; sem replay real do fornecedor |
-| T13 Key obsoleta | PASS | `DocsApiServiceTest.statusOneFourAndErrorsNeverCreateVersionsAndStaleKeyCannotOverwrite`; concorrência real não homologada |
-| T14 Download falho/timeout | NOT-RUN | Redirect recusado em Java; falhas reais de URL de setup retidas, sem ensaio completo de timeout/recuperação |
-| T15 Restart/recuperação | PASS | Reinício real do host + runner de recuperação; bytes aceitos/rejeitados iguais, nova key; não cobre restart de todo o motor |
-| T16 Rodada WOPI focal | INCONCLUSIVE | `wopi-control/`: timeout de seletor e restart durante espera; sem conclusão causal nova |
-| T17 SAVEDATE simples | BLOCKED | Gate C não aberto; evidência B05.0.1 preservada |
-| T18 SAVEDATE complexo | BLOCKED | F02 preparada, não editada pelo motor nesta rodada |
-| T19 Word tipo 22/cache | BLOCKED | Word aberto somente para F01, sem campos SAVEDATE |
-| T20 Integridade/layout | FAIL | `analysis/`: corpo correto, métricas/layout diferentes; equivalência das demais partes não certificada |
-| T21 AV3 C0/C1 | BLOCKED | Nenhum teste oficial novo |
-| T22 Relatório/7 páginas | BLOCKED | Nenhum teste oficial novo |
-| T23 C2/duas rodadas | BLOCKED | Gates B/C não aprovados |
-| T24 Wrapper/tema/toolbar | NOT-RUN | Embed/barra/toolbar mínimos A/B observados; Gate D completo não executado |
-| T25 Plugin | NOT-RUN | Gate D não aberto |
-| T26 Histórico/download | NOT-RUN | Download exato autenticado e imutável ensaiado; histórico visual completo não executado |
-| T27 Permissões/coedição | NOT-RUN | Readonly/negativas locais; dois coeditores e revogação não exercitados |
-| T28 UX de rejeição | PASS | Screen estrita + recuperação pós-restart, sem falsa confirmação NITE |
-| T29 Direitos/licença | NOT-RUN | [licença](b05-docs-api-licensing.md), nenhuma aprovação presumida |
-| T30 G1 operacional | PASS | [ADR](../ADR-B05-001.md), lacunas registradas; **G1 não aprovado** |
-| T31 Revisão e CI | BLOCKED | Fechamento pendente de revisão independente e execução remota |
-| T32 Decisão/contingência | PASS | Este relatório + adendo ADR; nova solução depende de decisão institucional |
+| ID | Requisito do plano | Estado | Evidência / limite |
+|---|---|---|---|
+| T01 | Freeze versão/digest, branch e histórico | PASS | [baseline](b05-docs-api-baseline.md), URLs oficiais consultadas |
+| T02 | Mesmo motor para WOPI/Docs API, dados isolados | PASS | `active/browser/readonly/`, abertura editável do controle; direitos comerciais não inferidos |
+| T03 | Abertura Docs API editor/readonly | PASS | `DocsSecurityTest`, `DocsApiHttpTest`; config assinada realmente aberta |
+| T04 | JWT config/documento, negativa de token inválido | PASS | `active/browser/readonly/`, controle; negativa de escrita do host em Java |
+| T05 | `document.key` nova versus cache de versão anterior | PASS | `active/browser/recovery-after-restart/result.json`, fonte exata e key nova |
+| T06 | Insert + callback `status 2` + aceitação | PASS | `active/browser/control-contract-fixed/`, somente controle estrutural |
+| T07 | `status 6` force save com editor aberto | NOT-RUN | B2 parou antes de B3; suporte implementado não é prova operacional |
+| T08 | Sem força: callback/tempo/fechamento normais | PASS | Timelines controle/estrito, status 2; sem promessa geral de latência |
+| T09 | `onDocumentStateChange` não confirma NITE | PASS | Screens `pending.png`, commits zero e barra externa pendente |
+| T10 | Recusa de REF conhecido | PASS | `DocsApiServiceTest.strictRefRejectionKeepsOldVersionAndDurableRecovery`; sintético Java, não indução real no editor |
+| T11 | Recusa de mídia/estrutura crítica | PASS | `active/browser/strict-contract-fixed/`; gate mantém ponteiro e candidata |
+| T12 | Replay/duplicata do mesmo callback | PASS | `DocsApiServiceTest.signedCallbackPersistsExactBytesAndReplayIsIdempotentAcrossRestart`; sem replay real do fornecedor |
+| T13 | Callback fora de ordem, key obsoleta | PASS | Testes Java de chave obsoleta e callback 6 sem operação/correlação recusados; replay sem rollback; concorrência real não homologada |
+| T14 | Falha/timeout no download da candidata | NOT-RUN | Redirect recusado em Java; falhas reais de URL de setup retidas, sem ensaio completo de timeout/recuperação |
+| T15 | Restart e recuperação de não salvos | PASS | Reinício real do host + runner de recuperação; bytes aceitos/rejeitados iguais, nova key; não cobre restart de todo o motor |
+| T16 | Comparação objetiva com uma rodada WOPI focada | INCONCLUSIVE | `wopi-control/`: timeout de seletor e restart durante espera; sem conclusão causal nova |
+| T17 | `SAVEDATE` simples sem adaptação | BLOCKED | Gate C não aberto; evidência B05.0.1 preservada |
+| T18 | Cópia com `SAVEDATE` complexo | BLOCKED | F02 preparada, não editada pelo motor nesta rodada |
+| T19 | Word controla tipo 22, cache e atualização | BLOCKED | Word aberto somente para F01, sem campos SAVEDATE |
+| T20 | Corpo e campos, estilos, relações, mídia | FAIL | `analysis/`: corpo correto, métricas/layout diferentes; equivalência das demais partes não certificada |
+| T21 | AV3 C0/C1 normalizado | BLOCKED | Nenhum teste oficial novo |
+| T22 | Relatório C0/C1 | BLOCKED | Nenhum teste oficial novo |
+| T23 | C2 e duas rodadas independentes | BLOCKED | Gates B/C não aprovados |
+| T24 | NITE wrapper/tema/toolbar | NOT-RUN | Embed/barra/toolbar mínimos A/B observados; Gate D completo não executado |
+| T25 | Plugin sintético + recursos por edição | NOT-RUN | Gate D não aberto |
+| T26 | Histórico/download/versão autenticados | NOT-RUN | Download exato autenticado e imutável ensaiado; histórico visual completo não executado |
+| T27 | Permissões/coedição básica | NOT-RUN | Readonly/negativas locais; dois coeditores e revogação não exercitados |
+| T28 | Estado de erro/rejeição na UX | PASS | Screen estrita + recuperação pós-restart, sem falsa confirmação NITE |
+| T29 | Direitos Community/AGPL/branding/conexões | NOT-RUN | [licença](b05-docs-api-licensing.md), nenhuma aprovação presumida |
+| T30 | Riscos e lacunas G1 operacionais | PASS | [ADR](../ADR-B05-001.md), lacunas registradas; **G1 não aprovado** |
+| T31 | Revisão independente e CI sintética | BLOCKED | Fechamento pendente de revisão independente e execução remota |
+| T32 | Parecer GO/NO-GO e contingência decidida | PASS | Este relatório + adendo ADR; nova solução depende de decisão institucional |
 
 ## Comparação e decisão
 
@@ -99,6 +99,9 @@ G1-F/G1 permanecem sem aprovação e G2 fechado; aceite editorial não é presum
 
 Antes da revisão: Maven `verify` do host, **50 testes, zero falhas/erros**;
 Python `unittest discover`, **41 testes OK**; `adapter_ci.py`, exit 0.
+Após a passagem de correção da [revisão independente](b05-docs-api-review.md):
+Maven **53 testes sem falhas/erros**, Python **41 OK**, adapter smoke exit 0,
+checagem literal T01–T32 e diff-check passaram. Não houve segunda revisão.
 Browser local: controle estrutural, recusa estrita, readonly, restart/recuperação e
 reabertura passaram nos respectivos objetivos limitados. Tentativas de setup e
 WOPI incompletas não foram contadas como PASS. Word COM/PDF/PNGs: mesma edição,
@@ -108,6 +111,8 @@ suíte de Blocos 01–04 não se aplicam: esses componentes não foram alterados
 
 Os 177 hashes do congelamento histórico foram recalculados: todos intactos.
 O projeto Compose novo foi parado, sem apagar volumes/caches nem iniciar os
-projetos históricos. Revisão independente e CI remota ainda pendentes neste
-checkpoint. Evidências privadas e comandos de reprodução:
+projetos históricos. Revisão independente concluída e corrigida; CI remota do
+código corrigido ainda pendente neste checkpoint. A primeira execução remota
+falhou antes do smoke por diretório ausente, corrigido com RED→GREEN, sem
+atribuir essa falha ao motor. Evidências privadas e comandos de reprodução:
 [protocolo](../scripts/DOCS-API-B0503.md).

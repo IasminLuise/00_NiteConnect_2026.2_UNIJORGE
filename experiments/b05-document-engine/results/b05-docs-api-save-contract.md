@@ -61,6 +61,9 @@ Foram implementados e testados em Java: autenticação/escopo, status 1/2/3/4/6/
 sem promover status informativos, replay idempotente após reconstrução, chave
 obsoleta, readonly, REF recusado, redirecionamento de download recusado, CAS e
 falha de metadados posterior a commit válido (reconciliação, sem falso rollback).
+Após a revisão, status 6 exige operação pendente não vazia e correlação exata;
+não aceita checkpoints espontâneos sem ordenação. Reabrir uma sessão substituída
+é recusado e uma nova sessão não anuncia recuperação localizada apenas na antiga.
 Um caso independente mínimo com alteração `XYZ` sem outros deltas é aceito pelo
 gate; a política não recusa toda edição por definição. Esses testes **não
 substituem ensaios reais** de force save, coedição, timeout/retry do motor ou

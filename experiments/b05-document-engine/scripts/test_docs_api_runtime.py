@@ -19,6 +19,10 @@ class DocsApiRuntimeTest(unittest.TestCase):
                 prepare_docs_api.prepare(target)
                 manifest = json.loads((target / 'private-manifest.json').read_text())
                 self.assertEqual('source-free-ci-v1', manifest['complex_fixture_provenance'])
+                checkpoint = target / 'browser/control'
+                checkpoint.mkdir()
+                with self.assertRaises(FileExistsError):
+                    checkpoint.mkdir()
                 with zipfile.ZipFile(target / 'fixtures/F02.docx') as package:
                     header = package.read('word/header1.xml')
                     self.assertNotIn(b'fldSimple', header)

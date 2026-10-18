@@ -115,4 +115,31 @@ class DocsApiServiceTest {
         var saved=restarted.state(id(work),cap(work));assertEquals(1,saved.path("commits").asInt());
         assertArrayEquals(bytes.get(),restarted.version(id(work),cap(work),saved.path("headVersion").asString()));
     }
+    @Test void statusSixRequiresOutstandingExactOperationAndCannotRollBackByOldUncorrelatedSnapshot()throws Exception {
+        server.createContext("/coauthoring/CommandService.ashx",exchange->{byte[] response="{\"error\":0}".getBytes();exchange.getRequestBody().readAllBytes();exchange.sendResponseHeaders(200,response.length);try(var out=exchange.getResponseBody()){out.write(response);}});
+        var service=service();var work=service.create("F01.docx","structural",true);var unsolicited=body(work,6);
+        var refused=assertThrows(DocumentStore.Failure.class,()->service.callback(id(work),cap(work),unsolicited,signed(unsolicited)));assertEquals(409,refused.status());
+        service.force(id(work),cap(work));String operation=service.state(id(work),cap(work)).path("pendingForce").asString();assertFalse(operation.isEmpty());
+        var wrong=DocsJwt.JSON.valueToTree(Map.of("key",work.path("key").asString(),"status",6,"url",unsolicited.path("url").asString(),"filetype","docx","userdata","obsolete"));
+        assertThrows(DocumentStore.Failure.class,()->service.callback(id(work),cap(work),wrong,signed(wrong)));
+        var correlated=DocsJwt.JSON.valueToTree(Map.of("key",work.path("key").asString(),"status",6,"url",unsolicited.path("url").asString(),"filetype","docx","userdata",operation));
+        bytes.set(DocumentStoreTest.docx("newer"));byte[] newer=bytes.get();service.callback(id(work),cap(work),correlated,signed(correlated));
+        var state=service.state(id(work),cap(work));assertEquals(1,state.path("commits").asInt());assertEquals("committed",state.path("state").asString());
+        bytes.set(DocumentStoreTest.docx("older"));assertThrows(DocumentStore.Failure.class,()->service.callback(id(work),cap(work),unsolicited,signed(unsolicited)));
+        assertEquals(0,service.callback(id(work),cap(work),correlated,signed(correlated)));
+        assertArrayEquals(newer,service.version(id(work),cap(work),state.path("headVersion").asString()));assertEquals(1,service.state(id(work),cap(work)).path("commits").asInt());
+    }
+    @Test void secondReopenOfRetiredSessionCannotInvalidateItsSuccessor()throws Exception {
+        var service=service();var work=service.create("F01.docx","structural",true);var four=body(work,4);service.callback(id(work),cap(work),four,signed(four));
+        var next=service.reopen(id(work),cap(work));
+        var failure=assertThrows(DocumentStore.Failure.class,()->service.reopen(id(work),cap(work)));assertEquals(409,failure.status());
+        assertEquals(next.path("key"),service.config(id(next),cap(next)).path("document").path("key"));
+    }
+    @Test void reopenedConfirmedVersionDoesNotAdvertisePredecessorRecoveryButOriginalRemainsRecoverable()throws Exception {
+        var service=service();var work=service.create("F01.docx","reject",true);var candidate=body(work,2);
+        assertThrows(DocumentStore.Failure.class,()->service.callback(id(work),cap(work),candidate,signed(candidate)));
+        var four=body(work,4);service.callback(id(work),cap(work),four,signed(four));var next=service.reopen(id(work),cap(work));
+        var state=service.state(id(next),cap(next));assertFalse(state.path("canRecover").asBoolean());assertFalse(state.has("candidateHash"));assertFalse(state.has("reason"));assertFalse(state.has("lastStatus"));
+        assertArrayEquals(bytes.get(),service.recovery(id(work),cap(work)));
+    }
 }
