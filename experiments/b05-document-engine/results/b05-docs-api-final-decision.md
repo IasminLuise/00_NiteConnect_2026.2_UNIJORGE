@@ -42,10 +42,10 @@ Nenhum dado privado acompanha a matriz pública.
 
 | ID | Requisito do plano | Estado | Evidência / limite |
 |---|---|---|---|
-| T01 | Freeze versão/digest, branch e histórico | PASS | [baseline](b05-docs-api-baseline.md), URLs oficiais consultadas |
-| T02 | Mesmo motor para WOPI/Docs API, dados isolados | PASS | `active/browser/readonly/`, abertura editável do controle; direitos comerciais não inferidos |
-| T03 | Abertura Docs API editor/readonly | PASS | `DocsSecurityTest`, `DocsApiHttpTest`; config assinada realmente aberta |
-| T04 | JWT config/documento, negativa de token inválido | PASS | `active/browser/readonly/`, controle; negativa de escrita do host em Java |
+| T01 | Freeze versão/digest, branch e histórico | PASS | [baseline](b05-docs-api-baseline.md), base `da96df4`, `historical-freeze.json`: 177 hashes conferidos; PRs preservados |
+| T02 | Mesmo motor para WOPI/Docs API, dados isolados | PASS | `compose.docs-api.yaml` fixa o digest histórico; `active/private-manifest.json`, raízes distintas e keys novas; não significa WOPI novo concluído |
+| T03 | Abertura Docs API editor/readonly | PASS | `active/browser/{control-contract-fixed,readonly}/`, abertura efetiva dos dois modos e config assinada |
+| T04 | JWT config/documento, negativa de token inválido | PASS | `DocsSecurityTest`/`DocsApiHttpTest`: assinatura, escopo e token inválido recusados pelo host; config válida aberta no browser; não houve ataque real ao SDK |
 | T05 | `document.key` nova versus cache de versão anterior | PASS | `active/browser/recovery-after-restart/result.json`, fonte exata e key nova |
 | T06 | Insert + callback `status 2` + aceitação | PASS | `active/browser/control-contract-fixed/`, somente controle estrutural |
 | T07 | `status 6` force save com editor aberto | NOT-RUN | B2 parou antes de B3; suporte implementado não é prova operacional |
