@@ -36,7 +36,9 @@ try {
             foreach($p in $doc.Paragraphs){
                 $i++; $start=$p.Range.Duplicate; $start.Collapse(1)
                 $end=$p.Range.Duplicate; $end.Collapse(0)
-                $paragraphs+=@{index=$i; startPage=[int]$start.Information(3); endPage=[int]$end.Information(3); fontSize=[double]$p.Range.Font.Size}
+                $paragraphs+=@{index=$i; startPage=[int]$start.Information(3); endPage=[int]$end.Information(3); fontSize=[double]$p.Range.Font.Size;
+                    verticalPagePoints=[double]$start.Information(6); spaceBefore=[double]$p.Format.SpaceBefore;
+                    spaceAfter=[double]$p.Format.SpaceAfter; lineSpacing=[double]$p.Format.LineSpacing; lineSpacingRule=[int]$p.Format.LineSpacingRule}
             }
             $doc.ExportAsFixedFormat($pdf,17)
             @{id=$job.id; wordVersion=$app.Version; wordBuild=$app.Build; pages=[int]$doc.ComputeStatistics(2); fields=$fieldData; paragraphs=$paragraphs} | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $json -Encoding utf8

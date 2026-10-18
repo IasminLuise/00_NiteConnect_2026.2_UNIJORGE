@@ -77,6 +77,20 @@ public final class DocumentStore {
             Instant expected=null;
             if(base!=null)try{expected=Instant.parse(base);}catch(java.time.format.DateTimeParseException ignored){/* invalid base conflicts */}
             if(expected==null||!before.modified().truncatedTo(java.time.temporal.ChronoUnit.MICROS).equals(expected.truncatedTo(java.time.temporal.ChronoUnit.MICROS)))throw new Failure(409,"Versão de origem alterada",held);
+            return commit(id,token,bytes,before);
+        }
+    }
+    /** Native host operation for a protocol adapter, without WOPI headers or timestamp emulation. */
+    public Info saveVersion(UUID id,String token,byte[] bytes,String expectedVersion) {
+        synchronized(this){authorize(id,token,true);}
+        DocxValidator.validate(bytes);
+        synchronized(this) {
+            authorize(id,token,true);var before=pointer(id);
+            if(!before.version().equals(expectedVersion)||!lockValue(id).isEmpty())throw new Failure(409,"Versão de origem alterada");
+            return commit(id,token,bytes,before);
+        }
+    }
+    private Info commit(UUID id,String token,byte[] bytes,Pointer before) {
             try { gate.validate(id,bytes,before.number()+1); }
             catch(Failure rejected) {
                 // Private bounded quarantine, never exposed by the version/download routes.
@@ -88,7 +102,6 @@ public final class DocumentStore {
                 throw rejected;
             }
             io(()->{write(id,bytes,before);return null;});return info(id,token);
-        }
     }
     public synchronized String lockValue(UUID id) {
         var lock=locks.get(id);if(lock!=null&&!clock.instant().isBefore(lock.expiresAt())){locks.remove(id);lock=null;}
