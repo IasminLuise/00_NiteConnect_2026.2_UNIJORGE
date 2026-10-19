@@ -20,7 +20,13 @@ try{
    };$story=$story.NextStoryRange}}
    $doc.Repaginate();$paragraphs=@();$i=0
    foreach($p in $doc.Paragraphs){$i++;$start=$p.Range.Duplicate;$start.Collapse(1)
-    $paragraphs+=@{index=$i;text=[string]$p.Range.Text;page=[int]$start.Information(3);y=[double]$start.Information(6);font=[string]$p.Range.Font.Name;fontSize=[double]$p.Range.Font.Size;spaceAfter=[double]$p.Format.SpaceAfter;lineSpacing=[double]$p.Format.LineSpacing;lineSpacingRule=[int]$p.Format.LineSpacingRule}
+    $entry=@{index=$i;text=[string]$p.Range.Text;page=[int]$start.Information(3);y=[double]$start.Information(6);font=[string]$p.Range.Font.Name;fontSize=[double]$p.Range.Font.Size;spaceAfter=[double]$p.Format.SpaceAfter;lineSpacing=[double]$p.Format.LineSpacing;lineSpacingRule=[int]$p.Format.LineSpacingRule}
+    if($job.diagnostic_layout){
+      $text=[string]$p.Range.Text;$offset=0
+      while($offset -lt $text.Length -and ([char]::IsWhiteSpace($text[$offset]) -or [int]$text[$offset] -lt 32)){$offset++}
+      if($offset -lt $text.Length){$point=$p.Range.Duplicate;$point.SetRange($p.Range.Start+$offset,$p.Range.Start+$offset);$entry.firstTextPage=[int]$point.Information(3);$entry.firstTextY=[double]$point.Information(6)}
+    }
+    $paragraphs+=$entry
    }
    $doc.ExportAsFixedFormat($pdf,17)
    @{id=$job.id;wordVersion=$app.Version;wordBuild=$app.Build;pages=[int]$doc.ComputeStatistics(2);fields=$fields;paragraphs=$paragraphs}|ConvertTo-Json -Depth 8|Set-Content -LiteralPath $json -Encoding utf8

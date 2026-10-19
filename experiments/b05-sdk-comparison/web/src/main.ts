@@ -27,7 +27,14 @@ async function openSuperDoc(file: File): Promise<EditorHandle> {
   doc = new SuperDoc({
     selector: '#editor', toolbar: '#toolbar', document: file, documentMode: 'editing',
     telemetry: { enabled: false },
-    onPaginationUpdate: ({ totalPages }) => { viewer.dataset.pageCount = String(totalPages); },
+    onPaginationUpdate: ({ totalPages }) => {
+      viewer.dataset.pageCount = String(totalPages);
+      if (new URLSearchParams(location.search).has('b0505')) {
+        const events: { at: number; totalPages: number }[] = JSON.parse(viewer.dataset.paginationEvents || '[]');
+        events.push({ at: performance.now(), totalPages });
+        viewer.dataset.paginationEvents = JSON.stringify(events.slice(-100));
+      }
+    },
     onReady: () => ready(),
     onContentError: ({error}) => fail(error instanceof Error ? error : new Error(String(error))),
     onException: ({error}) => fail(error instanceof Error ? error : new Error(String(error))),
@@ -58,6 +65,10 @@ async function openApryse(file: File): Promise<EditorHandle> {
   });
   try { await loaded; }
   catch (error) { await instance.UI.dispose(); URL.revokeObjectURL(sourceUrl); throw error; }
+  if (new URLSearchParams(location.search).has('b0505')) {
+    viewer.dataset.officeEditor = String(Boolean(instance.Core.documentViewer.getDocument().getOfficeEditor()));
+    viewer.dataset.readOnly = String(instance.Core.annotationManager.isReadOnlyModeEnabled());
+  }
   return { destroy: async () => { await instance.UI.dispose(); URL.revokeObjectURL(sourceUrl); }, exportDocx: async () => {
     const document = instance.Core.documentViewer.getDocument();
     const binary = await document.getFileData({ downloadType: 'office' });
@@ -72,7 +83,7 @@ start.addEventListener('click', async () => {
   const previous = active;active = undefined;save.disabled=true;start.disabled=true;engine.disabled=true;input.disabled=true;license.disabled=true;
   report(`Abrindo cópia em ${selectedEngine}; nenhuma versão foi salva.`);
   try {
-    await previous?.editor.destroy();viewer.replaceChildren();toolbar.replaceChildren();delete viewer.dataset.pageCount;
+    await previous?.editor.destroy();viewer.replaceChildren();toolbar.replaceChildren();delete viewer.dataset.pageCount;delete viewer.dataset.paginationEvents;delete viewer.dataset.officeEditor;delete viewer.dataset.readOnly;
     const editor = selectedEngine === 'superdoc' ? await openSuperDoc(file) : await openApryse(file);
     active = { editor, engine: selectedEngine };
     save.disabled=false;report(`Pronto: ${selectedEngine}. Edite, exporte e valide o arquivo fora do navegador.`);
