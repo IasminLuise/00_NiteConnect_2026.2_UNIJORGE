@@ -72,4 +72,3 @@ estrutural comprova, sozinha, fidelidade visual ou direitos de distribuição.
 [Baseline](b05-0-5-baseline.md), [paginação](b05-0-5-superdoc-pagination.md),
 [notas](b05-0-5-superdoc-notes.md), [Apryse](b05-0-5-apryse-editing.md),
 [protocolo](../scripts/B0505-PROTOCOL.md).
-

@@ -24,4 +24,3 @@ Evidências: `.private/b0505/baseline-freeze.json`, `session-manifest.json`,
 São dados locais ignorados, não anexos ao PR.
 
 Gate A: **PASS no laboratório**, sem aprovação jurídica/operacional para produto.
-

@@ -47,4 +47,3 @@ Apryse. Não sobrescrever tags, evidências ou arquivos existentes.
 Nesta rodada: inspeção no-op Apryse → tentativa1 interceptada → único ajuste
 de foco → tentativa2 inserção comprovada → reabertura e remoção parcial.
 Encerramento obrigatório, sem terceiro ciclo. Ver matriz e limites nos relatórios.
-

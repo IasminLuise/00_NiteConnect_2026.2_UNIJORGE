@@ -53,4 +53,3 @@ configuração suportada. Orçamento de duas sessões consumido; parar sem corre
 Evidências privadas: `browser/av3-diagnostic-{1,2}/pagination.json`, tiles PNG,
 exports, `av3-source.json/pdf`, `av3-text-position.json`, `av3-diagnostic-1-word.json`,
 `av3-ooxml-layout.json`, `render/`, sob `.private/b0505/`.
-

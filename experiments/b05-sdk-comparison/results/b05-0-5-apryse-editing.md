@@ -5,7 +5,9 @@ persistência estão comprovadas; reversão integral e fidelidade não estão.
 Não classificar como incapacidade nativa de edição ou bloqueio comprovado de licença.
 
 1. Sessão inspecionada no-op: OfficeEditor presente, readOnly=false e interface
-   Editing. Trial embutido informa sete dias e marca d'água; nenhuma chave usada.
+   Editing. O indicador readOnly consultado pertence ao annotationManager, não
+   certifica sozinho permissão DOCX; a inserção efetiva é a prova positiva.
+   Trial embutido informa sete dias e marca d'água; nenhuma chave usada.
    Export contém o texto sintético original. Sem arquivo institucional.
 2. Primeiro ciclo novo: `locator.click` encontra o canvas correto, mas seu scroll
    automático posiciona o alvo sob overlays/ribbon. Timeout de interação, sem
@@ -47,4 +49,3 @@ integridade global: FAIL; direitos para próxima etapa: BLOCKED.
 Evidências em `.private/b0505/`: `browser/apryse-inspected-noop`,
 `browser/apryse-cycle-1-edit`, `browser/apryse-cycle-2-{edit,remove}`,
 `apryse-cycle-proof.json`, manifests, `*-word.json`, PDFs e `render/`.
-

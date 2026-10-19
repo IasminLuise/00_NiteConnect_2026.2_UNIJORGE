@@ -33,4 +33,3 @@ eliminatória; não expandir pesquisa de notas para tentar aprovar o candidato.
 
 Evidências privadas: `.private/b0505/notes-inventory.json`, `notes-av3-v2.json`
 e arquivos de origem/export vinculados pelos manifestos privados.
-
