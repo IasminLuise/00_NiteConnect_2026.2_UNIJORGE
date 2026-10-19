@@ -33,13 +33,13 @@ Hashes dos documentos, screenshots, textos e manifestos permanecem locais.
 | F13 | PASS focal / licença limitada | OfficeEditor=true/readOnly=false, UI Editing; apryse-inspected-noop |
 | F14 | PASS transporte | no-op texto original e hash; apryse-inspected-noop/candidate.docx |
 | F15 | PASS inserção | correção de foco gera alteração real; apryse-cycle-2-edit |
-| F16 | PASS corpo focal | prefixoXYZ só no primeiro alvo, restantes textos iguais; apryse-body-proof.json / Word |
+| F16 | PASS corpo focal | prefixoXYZ só no primeiro alvo, restantes textos iguais; apryse-body-proof-after-review.json / Word |
 | F17 | INCONCLUSIVE_AUTOMATION | A reabre, mas B contém YZ; Word e prova de corpo recusam reversão |
 | F18 | NOT_RUN positivo | primeiro ciclo falhou na interação; só segundo inseriu; sem dois ciclos positivos |
 | F19 | PASS parcial / NOT_RUN | SAVEDATE/PAGE funcionais; NUMPAGES não ensaiado novamente na fixture básica |
 | F20 | FAIL global | candidatas trial continuam reescrevendo estrutura; nenhum PASS de fidelidade |
 | F21 | PASS de identificação | marca d'água/mídias/partes extras identificadas, sem bypass/equivalência |
-| F22 | PASS regressões | 19 testes Python + cinco controles Node; residualYZ não é reversão válida |
+| F22 | PASS regressões | 20 testes Python + cinco controles Node; residualYZ não é reversão válida |
 | F23 | PASS local | tsc+vite build; CI final vinculada no PR, não homologação Word |
 | F24 | PASS local | ignore/diff sem privados, binários ou chave; revisão independente no PR |
 | F25 | BLOCKED produto | licenças comerciais/direitos institucionais não aprovados; trial não autoriza produção |
@@ -63,7 +63,7 @@ Custos da próxima decisão: licença/termos de avaliação e uma investigação
 foco/temporização com controles independentes; valores comerciais não cotados.
 Não iniciar B05.0.6 ou outra shortlist automaticamente.
 
-Validação nova: 19 testes Python, cinco controles Node, sintaxe dos runners,
+Validação nova: 20 testes Python, cinco controles Node, sintaxe dos runners,
 TypeScript/Vite e Word readonly focal. Build final é reutilizável após mudanças
 apenas em relatórios/scripts Python/PowerShell. Não foram repetidos os testes
 Java/Flyway/Blocos01–04: contratos e backend não mudaram. Nenhuma suíte
@@ -72,3 +72,10 @@ estrutural comprova, sozinha, fidelidade visual ou direitos de distribuição.
 [Baseline](b05-0-5-baseline.md), [paginação](b05-0-5-superdoc-pagination.md),
 [notas](b05-0-5-superdoc-notes.md), [Apryse](b05-0-5-apryse-editing.md),
 [protocolo](../scripts/B0505-PROTOCOL.md).
+
+Revisão independente readonly: um achado Important no comparador de corpo foi
+corrigido com regressão RED→GREEN: tabs/quebras adicionais não podem ser ignoradas.
+A prova foi reaplicada aos bytes capturados, sem novo SDK: inserção exata,
+reversão falsa. Limitação menor adiada: o indicador de estabilidade não certifica
+a geometria interna de linhas; mede contagem, dimensões externas e texto DOM.
+Causa interna e homologação continuam bloqueadas.

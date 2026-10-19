@@ -18,7 +18,7 @@ Apryse. Não sobrescrever tags, evidências ou arquivos existentes.
    `--diagnostic-focus true` captura modo/superfícies e habilita foco observado
    para as fases edit/remove. Sem flags, conserva o protocolo anterior.
 5. Diagnósticos usam `/?b0505=1`, sem expor SDK na janela nem API de mutação.
-   Paginação espera estabilidade de contagem/geometria/texto DOM ≥3s, limite30s;
+   Paginação espera estabilidade de contagem/dimensões externas/texto DOM ≥3s, limite30s;
    detalhes de cada página são coletados após materialização por scroll.
    Capturas top/bottom evitam tomar clipping do painel por conteúdo inexistente.
    Conteúdo virtualizado exige distinguir medição estável de certificação visual.
@@ -30,7 +30,7 @@ Apryse. Não sobrescrever tags, evidências ou arquivos existentes.
    Ctrl+Home. Continua limitação geométrica da automação, não seletor semântico.
    Não repetir silenciosamente teclas ou usar API para forçar texto.
 8. `python .../scripts/cycle_probe.py --source <original> --edited <A>
-   --reverted <B> --out <privado-novo.json>` compara **todo** corpo por parágrafo.
+   --reverted <B> --out <privado-novo.json>` compara **todo** corpo por parágrafo, com tokens explícitos de tabs/quebras.
    PrefixoXYZ ausente não basta; residualYZ falha. Saída zero do CLI significa
    análise executada, não PASS do ciclo ou de fidelidade.
 9. `python .../scripts/notes_probe.py --before <original> --after <candidata>
