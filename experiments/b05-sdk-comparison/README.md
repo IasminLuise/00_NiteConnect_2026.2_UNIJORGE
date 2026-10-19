@@ -1,5 +1,10 @@
 # B05.0.4 — Pré-qualificação DOCX SuperDoc × Apryse (não homologado)
 
+> **B05.0.5 — 19/10/2026:** diagnóstico focal concluído com SuperDoc NO_GO nesta
+> configuração e Apryse inconclusivo no ciclo completo. Inserção Apryse comprovada,
+> reversão parcial; nenhuma aprovação de SDK. Consulte a [nova matriz](results/b05-0-5-final-decision.md)
+> e o [protocolo focal](scripts/B0505-PROTOCOL.md). O histórico B05.0.4 abaixo foi preservado.
+
 > **Atualização 18/10/2026:** os dois SDKs foram instalados e a bancada compilou.
 > SuperDoc passou os controles sintéticos sob equivalências restritas, mas C0
 > oficial registrou seis páginas no editor contra cinco no Word para o AV3.
