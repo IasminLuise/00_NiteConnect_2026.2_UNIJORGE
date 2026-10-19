@@ -41,13 +41,15 @@ async function main() {
     page = await context.newPage();
     page.on('pageerror', e => record.errors.push(e.stack || String(e)));
     page.on('console', message => { if (['warning', 'error'].includes(message.type())) record.errors.push(message.text() + ' at ' + JSON.stringify(message.location())); });
-    await page.goto(origin, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    const diagnostic = args['diagnostic-pagination'] === 'true' || args['diagnostic-focus'] === 'true';
+    await page.goto(origin + (diagnostic ? '/?b0505=1' : ''), { waitUntil: 'domcontentloaded', timeout: 60000 });
     await page.locator('#engine').selectOption(args.engine);
     await page.locator('#file').setInputFiles(source);
     await page.locator('#start').click();
     if (!await page.locator('#engine').isDisabled() || !await page.locator('#file').isDisabled()) throw Error('Input controls not locked during initialization');
     await page.waitForFunction(() => /^(Pronto:|Falha na abertura:)/.test(document.querySelector('#status')?.textContent || ''), undefined, { timeout: 160000 });
     record.openStatus = await page.locator('#status').innerText();
+    if (diagnostic && record.requests.some(request=>!request.allowed)) throw Error('Unauthorized egress attempt; focal session stopped');
     // Document-loaded is an I/O event. Give the first visual layout a bounded settle interval.
     await page.waitForTimeout(settle);
     record.editorText = await page.locator('#editor').innerText();
@@ -55,22 +57,40 @@ async function main() {
     record.editControls = await page.locator('#editor').locator('input,textarea,[contenteditable]').evaluateAll(nodes => nodes.map(n => ({ tag: n.tagName, type: n.getAttribute('type'), editable: n.getAttribute('contenteditable'), className: n.className })));
     await page.screenshot({ path: path.join(out, 'opened.png'), fullPage: true });
     if (!record.openStatus.startsWith('Pronto:')) throw Error('SDK did not open; inspect private evidence');
+    if (args['diagnostic-pagination'] === 'true') record.pagination = await require('./focal_diagnostics.cjs').pagination(page,out);
+    if (args['diagnostic-focus'] === 'true') {
+      record.focus = await require('./focal_diagnostics.cjs').focusSnapshot(page);
+      record.sdkState = await page.locator('#editor').evaluate(el=>({...el.dataset}));
+    }
     if (phase !== 'noop') {
       const title = (phase === 'remove' ? 'XYZ' : '') + 'NITE — fixture sintética de compatibilidade';
       if (args.engine === 'superdoc') {
         await page.locator('#editor').getByText(title, { exact: true }).first().click();
         await page.keyboard.press('Home');
       } else {
+        if (args['diagnostic-focus'] === 'true') {
+          // Inspected 12.1.0 surface inside the Web Component, not the outer page.
+          const canvas=page.locator('#editor canvas.hacc.canvas1').first();
+          // locator.click auto-scrolls this oversized canvas under the SDK ribbon.
+          // Use its inspected current viewport box, without mutating editor state.
+          await page.waitForTimeout(1000);
+          const box=await canvas.boundingBox();if(!box)throw Error('No visible DOCX canvas');
+          await page.mouse.click(box.x+125,box.y+140);
+          await page.keyboard.press('Control+Home');
+          record.focusAfterClick=await require('./focal_diagnostics.cjs').focusSnapshot(page);
+        } else {
         // Fixed synthetic/desktop viewport: observed first body heading, below the header.
         // Canvas text has no DOM text selector. The exported text is checked independently.
         await page.mouse.click(445, 550);
         await page.keyboard.press('Control+Home');
+        }
       }
       if (phase === 'edit') await page.keyboard.type('XYZ', { delay: 80 });
       else for (let i = 0; i < 3; i++) await page.keyboard.press('Delete');
       await page.waitForTimeout(500);
     }
     if (args.lifecycle === 'true') await page.locator('#engine').selectOption(args.engine === 'superdoc' ? 'apryse' : 'superdoc');
+    if (diagnostic && record.requests.some(request=>!request.allowed)) throw Error('Unauthorized egress attempt; export stopped');
     const downloaded = page.waitForEvent('download', { timeout: 120000 });
     await page.locator('#export').click();
     const download = await downloaded;
