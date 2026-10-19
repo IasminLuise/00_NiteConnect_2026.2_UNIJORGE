@@ -28,4 +28,6 @@ jobs:
         run: |
           npm ci --ignore-scripts --no-audit --no-fund
           npm run build
+      - name: Focal instrumentation regressions
+        run: node experiments/b05-sdk-comparison/tests/focal_diagnostics.cjs
       # No official files, trial keys, private screenshots or runtime artifacts in CI.
