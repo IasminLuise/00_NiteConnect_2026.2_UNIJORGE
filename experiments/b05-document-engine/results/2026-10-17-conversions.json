@@ -1,0 +1,173 @@
+[
+  {
+    "fixture": "F01.docx",
+    "source_version": "0d39ccf6-6c43-499e-b682-febd0d20f576",
+    "source_sha256": "216f89eab585920c5f2df84c492b39a752263d35f60e8628a904b24d76dc8558",
+    "collabora": {
+      "status": "converted",
+      "seconds": 2.664,
+      "bytes": 24293,
+      "sha256": "a1436a30c5db8ecc53bfff6d733ff738999489b4cb445a5ffb002f893bd792ec",
+      "file": "collabora/0d39ccf6-6c43-499e-b682-febd0d20f576-76b072b0a3ac46fc835668523e9f63ff-F01.pdf"
+    },
+    "libreoffice": {
+      "status": "converted",
+      "seconds": 3.553,
+      "bytes": 21572,
+      "sha256": "7d0734a936b8b2a0aa5b498a956759ad96e68ee05a595886fd42573f87210d29",
+      "file": "libreoffice/compare-0d39ccf6-6c43-499e-b682-febd0d20f576-a8e3164d06b0446aa5deb5d4ff0231f4-F01.pdf"
+    }
+  },
+  {
+    "fixture": "F02.docx",
+    "source_version": "b55f9107-a56a-466a-8b7f-76a1931310fc",
+    "source_sha256": "d3abf8d84f5c72fca302c503661c88ffb2a6caadfe406967dcdd1c4465c381fb",
+    "collabora": {
+      "status": "converted",
+      "seconds": 2.225,
+      "bytes": 23065,
+      "sha256": "96132885959a1c5fbc5cfb38b7c4519a353863ac37f934abf1d4d0652322502c",
+      "file": "collabora/b55f9107-a56a-466a-8b7f-76a1931310fc-76b072b0a3ac46fc835668523e9f63ff-F02.pdf"
+    },
+    "libreoffice": {
+      "status": "converted",
+      "seconds": 3.374,
+      "bytes": 20230,
+      "sha256": "1f54fceb636e1628a30077957020f4c96cf7977b0e1abc12c28ca3687d881959",
+      "file": "libreoffice/compare-b55f9107-a56a-466a-8b7f-76a1931310fc-0cacf981c67640bdbfd2165c54655e49-F02.pdf"
+    }
+  },
+  {
+    "fixture": "F03.docx",
+    "source_version": "4ccdded5-7259-49d6-927c-50b4c2e4d59e",
+    "source_sha256": "d2c31c09f0392a5f3af903a3bda010e052909947ff5fcd9f1d590f19a70ca81c",
+    "collabora": {
+      "status": "converted",
+      "seconds": 2.177,
+      "bytes": 24165,
+      "sha256": "46a77b009a1eba16a0e80b37bd040777fe163c13186418c30ad8779d4c69f02d",
+      "file": "collabora/4ccdded5-7259-49d6-927c-50b4c2e4d59e-76b072b0a3ac46fc835668523e9f63ff-F03.pdf"
+    },
+    "libreoffice": {
+      "status": "converted",
+      "seconds": 3.46,
+      "bytes": 20955,
+      "sha256": "c5e10d18d9249875dd6639138f9fffd6d66f23e694dce62b308daf4410acbe50",
+      "file": "libreoffice/compare-4ccdded5-7259-49d6-927c-50b4c2e4d59e-797f97325cc8409eac431034af9276bc-F03.pdf"
+    }
+  },
+  {
+    "fixture": "F04.docx",
+    "source_version": "a48e50e5-1922-456b-8ab9-0fff576ea1e1",
+    "source_sha256": "4700e9c08437c059237de07e6a19af9c6d8ec6ea0d631b3caaeedd574fe08baf",
+    "collabora": {
+      "status": "converted",
+      "seconds": 2.164,
+      "bytes": 21569,
+      "sha256": "5442aecef4175e25a1fd5be524d476765c0af188475b8003bd0aa70ca8bea089",
+      "file": "collabora/a48e50e5-1922-456b-8ab9-0fff576ea1e1-76b072b0a3ac46fc835668523e9f63ff-F04.pdf"
+    },
+    "libreoffice": {
+      "status": "converted",
+      "seconds": 3.63,
+      "bytes": 18780,
+      "sha256": "7536dd7163f3744382c4cc49b9478afa3a45070dbb97b4f699f40b63ebeddab8",
+      "file": "libreoffice/compare-a48e50e5-1922-456b-8ab9-0fff576ea1e1-80324da6b77341c1be9f02156c5ed22e-F04.pdf"
+    }
+  },
+  {
+    "fixture": "F05.docx",
+    "source_version": "7a564a53-9895-4f8e-bf09-fed49c80b7be",
+    "source_sha256": "fc3217de46db30b343dbc5b474d55b35aafeef4fc593e1c4617572e12b3bf188",
+    "collabora": {
+      "status": "converted",
+      "seconds": 2.319,
+      "bytes": 20677,
+      "sha256": "39b27f9c1fa929fc2fb6d69a8817485273c6b23ef1c4e0ebf75bae274bd41e80",
+      "file": "collabora/7a564a53-9895-4f8e-bf09-fed49c80b7be-76b072b0a3ac46fc835668523e9f63ff-F05.pdf"
+    },
+    "libreoffice": {
+      "status": "converted",
+      "seconds": 3.322,
+      "bytes": 17924,
+      "sha256": "79ed603ad0cb7906b2fb66b520dbc5426aeb3f01738fd3748dd9940b64aef291",
+      "file": "libreoffice/compare-7a564a53-9895-4f8e-bf09-fed49c80b7be-5adeb202747b4b05985178a73ce377f4-F05.pdf"
+    }
+  },
+  {
+    "fixture": "F06.docx",
+    "source_version": "99af5d78-07c2-46cb-abdd-d106075edeac",
+    "source_sha256": "1ffd78f017b6de312f04ee2123ea078b106b520241fc6a63126703ededf49134",
+    "collabora": {
+      "status": "converted",
+      "seconds": 2.169,
+      "bytes": 26142,
+      "sha256": "ae9628b42fe15975dfb8c5024f15c77b25deeae0f16191234a9c27ff6a7a35de",
+      "file": "collabora/99af5d78-07c2-46cb-abdd-d106075edeac-76b072b0a3ac46fc835668523e9f63ff-F06.pdf"
+    },
+    "libreoffice": {
+      "status": "converted",
+      "seconds": 3.896,
+      "bytes": 19629,
+      "sha256": "0da9e190b2ad4bf889665ea38d0c2048eb57d5b8545042f344697dba8a1aabe3",
+      "file": "libreoffice/compare-99af5d78-07c2-46cb-abdd-d106075edeac-b200dd440abe42ab84091fb64bee3f45-F06.pdf"
+    }
+  },
+  {
+    "fixture": "F07.docx",
+    "source_version": "62579214-087f-4189-877d-7ba199c24c07",
+    "source_sha256": "ccf404e966a953d025964a912025433c2b1d64c319b23d3408d95ec8c54d6239",
+    "collabora": {
+      "status": "converted",
+      "seconds": 2.157,
+      "bytes": 21108,
+      "sha256": "648073f7b57abd692efc8f6b2a2b0ebcc6a9a0dca3f9d507510c56accd2ad1bc",
+      "file": "collabora/62579214-087f-4189-877d-7ba199c24c07-76b072b0a3ac46fc835668523e9f63ff-F07.pdf"
+    },
+    "libreoffice": {
+      "status": "converted",
+      "seconds": 7.447,
+      "bytes": 17804,
+      "sha256": "8ed3382a5b809eae728ade7f08ca984a0b0eb117421fde2ae7fdae8b9b282969",
+      "file": "libreoffice/compare-62579214-087f-4189-877d-7ba199c24c07-e016f49905084390bea3eecd4256a4f4-F07.pdf"
+    }
+  },
+  {
+    "fixture": "F08.docx",
+    "source_version": "47a3fc41-1d58-4698-930e-b4ba77681e9e",
+    "source_sha256": "b60e10bd22d476b63dffe08699b16b06b6fa91fbcce0dfe92adb3425a8e2fb15",
+    "collabora": {
+      "status": "converted",
+      "seconds": 2.245,
+      "bytes": 22377,
+      "sha256": "43cec82e3c47a2b7e3162ba8f43886f358140ec970162e567f28770714f062e4",
+      "file": "collabora/47a3fc41-1d58-4698-930e-b4ba77681e9e-76b072b0a3ac46fc835668523e9f63ff-F08.pdf"
+    },
+    "libreoffice": {
+      "status": "converted",
+      "seconds": 6.566,
+      "bytes": 23461,
+      "sha256": "24bf4d11705438d221551389ac8c6522a2d64d08e0f660509f400bda4d8b4f2a",
+      "file": "libreoffice/compare-47a3fc41-1d58-4698-930e-b4ba77681e9e-58074003b78c461cb476ec700fbd85a7-F08.pdf"
+    }
+  },
+  {
+    "fixture": "F09.docx",
+    "source_version": "ecf96fb1-2442-43d0-85d7-c14b9398fa0e",
+    "source_sha256": "f0f89fae19b7a99730e6cd567958897118a71b00e8b9b0429b63b8acdf0cc3e1",
+    "collabora": {
+      "status": "converted",
+      "seconds": 2.352,
+      "bytes": 48975,
+      "sha256": "fd472203ca672a978fa3124c1ab745fe1ff3c44401e19e55297de6e11bc6eaf1",
+      "file": "collabora/ecf96fb1-2442-43d0-85d7-c14b9398fa0e-76b072b0a3ac46fc835668523e9f63ff-F09.pdf"
+    },
+    "libreoffice": {
+      "status": "converted",
+      "seconds": 3.873,
+      "bytes": 44404,
+      "sha256": "6f475138ff9719d7fcff18be8167844fe888734801d7b3f16ef58e9783cb0e92",
+      "file": "libreoffice/compare-ecf96fb1-2442-43d0-85d7-c14b9398fa0e-cbee663f821347199a6cc621d8464390-F09.pdf"
+    }
+  }
+]
