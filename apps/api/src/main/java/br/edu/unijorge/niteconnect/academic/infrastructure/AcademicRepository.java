@@ -78,4 +78,43 @@ public class AcademicRepository {
         UUID id=UUID.randomUUID();jdbc.update("insert into nite_connect.academic_evidence(id,enrollment_id,snapshot,captured_by) values (?,?,?::jsonb,?)",id,enrollment,encode(snapshot),actor);return evidence(id);
     }
     public PageResult<Evidence> evidence(UUID enrollment,int page,int size) { return page("*","from nite_connect.academic_evidence where enrollment_id=?",List.of(enrollment),"captured_at desc,id",evidenceMapper,page,size); }
+    private final RowMapper<Assessment> assessmentMapper=(r,n)->new Assessment(id(r,"id"),id(r,"enrollment_id"),Pillar.valueOf(r.getString("pillar")),r.getBigDecimal("score"),List.of(decode(r.getString("evidence_ids"),UUID[].class)),r.getString("reason"),r.getInt("revision"),id(r,"assessed_by"),time(r,"created_at"));
+    public Assessment assess(UUID actor,Enrollment e,Pillar pillar,java.math.BigDecimal score,List<UUID> evidence,String reason) {
+        UUID id=UUID.randomUUID();jdbc.update("insert into nite_connect.academic_assessments(id,enrollment_id,pillar,score,evidence_ids,reason,revision,assessed_by) select ?,?,?,?,?::jsonb,?,coalesce(max(revision),0)+1,? from nite_connect.academic_assessments where enrollment_id=? and pillar=?",
+                id,e.id(),pillar.name(),score,encode(evidence),reason,actor,e.id(),pillar.name());return one("select * from nite_connect.academic_assessments where id=?",assessmentMapper,id);
+    }
+    public List<Assessment> latestAssessments(UUID enrollment) { return jdbc.query("select distinct on (pillar) * from nite_connect.academic_assessments where enrollment_id=? order by pillar,revision desc",assessmentMapper,enrollment); }
+    public PageResult<Assessment> assessments(UUID enrollment,int page,int size) { return page("*","from nite_connect.academic_assessments where enrollment_id=?",List.of(enrollment),"created_at desc,id",assessmentMapper,page,size); }
+    private final RowMapper<Calculation> calculationMapper=(r,n)->new Calculation(id(r,"id"),id(r,"enrollment_id"),id(r,"policy_id"),r.getLong("enrollment_version"),decode(r.getString("data"),CalculationData.class),time(r,"created_at"));
+    public Calculation calculation(UUID id) { return one("select * from nite_connect.academic_calculations where id=?",calculationMapper,id); }
+    public Calculation calculate(Enrollment e,CalculationData data) {
+        UUID id=UUID.randomUUID();jdbc.update("insert into nite_connect.academic_calculations(id,enrollment_id,policy_id,enrollment_version,data) values (?,?,?,?,?::jsonb)",id,e.id(),e.policyId(),e.version(),encode(data));return calculation(id);
+    }
+    public PageResult<Calculation> calculations(UUID enrollment,int page,int size) { return page("*","from nite_connect.academic_calculations where enrollment_id=?",List.of(enrollment),"created_at desc,id",calculationMapper,page,size); }
+    public Optional<Calculation> latestCalculation(UUID enrollment) { return jdbc.query("select * from nite_connect.academic_calculations where enrollment_id=? order by created_at desc,id limit 1",calculationMapper,enrollment).stream().findFirst(); }
+    private final RowMapper<Homologation> homologationMapper=(r,n)->new Homologation(id(r,"id"),id(r,"enrollment_id"),id(r,"calculation_id"),id(r,"supersedes_id"),id(r,"decided_by"),r.getString("reason"),time(r,"created_at"));
+    public Homologation homologation(UUID id) { return one("select * from nite_connect.academic_homologations where id=?",homologationMapper,id); }
+    public Optional<Homologation> currentHomologation(UUID enrollment) {
+        return jdbc.query("select h.* from nite_connect.academic_homologations h where h.enrollment_id=? and not exists(select 1 from nite_connect.academic_homologations s where s.supersedes_id=h.id) order by h.created_at desc,h.id limit 1",homologationMapper,enrollment).stream().findFirst();
+    }
+    public Homologation homologate(UUID actor,Enrollment e,UUID calculation,UUID supersedes,String reason) {
+        UUID id=UUID.randomUUID();jdbc.update("insert into nite_connect.academic_homologations(id,enrollment_id,calculation_id,supersedes_id,decided_by,reason) values (?,?,?,?,?,?)",id,e.id(),calculation,supersedes,actor,reason);return homologation(id);
+    }
+    private final RowMapper<Review> reviewMapper=(r,n)->new Review(id(r,"id"),id(r,"enrollment_id"),id(r,"calculation_id"),id(r,"homologation_id"),id(r,"requested_by"),r.getString("reason"),r.getString("status"),id(r,"decided_by"),r.getString("decision_reason"),r.getLong("version"),time(r,"created_at"));
+    public Review review(UUID id) { return one("select * from nite_connect.academic_reviews where id=?",reviewMapper,id); }
+    public boolean pendingReview(UUID enrollment) { return Boolean.TRUE.equals(jdbc.queryForObject("select exists(select 1 from nite_connect.academic_reviews where enrollment_id=? and status='REQUESTED')",Boolean.class,enrollment)); }
+    public Review requestReview(UUID actor,Enrollment e,Calculation c,UUID homologation,String reason) {
+        UUID id=UUID.randomUUID();jdbc.update("insert into nite_connect.academic_reviews(id,enrollment_id,calculation_id,homologation_id,requested_by,reason,status) values (?,?,?,?,?,?,'REQUESTED')",id,e.id(),c.id(),homologation,actor,reason);return review(id);
+    }
+    public Review decideReview(Review r,UUID actor,boolean accepted,String reason) {
+        changed(jdbc.update("update nite_connect.academic_reviews set status=?,decided_by=?,decision_reason=?,version=version+1 where id=? and version=? and status='REQUESTED'",accepted?"ACCEPTED":"REJECTED",actor,reason,r.id(),r.version()));return review(r.id());
+    }
+    public PageResult<Review> reviews(UUID enrollment,int page,int size) { return page("*","from nite_connect.academic_reviews where enrollment_id=?",List.of(enrollment),"created_at desc,id",reviewMapper,page,size); }
+    private final RowMapper<Forwarding> forwardingMapper=(r,n)->new Forwarding(id(r,"id"),id(r,"homologation_id"),id(r,"forwarded_by"),r.getString("procedure_reference"),r.getString("receipt_reference"),time(r,"created_at"));
+    public Forwarding forward(UUID actor,Homologation h,String procedure,String receipt) {
+        UUID id=UUID.randomUUID();jdbc.update("insert into nite_connect.academic_forwardings(id,homologation_id,forwarded_by,procedure_reference,receipt_reference) values (?,?,?,?,?)",id,h.id(),actor,procedure,receipt);return one("select * from nite_connect.academic_forwardings where id=?",forwardingMapper,id);
+    }
+    public PageResult<Forwarding> forwardings(UUID homologation,int page,int size) { return page("*","from nite_connect.academic_forwardings where homologation_id=?",List.of(homologation),"created_at desc,id",forwardingMapper,page,size); }
+    private final RowMapper<AcademicEvent> eventMapper=(r,n)->new AcademicEvent(id(r,"id"),id(r,"enrollment_id"),r.getString("entity_type"),id(r,"entity_id"),id(r,"actor_id"),r.getString("action"),r.getString("before_value"),r.getString("after_value"),r.getString("reason"),time(r,"occurred_at"));
+    public PageResult<AcademicEvent> history(UUID enrollment,int page,int size) { return page("*","from nite_connect.academic_events where enrollment_id=?",List.of(enrollment),"occurred_at desc,id",eventMapper,page,size); }
 }
