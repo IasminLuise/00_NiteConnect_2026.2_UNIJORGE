@@ -1,6 +1,6 @@
 # Bloco 06 — Plano de implementação
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans para execução nesta sessão, ou superpowers:subagent-driven-development se o usuário escolher delegação. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans para execução nesta sessão, ou superpowers:subagent-driven-development se o usuário escolher delegação. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Implementar o núcleo acadêmico definido no contrato B06.0, sem ativar regras institucionais não confirmadas nem substituir o B05.
 
@@ -10,7 +10,7 @@
 
 **Spec:** [Contrato B06.0](../../implementation/bloco-06-contrato.md), RF-042–047, Q24–29 e CA-13/14 da especificação consolidada.
 
-**Estado:** plano para revisão; tarefas de produto ainda não executadas. A solicitação de implementação de 23/10/2026 autoriza preparar a execução do contrato; este plano detalhado ainda precisa de revisão. Não presumir aprovação de valores institucionais.
+**Estado:** plano aprovado explicitamente pelo usuário, com execução nesta sessão e revisão independente ao final. Tarefas do núcleo implementadas; regressão com 209 testes aprovada. Revisão final e PR em preparação. Valores institucionais continuam sujeitos a confirmação.
 
 ## Global Constraints
 
@@ -51,7 +51,7 @@ Diretório Java base: `apps/api/src/main/java/br/edu/unijorge/niteconnect/`. Dir
 - [x] Registrar consulta somente leitura do Neon `nite-connect-staging`, branch `main`, banco `niteconnect_staging`: ausência de tabelas de aplicação e de histórico.
 - [x] Registrar branches remotas inspecionadas e versões encontradas; V6 acadêmica somente se não houver conflito em nenhuma dessas evidências. Limitar a conclusão aos ambientes conhecidos, sem declarar auditoria de produção inexistente.
 - [x] Executar baseline `apps/api/mvnw.cmd --batch-mode verify` com Java 21 e Docker; registrar contagem real. Não reutilizar os 185 históricos como resultado atual.
-- [ ] Abrir branch de implementação isolada, preservando o PR documental e o checkout B05. Commit do registro de base e plano após revisão do plano.
+- [x] Abrir branch de implementação isolada, preservando o PR documental e o checkout B05. Commit do registro de base e plano após revisão do plano.
 
 ## Tarefa 1 — Períodos, políticas e autorização específica (B06.1)
 
@@ -59,10 +59,10 @@ Diretório Java base: `apps/api/src/main/java/br/edu/unijorge/niteconnect/`. Dir
 
 **Interfaces:** `AcademicTermService.create(UUID actor, CreateTerm command): TermView`; `createPolicy(UUID actor, UUID termId, CreatePolicy command): PolicyView`; `confirmPolicy(UUID actor, UUID policyId, ConfirmPolicy command): PolicyView`. Comandos contêm datas/zone do período, identificadores de versão, pesos decimais por pilar, mínimo/máximo de nota, escala, `RoundingMode`, limites/janelas e referência institucional; política em preparação pode estar incompleta. Confirmação exige configuração completa do escopo e justificativa institucional.
 
-- [ ] Escrever e executar testes RED: gestor geral não confirma política nem registra nota; coordenador inativo/revogado é negado; pesos inválidos, datas invertidas e extremos são recusados; não há default 30/20/50; política utilizada não é editável.
-- [ ] Implementar migração aditiva das tabelas necessárias a todo o domínio, constraints de versão/unicidade/escala, índices de consultas e proteção de históricos. Incluir `ACADEMIC_*` em auditoria sem remover valores anteriores. Testar integridade referencial sem exclusão histórica por desativação de integrante.
-- [ ] Expor criação/consulta paginada de períodos e versões de política, confirmação exclusiva do coordenador; acrescentar `/academic/terms`, `/academic/terms/{id}/policies`, `/academic/policies/{id}/confirmation` à allowlist por método exato.
-- [ ] Rodar `mvnw.cmd --batch-mode -Dtest=AcademicPolicyTest,AcademicAuthorizationTest,Block06MigrationTest test`; exigir GREEN. Migração testa banco novo e upgrade V3/V5 com dados sintéticos preservados. Commit focado.
+- [x] Escrever e executar testes RED: gestor geral não confirma política nem registra nota; coordenador inativo/revogado é negado; pesos inválidos, datas invertidas e extremos são recusados; não há default 30/20/50; política utilizada não é editável.
+- [x] Implementar migração aditiva das tabelas necessárias a todo o domínio, constraints de versão/unicidade/escala, índices de consultas e proteção de históricos. Incluir `ACADEMIC_*` em auditoria sem remover valores anteriores. Testar integridade referencial sem exclusão histórica por desativação de integrante.
+- [x] Expor criação/consulta paginada de períodos e versões de política, confirmação exclusiva do coordenador; acrescentar `/academic/terms`, `/academic/terms/{id}/policies`, `/academic/policies/{id}/confirmation` à allowlist por método exato.
+- [x] Rodar `mvnw.cmd --batch-mode -Dtest=AcademicPolicyTest,AcademicAuthorizationTest,Block06MigrationTest test`; exigir GREEN. Migração testa banco novo e upgrade V3/V5 com dados sintéticos preservados. Commit focado.
 
 ## Tarefa 2 — Adesão opcional e disciplinas (B06.2)
 
@@ -70,10 +70,10 @@ Diretório Java base: `apps/api/src/main/java/br/edu/unijorge/niteconnect/`. Dir
 
 **Interfaces:** `request(UUID actor, RequestEnrollment command): EnrollmentView`; `revise(UUID actor, UUID id, ReviseEnrollment command): EnrollmentView`; `decide(UUID actor, UUID id, DecideEnrollment command): EnrollmentView`. Comandos identificam período, disciplinas por código/curso declarado e justificativa; decisão de pertinência/elegibilidade exclusiva do coordenador, apoiada em critérios configurados. Curso não existe no cadastro atual: tratá-lo como declaração acadêmica conferida, sem inferir pelo e-mail ou ampliar `Member` silenciosamente.
 
-- [ ] RED: participação NITE não cria adesão; apenas titular ativo solicita; unicidade integrante/período e disciplinas normalizadas sem duplicidade; política não confirmada, janela ausente/fechada e limite excedido bloqueiam a solicitação dependente.
-- [ ] Implementar rascunho/solicitação/análise/correção/deferimento/indeferimento com versões e histórico; não oferecer desistência irrevogável ou solicitação administrativa em nome do aluno sem regra aprovada.
-- [ ] Rotas: `/me/academic/enrollments`, `/me/academic/enrollments/{id}`, `/academic/enrollments` e `/academic/enrollments/{id}/decisions`; leitura própria isolada e preparação administrativa sem poder pedagógico.
-- [ ] GREEN: `mvnw.cmd --batch-mode -Dtest=AcademicEnrollmentTest,AcademicAuthorizationTest test`; commit.
+- [x] RED: participação NITE não cria adesão; apenas titular ativo solicita; unicidade integrante/período e disciplinas normalizadas sem duplicidade; política não confirmada, janela ausente/fechada e limite excedido bloqueiam a solicitação dependente.
+- [x] Implementar rascunho/solicitação/análise/correção/deferimento/indeferimento com versões e histórico; não oferecer desistência irrevogável ou solicitação administrativa em nome do aluno sem regra aprovada.
+- [x] Rotas: `/me/academic/enrollments`, `/me/academic/enrollments/{id}`, `/academic/enrollments` e `/academic/enrollments/{id}/decisions`; leitura própria isolada e preparação administrativa sem poder pedagógico.
+- [x] GREEN: `mvnw.cmd --batch-mode -Dtest=AcademicEnrollmentTest,AcademicAuthorizationTest test`; commit.
 
 ## Tarefa 3 — Plano Individual versionado (B06.3)
 
@@ -81,10 +81,10 @@ Diretório Java base: `apps/api/src/main/java/br/edu/unijorge/niteconnect/`. Dir
 
 **Interfaces:** `save(UUID actor, UUID enrollmentId, SavePlan command): PlanView`; `submit(UUID actor, UUID planId, SubmitPlan command): PlanView`; `decide(UUID actor, UUID planId, DecidePlan command): PlanView`.
 
-- [ ] RED: somente titular edita/submete seu plano; coordenador analisa; gestor geral não aprova academicamente; nova revisão não sobrescreve texto/decisão anteriores.
-- [ ] Implementar objetivos e planejamento como conteúdo estruturado limitado, histórico e transições do contrato; não criar editor DOCX nem bloquear Diário de Bordo inexistente. Obrigatoriedade institucional permanece desabilitada enquanto não confirmada.
-- [ ] Rotas próprias `/me/academic/enrollments/{id}/plans`, `/me/academic/plans/{id}/submission`; decisão em `/academic/plans/{id}/decisions`; consultas de versões autorizadas.
-- [ ] GREEN: `mvnw.cmd --batch-mode -Dtest=IndividualPlanTest test`; commit.
+- [x] RED: somente titular edita/submete seu plano; coordenador analisa; gestor geral não aprova academicamente; nova revisão não sobrescreve texto/decisão anteriores.
+- [x] Implementar objetivos e planejamento como conteúdo estruturado limitado, histórico e transições do contrato; não criar editor DOCX nem bloquear Diário de Bordo inexistente. Obrigatoriedade institucional permanece desabilitada enquanto não confirmada.
+- [x] Rotas próprias `/me/academic/enrollments/{id}/plans`, `/me/academic/plans/{id}/submission`; decisão em `/academic/plans/{id}/decisions`; consultas de versões autorizadas.
+- [x] GREEN: `mvnw.cmd --batch-mode -Dtest=IndividualPlanTest test`; commit.
 
 ## Tarefa 4 — Provedores de evidência, captura e divergência (B06.4)
 
@@ -92,11 +92,11 @@ Diretório Java base: `apps/api/src/main/java/br/edu/unijorge/niteconnect/`. Dir
 
 **Interfaces:** leitores operacionais expõem `read(UUID actor, UUID memberId, UUID sourceId, Instant from, Instant to): Snapshot` em records próprios, sem retorno de repositório estrangeiro. `AcademicEvidenceService.capture(UUID actor, UUID enrollmentId, CaptureEvidence command): EvidenceView`; `compare(UUID actor, UUID evidenceId): EvidenceComparison`; contrato documental retorna explicitamente indisponibilidade em ausência de bean B05 real, nunca snapshot fictício.
 
-- [ ] RED: ator sem leitura de origem é recusado; atribuição/autoria deve corresponder ao aluno; atividade sem projeto é válida; vínculo histórico não é confundido com vínculo atual; upload PENDING/FAILED/retirado não sustenta captura válida; falta de B05 é indisponibilidade explícita.
-- [ ] Implementar envelope v1 do contrato: IDs, versões nativas ou token estável da projeção, autor, validação/revisor quando existente, intervalo, coleta e escopo autorizado; diferenciar versão de contrato e versão do dado. Origem sem decisão de validação retorna ausência, sem aprovador inventado.
-- [ ] Implementar captura transacional coerente com corte explícito; preservar snapshot mínimo, referências e divergências detectadas em releitura. Não copiar binários, segredos ou links temporários, nem fazer polling externo. Testar corrida entre correção de origem e captura, e mudanças após homologação.
-- [ ] Rotas `/academic/enrollments/{id}/evidence`, `/me/academic/enrollments/{id}/evidence` e comparação autorizada; consultas paginadas e filtros limitados.
-- [ ] GREEN: `mvnw.cmd --batch-mode -Dtest=AcademicEvidenceTest,AcademicSnapshotConsistencyTest test`; commit.
+- [x] RED: ator sem leitura de origem é recusado; atribuição/autoria deve corresponder ao aluno; atividade sem projeto é válida; vínculo histórico não é confundido com vínculo atual; upload PENDING/FAILED/retirado não sustenta captura válida; falta de B05 é indisponibilidade explícita.
+- [x] Implementar envelope v1 do contrato: IDs, versões nativas ou token estável da projeção, autor, validação/revisor quando existente, intervalo, coleta e escopo autorizado; diferenciar versão de contrato e versão do dado. Origem sem decisão de validação retorna ausência, sem aprovador inventado.
+- [x] Implementar captura transacional coerente com corte explícito; preservar snapshot mínimo, referências e divergências detectadas em releitura. Não copiar binários, segredos ou links temporários, nem fazer polling externo. Testar corrida entre correção de origem e captura, e mudanças após homologação.
+- [x] Rotas `/academic/enrollments/{id}/evidence`, `/me/academic/enrollments/{id}/evidence` e comparação autorizada; consultas paginadas e filtros limitados.
+- [x] GREEN: `mvnw.cmd --batch-mode -Dtest=AcademicEvidenceTest,AcademicSnapshotConsistencyTest test`; commit.
 
 ## Tarefa 5 — Pilares e cálculo preliminar (B06.5–B06.6)
 
@@ -104,11 +104,11 @@ Diretório Java base: `apps/api/src/main/java/br/edu/unijorge/niteconnect/`. Dir
 
 **Interfaces:** `AcademicCalculator.calculate(PolicySnapshot policy, List<PillarInput> inputs): CalculationResult`; `PillarAssessmentService.assess(UUID actor, UUID enrollmentId, AssessPillar command): AssessmentView`; `AcademicCalculationService.calculate(UUID actor, UUID enrollmentId, Calculate command): CalculationView`.
 
-- [ ] RED: zero é nota atribuída; ausência/incompletude não viram zero; `BigDecimal`, soma exata de pesos, extremos, arredondamento da política, reprodução após mudança de semestre; gestor geral não pontua, mas pode calcular com notas existentes sem modificá-las.
-- [ ] Implementar notas humanas justificadas com referências por pilar e revisão imutável; captura de política/insumos/versões/algoritmo em cada cálculo. Referências operacionais não viram nota automaticamente. Apresentações exigem registro humano verificável no domínio, não inferência por presença.
-- [ ] Recusar cálculo completo/homologável com pilar sem evidência aceita, política não confirmada ou insumos divergentes; com B05 indisponível, não fabricar documentação nem redistribuir pesos.
-- [ ] Rotas `/academic/enrollments/{id}/assessments`, `/academic/enrollments/{id}/calculations`; consultas próprias não divulgam rascunhos/notas até rito de divulgação confirmado.
-- [ ] GREEN: `mvnw.cmd --batch-mode -Dtest=AcademicCalculatorTest,AcademicAssessmentTest,AcademicAuthorizationTest test`; commit.
+- [x] RED: zero é nota atribuída; ausência/incompletude não viram zero; `BigDecimal`, soma exata de pesos, extremos, arredondamento da política, reprodução após mudança de semestre; gestor geral não pontua, mas pode calcular com notas existentes sem modificá-las.
+- [x] Implementar notas humanas justificadas com referências por pilar e revisão imutável; captura de política/insumos/versões/algoritmo em cada cálculo. Referências operacionais não viram nota automaticamente. Apresentações exigem registro humano verificável no domínio, não inferência por presença.
+- [x] Recusar cálculo completo/homologável com pilar sem evidência aceita, política não confirmada ou insumos divergentes; com B05 indisponível, não fabricar documentação nem redistribuir pesos.
+- [x] Rotas `/academic/enrollments/{id}/assessments`, `/academic/enrollments/{id}/calculations`; consultas próprias não divulgam rascunhos/notas até rito de divulgação confirmado.
+- [x] GREEN: `mvnw.cmd --batch-mode -Dtest=AcademicCalculatorTest,AcademicAssessmentTest,AcademicAuthorizationTest test`; commit.
 
 ## Tarefa 6 — Revisão, homologação e sucessão (B06.7)
 
@@ -116,11 +116,11 @@ Diretório Java base: `apps/api/src/main/java/br/edu/unijorge/niteconnect/`. Dir
 
 **Interfaces:** `request(UUID actor, UUID enrollmentId, RequestReview command): ReviewView`; `decide(UUID actor, UUID reviewId, DecideReview command): ReviewView`; `homologate(UUID actor, UUID calculationId, Homologate command): HomologationView`; `reopen(UUID actor, UUID homologationId, Reopen command): ReviewView`.
 
-- [ ] RED: chamada HTTP direta de gestor geral a homologação/reabertura/nota → 403; revogação/inativação concorrente impede escrita; revisão pendente/cálculo desatualizado/pilar faltante impedem homologação; motivo, confirmação e expectedVersion obrigatórios.
-- [ ] Implementar rito configurado de revisão, rejeição preservando resultado e procedência com nova revisão; não editar cálculo nem homologação anterior. Um pedido não invalida automaticamente decisão homologada.
-- [ ] Homologação serializada e auditada com nova verificação da política, insumos e permissões; reabertura e sucessora identificadas sem duas revisões vigentes. Homologação repetida/requisição obsoleta não duplica efeitos.
-- [ ] Rotas `/me/academic/enrollments/{id}/reviews`, `/academic/reviews/{id}/decisions`, `/academic/calculations/{id}/homologations`, `/academic/homologations/{id}/reopen`; testes positivos completos podem usar provedor documental sintético restrito ao classpath de teste, explicitamente sem homologação institucional ou runtime fictício.
-- [ ] GREEN: `mvnw.cmd --batch-mode -Dtest=AcademicReviewTest,AcademicHomologationTest,AcademicConcurrencyTest,AcademicAuthorizationTest test`; commit.
+- [x] RED: chamada HTTP direta de gestor geral a homologação/reabertura/nota → 403; revogação/inativação concorrente impede escrita; revisão pendente/cálculo desatualizado/pilar faltante impedem homologação; motivo, confirmação e expectedVersion obrigatórios.
+- [x] Implementar rito configurado de revisão, rejeição preservando resultado e procedência com nova revisão; não editar cálculo nem homologação anterior. Um pedido não invalida automaticamente decisão homologada.
+- [x] Homologação serializada e auditada com nova verificação da política, insumos e permissões; reabertura e sucessora identificadas sem duas revisões vigentes. Homologação repetida/requisição obsoleta não duplica efeitos.
+- [x] Rotas `/me/academic/enrollments/{id}/reviews`, `/academic/reviews/{id}/decisions`, `/academic/calculations/{id}/homologations`, `/academic/homologations/{id}/reopen`; testes positivos completos podem usar provedor documental sintético restrito ao classpath de teste, explicitamente sem homologação institucional ou runtime fictício.
+- [x] GREEN: `mvnw.cmd --batch-mode -Dtest=AcademicReviewTest,AcademicHomologationTest,AcademicConcurrencyTest,AcademicAuthorizationTest test`; commit.
 
 ## Tarefa 7 — Encaminhamento e contratos documentais (B06.8)
 
@@ -128,10 +128,10 @@ Diretório Java base: `apps/api/src/main/java/br/edu/unijorge/niteconnect/`. Dir
 
 **Interfaces:** `forward(UUID actor, UUID homologationId, ForwardAssessment command): ForwardingView`; contratos de solicitação documental e evento como records versionados, sem envio externo ou provedor de produto nesta etapa.
 
-- [ ] RED: sem procedimento institucional confirmado, não marcar encaminhamento oficial nem confirmação externa; gestor geral só prepara dados; referenciar homologação exata, sem reapontar envio antigo após revisão.
-- [ ] Implementar registro interno autorizado quando procedimento estiver configurado; confirmação externa permanece desabilitada sem procedimento/comprovação; não criar integração com portal, notificações reais, assinatura ou certificados.
-- [ ] Rotas somente das operações implementadas e efetivamente condicionadas; contrato documental sem editor/armazenamento paralelo. Snapshot exportável técnico não é documento oficial emitido.
-- [ ] GREEN: `mvnw.cmd --batch-mode -Dtest=AcademicForwardingTest test`; commit.
+- [x] RED: sem procedimento institucional confirmado, não marcar encaminhamento oficial nem confirmação externa; gestor geral só prepara dados; referenciar homologação exata, sem reapontar envio antigo após revisão.
+- [x] Implementar registro interno autorizado quando procedimento estiver configurado; confirmação externa permanece desabilitada sem procedimento/comprovação; não criar integração com portal, notificações reais, assinatura ou certificados.
+- [x] Rotas somente das operações implementadas e efetivamente condicionadas; contrato documental sem editor/armazenamento paralelo. Snapshot exportável técnico não é documento oficial emitido.
+- [x] GREEN: `mvnw.cmd --batch-mode -Dtest=AcademicForwardingTest test`; commit.
 
 ## Tarefa 8 — Contrato HTTP, regressão e encerramento técnico (B06.9)
 

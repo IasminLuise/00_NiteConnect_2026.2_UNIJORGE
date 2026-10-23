@@ -29,5 +29,5 @@ public class AcademicTermService {
         Policy result=repo.confirmPolicy(p,c.authorityReference());repo.event(actor,null,"POLICY",p.id(),"CONFIRMED",p,result,c.reason());return result;
     }
     @Transactional(readOnly=true) public PageResult<Term> list(UUID actor,int page,int size) { auth.requireActive(actor);return repo.terms(page,size); }
-    @Transactional(readOnly=true) public PageResult<Policy> policies(UUID actor,UUID term,int page,int size) { auth.requireAdministrator(actor);repo.term(term);return repo.policies(term,page,size); }
+    @Transactional(readOnly=true) public PageResult<Policy> policies(UUID actor,UUID term,int page,int size) { auth.requireActive(actor);repo.term(term);return repo.policies(term,!auth.isCoordinator(actor),page,size); }
 }

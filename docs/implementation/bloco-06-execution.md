@@ -2,9 +2,9 @@
 
 ## Estado em 23/10/2026
 
-Pedido recebido: implementar o Bloco 06 conforme o contrato B06.0. Preparação da execução concluída; [plano detalhado](../superpowers/plans/2026-10-23-bloco-06-academico.md) aguardando revisão e escolha da forma de execução. Nenhum código acadêmico ou migração criado nesta preparação.
+Pedido recebido: implementar o Bloco 06 conforme o contrato B06.0. O [plano detalhado](../superpowers/plans/2026-10-23-bloco-06-academico.md) foi aprovado explicitamente pelo usuário, com execução nesta sessão e revisão independente ao final. Implementação do núcleo acadêmico em validação; os resultados finais serão registrados abaixo, sem confundir código de domínio com ativação institucional.
 
-O checkout `D:\nite-connect` permanece na investigação B05. A preparação usa o worktree `C:\Users\breno\.codex\worktrees\b06-contrato\nite-connect`, branch `docs/bloco-06-contrato`, baseado em `d787916bbd581ee2ec4c9d2ee85fe5af02f97239`, acrescido do contrato `48786c4`.
+O checkout `D:\nite-connect` permanece na investigação B05. A implementação usa o worktree `C:\Users\breno\.codex\worktrees\b06-contrato\nite-connect`, branch `feat/bloco-06-avaliacao-academica`, derivada de `22415af` (contrato/plano), sobre a base `d787916bbd581ee2ec4c9d2ee85fe5af02f97239` da `main`.
 
 ## G0-B — Evidências dos ambientes conhecidos
 
@@ -40,7 +40,7 @@ Os três checksums coincidem com CRC32 dos arquivos correspondentes da base, com
 - Nenhuma dessas árvores contém arquivo de migração V6 ou superior em `apps/api/src/main/resources/db/migration`.
 - V6 documental é referência de planejamento do B05, não migração encontrada/aplicada nessas evidências.
 
-**Estratégia técnica proposta para a implementação:** `V6__academic_assessment.sql`; V1–V5 imutáveis. O B05 usará a próxima versão disponível quando sua implementação for autorizada, sem migração retroativa, sem `outOfOrder` ou `repair`. A referência futura nos documentos B05 deve ser reconciliada em alteração própria, sem transportar implementação/experimentos B05.
+**Estratégia adotada após aprovação do plano:** `V6__academic_assessment.sql`; V1–V5 imutáveis. O B05 usará a próxima versão disponível quando sua implementação for autorizada, sem migração retroativa, sem `outOfOrder` ou `repair`. Os documentos B05 não existem na base `main` deste worktree: a referência futura das branches B05 deve ser reconciliada quando esse trabalho avançar, sem transportar implementação/experimentos nesta branch.
 
 Esse inventário cobre os ambientes conhecidos e identificados no projeto; não afirma ter auditado um ambiente de produção ou outros bancos não identificados. Se aparecer migração conflitante em outro ambiente/branch antes da implementação, interromper a escolha do número e reconciliar sem editar histórico aplicado.
 
@@ -62,4 +62,20 @@ Este resultado é baseline atual de B01–B04; não valida código B06 ainda ine
 - Regra de produção ainda não homologada não será inventada: parâmetros ausentes bloqueiam as operações dependentes.
 - A ausência de evidência documental oficial do B05 não será mascarada por provedor de produto fictício, nota zero ou redistribuição de pesos.
 - Fluxo positivo de homologação pode ser testado com provedor sintético exclusivo do classpath de teste, sem sugerir prontidão institucional ou liberar a integração no runtime.
-- Aprovação do plano/forma de execução permanece pendente nesta entrega de preparação; nenhuma implementação de produto foi iniciada antecipadamente.
+- Aprovação recebida antes de implementar: executar nesta sessão com revisão independente ao final. G0-A aprovado por esse aceite do contrato/plano; G0-B auditado e estratégia V6 adotada para os ambientes conhecidos. Não é homologação institucional ou auditoria de bancos não identificados.
+
+## Execução, desvios técnicos e evidências
+
+- B06.1–B06.3: períodos, políticas confirmáveis/imutáveis, autorização específica, adesão opcional e Plano Individual versionado. Testes HTTP observados RED→GREEN; núcleo inicial com 5 testes aprovados e plano com 1 teste aprovado.
+- B06.4: leitores autorizados nos módulos de origem, captura imutável, comparação de revisão e apresentação atestada pela coordenação; 2 testes de evidência observados RED→GREEN.
+- B06.5–B06.7: notas humanas, cálculo decimal com insumos preservados, revisão, homologação e reabertura; testes direcionados de cálculo/avaliação/homologação aprovados após corrigir o cast de JSONB no vínculo inicial de referências.
+- B06.8: contrato documental futuro sem implementação fictícia, contracts de notificação sem envio e encaminhamento condicionado a procedimento institucional; teste positivo de encaminhamento exclusivo de fixture sintética.
+- Concorrência/revisão/encaminhamento/migração: grupo de 6 testes aprovado; homologações concorrentes produzem uma decisão e revogação enquanto a operação aguarda o lock impede gravação.
+- Integridade: vínculo entre avaliação e evidência é relacional, com chaves compostas da adesão e proteção de histórico. V6 nunca foi aplicada a banco persistente pela tarefa; somente a bancos efêmeros de teste.
+- Ruling: reutilizar diretamente `AdministrativeTransactions` em vez de criar `AcademicTransactions` genérico — o protocolo já serializa as mutações operacionais relevantes e evita capturar snapshot SQL antes da aquisição do lock; custo: contenção global já existente em operações de baixo volume.
+- Ruling: permitir descoberta de políticas confirmadas a integrantes ativos — a adesão precisa conhecer critérios e identificadores; rascunhos ficam restritos ao coordenador; custo: exposição interna dos critérios oficiais, necessária ao fluxo.
+- Ruling: publicar OpenAPI em JSON, não YAML — formato nativo sem adicionar parser/dependência; custo: arquivo mais extenso, mantendo compatibilidade OpenAPI.
+
+## Validação final
+
+Em andamento: `mvnw.cmd --batch-mode verify`, seguido de revisão independente da branch. Não antecipar contagem ou aprovação antes da saída real. Pendências institucionais e B05 continuam fora da ativação de produto, independentemente do resultado dos testes.

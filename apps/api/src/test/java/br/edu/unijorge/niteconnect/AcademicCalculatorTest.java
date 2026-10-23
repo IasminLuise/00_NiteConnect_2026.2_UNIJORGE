@@ -23,4 +23,9 @@ class AcademicCalculatorTest {
         assertThatThrownBy(()->AcademicCalculator.score(rules(),new BigDecimal("10.01"))).isInstanceOf(br.edu.unijorge.niteconnect.shared.api.ApiException.class);
         assertThatThrownBy(()->AcademicCalculator.score(rules(),new BigDecimal("1E-10000"))).isInstanceOf(br.edu.unijorge.niteconnect.shared.api.ApiException.class);
     }
+    @Test void scoreBoundsMustBeRepresentableAtTheOfficialResultScale() {
+        PolicyRules r=rules();
+        var incompatible=new PolicyRules(r.weights(),r.minimumScore(),new BigDecimal("9.999"),r.scale(),r.rounding(),r.eligibleDisciplines(),r.maximumDisciplines(),r.enrollmentOpensAt(),r.enrollmentClosesAt(),null,null,null,null);
+        assertThatThrownBy(()->AcademicRules.policy(incompatible)).isInstanceOf(br.edu.unijorge.niteconnect.shared.api.ApiException.class);
+    }
 }

@@ -43,7 +43,7 @@ public class AcademicRepository {
         changed(jdbc.update("update nite_connect.academic_policies set status='CONFIRMED',authority_reference=?,version=version+1 where id=? and version=? and status='DRAFT'",reference,p.id(),p.version()));return policy(p.id());
     }
     public PageResult<Term> terms(int page,int size) { return page("*","from nite_connect.academic_terms",List.of(),"starts_at desc,id",termMapper,page,size); }
-    public PageResult<Policy> policies(UUID term,int page,int size) { return page("*","from nite_connect.academic_policies where term_id=?",List.of(term),"revision desc,id",policyMapper,page,size); }
+    public PageResult<Policy> policies(UUID term,boolean confirmedOnly,int page,int size) { return page("*","from nite_connect.academic_policies where term_id=?"+(confirmedOnly?" and status='CONFIRMED'":""),List.of(term),"revision desc,id",policyMapper,page,size); }
     public <T> PageResult<T> page(String columns,String from,List<?> args,String order,RowMapper<T> mapper,int page,int size) {
         PageResult.validate(page,size);long total=jdbc.queryForObject("select count(*) "+from,Long.class,args.toArray());
         var values=new ArrayList<Object>(args);values.add(size);values.add((long)page*size);
@@ -79,12 +79,15 @@ public class AcademicRepository {
     }
     public PageResult<Evidence> evidence(UUID enrollment,int page,int size) { return page("*","from nite_connect.academic_evidence where enrollment_id=?",List.of(enrollment),"captured_at desc,id",evidenceMapper,page,size); }
     private final RowMapper<Assessment> assessmentMapper=(r,n)->new Assessment(id(r,"id"),id(r,"enrollment_id"),Pillar.valueOf(r.getString("pillar")),r.getBigDecimal("score"),List.of(decode(r.getString("evidence_ids"),UUID[].class)),r.getString("reason"),r.getInt("revision"),id(r,"assessed_by"),time(r,"created_at"));
+    private static final String ASSESSMENT_COLUMNS="a.*,(select jsonb_agg(x.evidence_id order by x.position) from nite_connect.academic_assessment_evidence x where x.assessment_id=a.id) as evidence_ids";
     public Assessment assess(UUID actor,Enrollment e,Pillar pillar,java.math.BigDecimal score,List<UUID> evidence,String reason) {
-        UUID id=UUID.randomUUID();jdbc.update("insert into nite_connect.academic_assessments(id,enrollment_id,pillar,score,evidence_ids,reason,revision,assessed_by) select ?,?,?,?,?::jsonb,?,coalesce(max(revision),0)+1,? from nite_connect.academic_assessments where enrollment_id=? and pillar=?",
-                id,e.id(),pillar.name(),score,encode(evidence),reason,actor,e.id(),pillar.name());return one("select * from nite_connect.academic_assessments where id=?",assessmentMapper,id);
+        UUID id=UUID.randomUUID();jdbc.update("insert into nite_connect.academic_assessments(id,enrollment_id,pillar,score,reason,revision,assessed_by) select ?,?,?,?,?,coalesce(max(revision),0)+1,? from nite_connect.academic_assessments where enrollment_id=? and pillar=?",
+                id,e.id(),pillar.name(),score,reason,actor,e.id(),pillar.name());
+        for(int i=0;i<evidence.size();i++) jdbc.update("insert into nite_connect.academic_assessment_evidence(assessment_id,enrollment_id,evidence_id,position) values (?,?,?,?)",id,e.id(),evidence.get(i),i);
+        return one("select "+ASSESSMENT_COLUMNS+" from nite_connect.academic_assessments a where a.id=?",assessmentMapper,id);
     }
-    public List<Assessment> latestAssessments(UUID enrollment) { return jdbc.query("select distinct on (pillar) * from nite_connect.academic_assessments where enrollment_id=? order by pillar,revision desc",assessmentMapper,enrollment); }
-    public PageResult<Assessment> assessments(UUID enrollment,int page,int size) { return page("*","from nite_connect.academic_assessments where enrollment_id=?",List.of(enrollment),"created_at desc,id",assessmentMapper,page,size); }
+    public List<Assessment> latestAssessments(UUID enrollment) { return jdbc.query("select distinct on (a.pillar) "+ASSESSMENT_COLUMNS+" from nite_connect.academic_assessments a where a.enrollment_id=? order by a.pillar,a.revision desc",assessmentMapper,enrollment); }
+    public PageResult<Assessment> assessments(UUID enrollment,int page,int size) { return page(ASSESSMENT_COLUMNS,"from nite_connect.academic_assessments a where a.enrollment_id=?",List.of(enrollment),"a.created_at desc,a.id",assessmentMapper,page,size); }
     private final RowMapper<Calculation> calculationMapper=(r,n)->new Calculation(id(r,"id"),id(r,"enrollment_id"),id(r,"policy_id"),r.getLong("enrollment_version"),decode(r.getString("data"),CalculationData.class),time(r,"created_at"));
     public Calculation calculation(UUID id) { return one("select * from nite_connect.academic_calculations where id=?",calculationMapper,id); }
     public Calculation calculate(Enrollment e,CalculationData data) {
