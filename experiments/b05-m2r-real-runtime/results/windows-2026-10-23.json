@@ -1,0 +1,61 @@
+{
+  "schema": "b05-m2r-v1",
+  "source": "LIVE_ONLYOFFICE_DOCS_API",
+  "editorRuntimeReal": true,
+  "wordFidelityApproved": false,
+  "officialTemplateUsed": false,
+  "createdAt": "2026-10-23T19:58:06.254Z",
+  "checks": {
+    "anonymousDenied": true,
+    "signedSession": true,
+    "docsApiScriptReachable": true,
+    "callbackOriginConsistent": true,
+    "tamperedCapabilityDenied": true,
+    "unsignedCallbackDenied": true,
+    "editorAppReady": true,
+    "documentReady": true,
+    "editEventObserved": true,
+    "editorError": false,
+    "operatorFinished": true,
+    "sourceValidBeforeRevocation": true,
+    "explicitRevocationCompleted": true,
+    "sourceDeniedAfterRevocation": true,
+    "pdfMagic": true,
+    "pdfVersionHeader": true,
+    "pdfRepeatByteIdentical": true
+  },
+  "result": "M2R_INTEGRATION_DEMONSTRATED_NOT_EDITORIAL_APPROVAL",
+  "persistence": {
+    "status": "QUARANTINED_GUARD_ENFORCED",
+    "versionsCreated": 1,
+    "available": 0,
+    "quarantined": 1,
+    "headChanged": false,
+    "quarantineCodes": [
+      "OOXML_PROTECTED_CHANGE"
+    ]
+  },
+  "pending": [
+    "FULL_OOXML_WORD_PDF_FIDELITY",
+    "MULTI_ACTOR_REAL_COEDIT",
+    "VENDOR_CALLBACK_EXACT_REPLAY",
+    "REVOKED_CONCURRENT_EDITOR",
+    "WINDOWS_SYMLINK_SECURITY",
+    "LICENSING_OPERATIONS",
+    "OFFICIAL_TEMPLATES_PROHIBITED"
+  ],
+  "uiLayout": {
+    "beforeEditorHeightPx": 150,
+    "beforeAvailableHeightPx": 936,
+    "afterEditorHeightPx": 880,
+    "afterAvailableHeightPx": 880,
+    "sessionPreservedThroughLoopbackCssProxy": true
+  },
+  "additionalChecks": {
+    "foreignHostDenied": true,
+    "foreignOriginDenied": true,
+    "originalBytesIntact": true,
+    "requestedTextReplacementOnly": true,
+    "tableTextPreserved": true
+  }
+}

@@ -1,0 +1,25 @@
+# B05-M2R: isolated disposable development topology. Do NOT deploy this file to production.
+# All published ports bind only to the operator host's loopback interface.
+services:
+  db-m2r:
+    image: postgres:17.11-alpine
+    environment:
+      POSTGRES_DB: niteconnect_m2r
+      POSTGRES_USER: niteconnect
+      POSTGRES_PASSWORD: ${NITE_M2R_DB_PASSWORD:?Provide an external local-dev-only database password}
+    ports:
+      - '127.0.0.1:15433:5432'
+    volumes:
+      - b05_m2r_postgres:/var/lib/postgresql/data
+    restart: 'no'
+  onlyoffice-m2r:
+    image: onlyoffice/documentserver:10.0.0.1
+    environment:
+      JWT_ENABLED: 'true'
+      JWT_SECRET: ${DOCUMENTS_EDITOR_JWT_SECRET:?Provide an external local-dev-only JWT secret}
+    ports:
+      - '127.0.0.1:18080:80'
+    shm_size: 1gb
+    restart: 'no'
+volumes:
+  b05_m2r_postgres:
