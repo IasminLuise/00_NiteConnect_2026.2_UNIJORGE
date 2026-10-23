@@ -25,7 +25,7 @@ public final class AcademicRecords {
     public record SourceSnapshot(int contractVersion, Source source, UUID sourceId, UUID memberId, UUID projectId,
                                  String sourceRevision, UUID authorId, UUID validatedBy, String validationStatus,
                                  Instant occurredAt, Instant validatedAt, Instant from, Instant to,
-                                 Map<String,String> attributes) {}
+                                 Map<String,String> attributes, UUID readBy, String readScope) {}
     public record Evidence(UUID id, UUID enrollmentId, SourceSnapshot snapshot, UUID capturedBy, Instant capturedAt) {}
     public record Assessment(UUID id, UUID enrollmentId, Pillar pillar, BigDecimal score, List<UUID> evidenceIds,
                              String reason, int revision, UUID assessedBy, Instant createdAt) {}

@@ -72,4 +72,10 @@ public class AcademicRepository {
     }
     public Plan planState(Plan p,PlanStatus state) { changed(jdbc.update("update nite_connect.academic_plans set status=?,version=version+1 where id=? and version=?",state.name(),p.id(),p.version()));return plan(p.id()); }
     public PageResult<Plan> plans(UUID enrollment,int page,int size) { return page("*","from nite_connect.academic_plans where enrollment_id=?",List.of(enrollment),"revision desc,id",planMapper,page,size); }
+    private final RowMapper<Evidence> evidenceMapper=(r,n)->new Evidence(id(r,"id"),id(r,"enrollment_id"),decode(r.getString("snapshot"),SourceSnapshot.class),id(r,"captured_by"),time(r,"captured_at"));
+    public Evidence evidence(UUID id) { return one("select * from nite_connect.academic_evidence where id=?",evidenceMapper,id); }
+    public Evidence capture(UUID enrollment,UUID actor,SourceSnapshot snapshot) {
+        UUID id=UUID.randomUUID();jdbc.update("insert into nite_connect.academic_evidence(id,enrollment_id,snapshot,captured_by) values (?,?,?::jsonb,?)",id,enrollment,encode(snapshot),actor);return evidence(id);
+    }
+    public PageResult<Evidence> evidence(UUID enrollment,int page,int size) { return page("*","from nite_connect.academic_evidence where enrollment_id=?",List.of(enrollment),"captured_at desc,id",evidenceMapper,page,size); }
 }

@@ -33,6 +33,8 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/me/academic/enrollments/*/evidence", "/api/v1/academic/enrollments/*/evidence", "/api/v1/academic/evidence/*/comparison").access(authenticatedJwt)
+                        .requestMatchers(HttpMethod.POST, "/api/v1/me/academic/enrollments/*/evidence", "/api/v1/academic/enrollments/*/evidence", "/api/v1/academic/enrollments/*/presentations").access(authenticatedJwt)
                         .requestMatchers(HttpMethod.GET, "/api/v1/me/academic/enrollments/*/plans", "/api/v1/academic/enrollments/*/plans").access(authenticatedJwt)
                         .requestMatchers(HttpMethod.POST, "/api/v1/me/academic/enrollments/*/plans", "/api/v1/me/academic/plans/*/submission", "/api/v1/academic/plans/*/decisions").access(authenticatedJwt)
                         .requestMatchers(HttpMethod.GET, "/api/v1/me/academic/enrollments", "/api/v1/me/academic/enrollments/*", "/api/v1/academic/enrollments", "/api/v1/academic/enrollments/*").access(authenticatedJwt)
