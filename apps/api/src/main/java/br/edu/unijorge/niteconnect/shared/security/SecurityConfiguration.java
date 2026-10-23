@@ -33,6 +33,19 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/academic/enrollments/*/homologation", "/api/v1/academic/enrollments/*/reviews", "/api/v1/me/academic/enrollments/*/reviews", "/api/v1/academic/enrollments/*/history", "/api/v1/academic/homologations/*/forwardings").access(authenticatedJwt)
+                        .requestMatchers(HttpMethod.POST, "/api/v1/me/academic/enrollments/*/reviews", "/api/v1/academic/enrollments/*/reviews", "/api/v1/academic/reviews/*/decisions", "/api/v1/academic/calculations/*/homologations", "/api/v1/academic/homologations/*/reopen", "/api/v1/academic/homologations/*/forwardings").access(authenticatedJwt)
+                        .requestMatchers(HttpMethod.GET, "/api/v1/academic/enrollments/*/assessments", "/api/v1/academic/enrollments/*/calculations", "/api/v1/me/academic/enrollments/*/assessments", "/api/v1/me/academic/enrollments/*/calculations").access(authenticatedJwt)
+                        .requestMatchers(HttpMethod.POST, "/api/v1/academic/enrollments/*/assessments", "/api/v1/academic/enrollments/*/calculations").access(authenticatedJwt)
+                        .requestMatchers(HttpMethod.GET, "/api/v1/me/academic/enrollments/*/evidence", "/api/v1/academic/enrollments/*/evidence", "/api/v1/academic/evidence/*/comparison").access(authenticatedJwt)
+                        .requestMatchers(HttpMethod.POST, "/api/v1/me/academic/enrollments/*/evidence", "/api/v1/academic/enrollments/*/evidence", "/api/v1/academic/enrollments/*/presentations").access(authenticatedJwt)
+                        .requestMatchers(HttpMethod.GET, "/api/v1/me/academic/enrollments/*/plans", "/api/v1/academic/enrollments/*/plans").access(authenticatedJwt)
+                        .requestMatchers(HttpMethod.POST, "/api/v1/me/academic/enrollments/*/plans", "/api/v1/me/academic/plans/*/submission", "/api/v1/academic/plans/*/decisions").access(authenticatedJwt)
+                        .requestMatchers(HttpMethod.GET, "/api/v1/me/academic/enrollments", "/api/v1/me/academic/enrollments/*", "/api/v1/academic/enrollments", "/api/v1/academic/enrollments/*").access(authenticatedJwt)
+                        .requestMatchers(HttpMethod.POST, "/api/v1/me/academic/enrollments", "/api/v1/academic/enrollments/*/decisions").access(authenticatedJwt)
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/me/academic/enrollments/*").access(authenticatedJwt)
+                        .requestMatchers(HttpMethod.GET, "/api/v1/academic/terms", "/api/v1/academic/terms/*/policies").access(authenticatedJwt)
+                        .requestMatchers(HttpMethod.POST, "/api/v1/academic/terms", "/api/v1/academic/terms/*/policies", "/api/v1/academic/policies/*/confirmation").access(authenticatedJwt)
                         .requestMatchers(HttpMethod.GET, "/api/v1/agenda/events", "/api/v1/agenda/events/*", "/api/v1/agenda/events/*/participants",
                                 "/api/v1/me/attendance", "/api/v1/me/work-logs", "/api/v1/me/absence-justifications", "/api/v1/me/attendance/corrections",
                                 "/api/v1/me/participation-summary", "/api/v1/me/participation-history", "/api/v1/attendance/records",
