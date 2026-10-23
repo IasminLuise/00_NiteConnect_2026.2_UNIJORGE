@@ -29,7 +29,10 @@ abstract class AcademicTestSupport extends ActivityTestSupport {
                 Map.entry("discloseResults",true),Map.entry("planRequired",false));
     }
     UUID policy(UUID term) throws Exception {
-        UUID p=identifier(postAs(ADMIN,"/api/v1/academic/terms/"+term+"/policies",Map.of("rules",rules(),"expectedVersion",0,"reason","Fixture"),201));
+        return policy(term,rules());
+    }
+    UUID policy(UUID term,Map<String,Object> configuredRules) throws Exception {
+        UUID p=identifier(postAs(ADMIN,"/api/v1/academic/terms/"+term+"/policies",Map.of("rules",configuredRules,"expectedVersion",0,"reason","Fixture"),201));
         postAs(ADMIN,"/api/v1/academic/policies/"+p+"/confirmation",Map.of("expectedVersion",0,"confirmed",true,"authorityReference","Política sintética exclusiva de teste","reason","Fixture"),200);
         return p;
     }

@@ -23,5 +23,10 @@ public class AcademicForwardingService {
         Forwarding f=repo.forward(actor,h,procedure,c.receiptReference());repo.updateEnrollment(e,e.status(),e.disciplines());repo.event(actor,e.id(),"FORWARDING",f.id(),"FORWARDED",null,f,c.reason());return f;
     }
     @Transactional(readOnly=true) public PageResult<Forwarding> list(UUID actor,UUID homologationId,int page,int size) { auth.requireAdministrator(actor);repo.homologation(homologationId);return repo.forwardings(homologationId,page,size); }
-    @Transactional(readOnly=true) public PageResult<AcademicEvent> history(UUID actor,UUID enrollmentId,int page,int size) { auth.requireCoordinator(actor);repo.enrollment(enrollmentId);return repo.history(enrollmentId,page,size); }
+    @Transactional(readOnly=true) public PageResult<AcademicEvent> history(UUID actor,UUID enrollmentId,int page,int size) {
+        auth.requireAdministrator(actor);repo.enrollment(enrollmentId);var result=repo.history(enrollmentId,page,size);
+        if(auth.isCoordinator(actor)) return result;
+        var items=result.items().stream().map(e->new AcademicEvent(e.id(),e.enrollmentId(),e.entityType(),e.entityId(),e.actorId(),e.action(),null,null,null,e.occurredAt())).toList();
+        return new PageResult<>(items,result.page(),result.size(),result.total());
+    }
 }

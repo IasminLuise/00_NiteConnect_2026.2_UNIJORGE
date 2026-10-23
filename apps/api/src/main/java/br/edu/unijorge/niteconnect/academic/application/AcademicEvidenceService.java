@@ -71,5 +71,15 @@ public class AcademicEvidenceService {
         if(compareCurrent(actor,evidence).changed()) throw ApiException.conflict("Origem alterada; capture nova evidência antes de consolidar");
     }
     @Transactional(readOnly=true) public Comparison compare(UUID actor,UUID id) { auth.requireAdministrator(actor);return compareCurrent(actor,repo.evidence(id)); }
-    @Transactional(readOnly=true) public PageResult<Evidence> list(UUID actor,UUID enrollmentId,boolean own,int page,int size) { enrollments.read(actor,enrollmentId,own);return repo.evidence(enrollmentId,page,size); }
+    @Transactional(readOnly=true) public PageResult<Evidence> list(UUID actor,UUID enrollmentId,boolean own,int page,int size) {
+        enrollments.read(actor,enrollmentId,own);var result=repo.evidence(enrollmentId,page,size);
+        if(auth.isCoordinator(actor)) return result;
+        var items=result.items().stream().map(e -> {
+            var s=e.snapshot();
+            var metadata=new SourceSnapshot(s.contractVersion(),s.source(),s.sourceId(),s.memberId(),s.projectId(),s.sourceRevision(),
+                    s.authorId(),s.validatedBy(),s.validationStatus(),s.occurredAt(),s.validatedAt(),s.from(),s.to(),Map.of(),s.readBy(),s.readScope());
+            return new Evidence(e.id(),e.enrollmentId(),metadata,e.capturedBy(),e.capturedAt());
+        }).toList();
+        return new PageResult<>(items,result.page(),result.size(),result.total());
+    }
 }

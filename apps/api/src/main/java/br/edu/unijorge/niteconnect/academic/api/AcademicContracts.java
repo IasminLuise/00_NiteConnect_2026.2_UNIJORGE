@@ -18,10 +18,10 @@ public final class AcademicContracts {
                                 @NotBlank @Size(max=1000) String reason) {}
     public record RequestEnrollment(@NotNull UUID policyId,@NotEmpty @Size(max=100) List<Discipline> disciplines,@NotBlank @Size(max=1000) String reason) {}
     public record ReviseEnrollment(@NotEmpty @Size(max=100) List<Discipline> disciplines,@NotNull @PositiveOrZero Long expectedVersion,@NotBlank @Size(max=1000) String reason) {}
-    public record DecideEnrollment(@NotNull EnrollmentDecision decision,@NotNull @PositiveOrZero Long expectedVersion,@NotBlank @Size(max=1000) String reason) {}
+    public record DecideEnrollment(@NotNull EnrollmentDecision decision,@NotNull @PositiveOrZero Long expectedVersion,@NotBlank @Size(max=1000) String reason,@Size(max=1000) String feedback) {}
     public record SavePlan(@NotBlank @Size(max=20000) String content,@NotNull @PositiveOrZero Long expectedVersion,@NotBlank @Size(max=1000) String reason) {}
     public record Command(@NotNull @PositiveOrZero Long expectedVersion,boolean confirmed,@NotBlank @Size(max=1000) String reason) {}
-    public record DecidePlan(@NotNull PlanDecision decision,@NotNull @PositiveOrZero Long expectedVersion,@NotBlank @Size(max=1000) String reason) {}
+    public record DecidePlan(@NotNull PlanDecision decision,@NotNull @PositiveOrZero Long expectedVersion,@NotBlank @Size(max=1000) String reason,@Size(max=1000) String feedback) {}
     public record CaptureEvidence(@NotNull Source source,@NotNull UUID sourceId,@NotNull @PositiveOrZero Long expectedVersion,@NotBlank @Size(max=1000) String reason) {}
     public record Presentation(@NotBlank @Size(max=1000) String title,@NotNull Instant occurredAt,@NotBlank @Size(max=1000) String reference,
                                @NotNull @PositiveOrZero Long expectedVersion,@NotBlank @Size(max=1000) String reason) {}

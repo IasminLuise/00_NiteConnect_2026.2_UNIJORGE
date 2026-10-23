@@ -44,4 +44,22 @@ class AcademicConcurrencyTest extends AcademicSyntheticSupport {
         }
         assertThat(jdbc.queryForObject("select count(*) from nite_connect.academic_homologations where enrollment_id=?",Long.class,e)).isZero();
     }
+    @Test void operationalChangeWhileHomologationWaitsIsRevalidatedAfterTheLock() throws Exception {
+        UUID e=enrollment(policy(term()));approve(e);UUID c=completedCalculation(e);long version=ev(e);
+        UUID activity=jdbc.queryForObject("select (s->'snapshot'->'attributes'->>'activityId')::uuid from nite_connect.academic_calculations c,jsonb_array_elements(c.data->'evidence') s where c.id=? and s->'snapshot'->>'source'='ACTIVITY'",UUID.class,c);
+        String before=jdbc.queryForObject("select data::text from nite_connect.academic_calculations where id=?",String.class,c);
+        try(var pool=Executors.newSingleThreadExecutor()) {
+            var started=new CountDownLatch(1);List<Future<Integer>> pending=new ArrayList<>();
+            new TransactionTemplate(transactionManager).executeWithoutResult(status->{
+                transactions.lock();pending.add(pool.submit(()->{ started.countDown();return homologate(c,version); }));
+                try {
+                    assertThat(started.await(5,TimeUnit.SECONDS)).isTrue();
+                    state(activity,MEMBER,"EM_EXECUCAO");
+                } catch(Exception ex) { throw new IllegalStateException(ex); }
+            });
+            assertThat(pending.getFirst().get(20,TimeUnit.SECONDS)).isEqualTo(409);
+        }
+        assertThat(jdbc.queryForObject("select count(*) from nite_connect.academic_homologations where enrollment_id=?",Long.class,e)).isZero();
+        assertThat(jdbc.queryForObject("select data::text from nite_connect.academic_calculations where id=?",String.class,c)).isEqualTo(before);
+    }
 }

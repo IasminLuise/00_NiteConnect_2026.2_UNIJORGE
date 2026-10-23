@@ -53,24 +53,28 @@ public class AcademicRepository {
         jdbc.update("insert into nite_connect.academic_events(id,enrollment_id,entity_type,entity_id,actor_id,action,before_value,after_value,reason) values (?,?,?,?,?,?,?::jsonb,?::jsonb,?)",
                 UUID.randomUUID(),enrollment,type,entity,actor,action,before==null?null:encode(before),after==null?null:encode(after),reason);
     }
-    private final RowMapper<Enrollment> enrollmentMapper=(r,n)->new Enrollment(id(r,"id"),id(r,"term_id"),id(r,"member_id"),id(r,"policy_id"),EnrollmentStatus.valueOf(r.getString("status")),List.of(decode(r.getString("disciplines"),Discipline[].class)),r.getLong("version"),time(r,"created_at"));
+    private final RowMapper<Enrollment> enrollmentMapper=(r,n)->new Enrollment(id(r,"id"),id(r,"term_id"),id(r,"member_id"),id(r,"policy_id"),EnrollmentStatus.valueOf(r.getString("status")),List.of(decode(r.getString("disciplines"),Discipline[].class)),r.getLong("version"),time(r,"created_at"),r.getString("feedback"));
     public Enrollment enrollment(UUID id) { return one("select * from nite_connect.academic_enrollments where id=?",enrollmentMapper,id); }
     public Enrollment createEnrollment(UUID member,Policy p,List<Discipline> ds) {
         UUID id=UUID.randomUUID();jdbc.update("insert into nite_connect.academic_enrollments(id,term_id,member_id,policy_id,status,disciplines) values (?,?,?,?,'SOLICITADA',?::jsonb)",id,p.termId(),member,p.id(),encode(ds));return enrollment(id);
     }
     public Enrollment updateEnrollment(Enrollment e,EnrollmentStatus state,List<Discipline> ds) {
-        changed(jdbc.update("update nite_connect.academic_enrollments set status=?,disciplines=?::jsonb,version=version+1 where id=? and version=?",state.name(),encode(ds),e.id(),e.version()));return enrollment(e.id());
+        return updateEnrollment(e,state,ds,e.feedback());
+    }
+    public Enrollment updateEnrollment(Enrollment e,EnrollmentStatus state,List<Discipline> ds,String feedback) {
+        changed(jdbc.update("update nite_connect.academic_enrollments set status=?,disciplines=?::jsonb,feedback=?,version=version+1 where id=? and version=?",state.name(),encode(ds),feedback,e.id(),e.version()));return enrollment(e.id());
     }
     public PageResult<Enrollment> enrollments(UUID member,int page,int size) {
         return page("*","from nite_connect.academic_enrollments"+(member==null?"":" where member_id=?"),member==null?List.of():List.of(member),"created_at desc,id",enrollmentMapper,page,size);
     }
-    private final RowMapper<Plan> planMapper=(r,n)->new Plan(id(r,"id"),id(r,"enrollment_id"),r.getInt("revision"),PlanStatus.valueOf(r.getString("status")),r.getString("content"),r.getLong("version"));
+    private final RowMapper<Plan> planMapper=(r,n)->new Plan(id(r,"id"),id(r,"enrollment_id"),r.getInt("revision"),PlanStatus.valueOf(r.getString("status")),r.getString("content"),r.getLong("version"),r.getString("feedback"));
     public Plan plan(UUID id) { return one("select * from nite_connect.academic_plans where id=?",planMapper,id); }
     public Optional<Plan> latestPlan(UUID enrollment) { return jdbc.query("select * from nite_connect.academic_plans where enrollment_id=? order by revision desc limit 1",planMapper,enrollment).stream().findFirst(); }
     public Plan createPlan(UUID enrollment,String content) {
         UUID id=UUID.randomUUID();jdbc.update("insert into nite_connect.academic_plans(id,enrollment_id,revision,status,content) select ?,?,coalesce(max(revision),0)+1,'RASCUNHO',? from nite_connect.academic_plans where enrollment_id=?",id,enrollment,content,enrollment);return plan(id);
     }
-    public Plan planState(Plan p,PlanStatus state) { changed(jdbc.update("update nite_connect.academic_plans set status=?,version=version+1 where id=? and version=?",state.name(),p.id(),p.version()));return plan(p.id()); }
+    public Plan planState(Plan p,PlanStatus state) { return planState(p,state,p.feedback()); }
+    public Plan planState(Plan p,PlanStatus state,String feedback) { changed(jdbc.update("update nite_connect.academic_plans set status=?,feedback=?,version=version+1 where id=? and version=?",state.name(),feedback,p.id(),p.version()));return plan(p.id()); }
     public PageResult<Plan> plans(UUID enrollment,int page,int size) { return page("*","from nite_connect.academic_plans where enrollment_id=?",List.of(enrollment),"revision desc,id",planMapper,page,size); }
     private final RowMapper<Evidence> evidenceMapper=(r,n)->new Evidence(id(r,"id"),id(r,"enrollment_id"),decode(r.getString("snapshot"),SourceSnapshot.class),id(r,"captured_by"),time(r,"captured_at"));
     public Evidence evidence(UUID id) { return one("select * from nite_connect.academic_evidence where id=?",evidenceMapper,id); }
@@ -87,13 +91,16 @@ public class AcademicRepository {
         return one("select "+ASSESSMENT_COLUMNS+" from nite_connect.academic_assessments a where a.id=?",assessmentMapper,id);
     }
     public List<Assessment> latestAssessments(UUID enrollment) { return jdbc.query("select distinct on (a.pillar) "+ASSESSMENT_COLUMNS+" from nite_connect.academic_assessments a where a.enrollment_id=? order by a.pillar,a.revision desc",assessmentMapper,enrollment); }
-    public PageResult<Assessment> assessments(UUID enrollment,int page,int size) { return page(ASSESSMENT_COLUMNS,"from nite_connect.academic_assessments a where a.enrollment_id=?",List.of(enrollment),"a.created_at desc,a.id",assessmentMapper,page,size); }
+    public PageResult<Assessment> assessments(UUID enrollment,boolean publishedOnly,int page,int size) {
+        String published=" and exists(select 1 from nite_connect.academic_homologations h join nite_connect.academic_calculations c on c.id=h.calculation_id cross join lateral jsonb_array_elements(c.data->'assessments') item where h.enrollment_id=a.enrollment_id and item.value->>'id'=a.id::text)";
+        return page(ASSESSMENT_COLUMNS,"from nite_connect.academic_assessments a where a.enrollment_id=?"+(publishedOnly?published:""),List.of(enrollment),"a.created_at desc,a.id",assessmentMapper,page,size);
+    }
     private final RowMapper<Calculation> calculationMapper=(r,n)->new Calculation(id(r,"id"),id(r,"enrollment_id"),id(r,"policy_id"),r.getLong("enrollment_version"),decode(r.getString("data"),CalculationData.class),time(r,"created_at"));
     public Calculation calculation(UUID id) { return one("select * from nite_connect.academic_calculations where id=?",calculationMapper,id); }
     public Calculation calculate(Enrollment e,CalculationData data) {
         UUID id=UUID.randomUUID();jdbc.update("insert into nite_connect.academic_calculations(id,enrollment_id,policy_id,enrollment_version,data) values (?,?,?,?,?::jsonb)",id,e.id(),e.policyId(),e.version(),encode(data));return calculation(id);
     }
-    public PageResult<Calculation> calculations(UUID enrollment,int page,int size) { return page("*","from nite_connect.academic_calculations where enrollment_id=?",List.of(enrollment),"created_at desc,id",calculationMapper,page,size); }
+    public PageResult<Calculation> calculations(UUID enrollment,boolean publishedOnly,int page,int size) { return page("c.*","from nite_connect.academic_calculations c where c.enrollment_id=?"+(publishedOnly?" and exists(select 1 from nite_connect.academic_homologations h where h.calculation_id=c.id)":""),List.of(enrollment),"c.created_at desc,c.id",calculationMapper,page,size); }
     public Optional<Calculation> latestCalculation(UUID enrollment) { return jdbc.query("select * from nite_connect.academic_calculations where enrollment_id=? order by created_at desc,id limit 1",calculationMapper,enrollment).stream().findFirst(); }
     private final RowMapper<Homologation> homologationMapper=(r,n)->new Homologation(id(r,"id"),id(r,"enrollment_id"),id(r,"calculation_id"),id(r,"supersedes_id"),id(r,"decided_by"),r.getString("reason"),time(r,"created_at"));
     public Homologation homologation(UUID id) { return one("select * from nite_connect.academic_homologations where id=?",homologationMapper,id); }

@@ -2,7 +2,7 @@
 
 ## Estado em 23/10/2026
 
-Pedido recebido: implementar o Bloco 06 conforme o contrato B06.0. O [plano detalhado](../superpowers/plans/2026-10-23-bloco-06-academico.md) foi aprovado explicitamente pelo usuário, com execução nesta sessão e revisão independente ao final. Implementação do núcleo acadêmico em validação; os resultados finais serão registrados abaixo, sem confundir código de domínio com ativação institucional.
+Pedido recebido: implementar o Bloco 06 conforme o contrato B06.0. O [plano detalhado](../superpowers/plans/2026-10-23-bloco-06-academico.md) foi aprovado explicitamente pelo usuário, com execução nesta sessão e revisão independente ao final. Núcleo acadêmico implementado, revisão independente tratada e validação local final aprovada; isso não representa ativação institucional.
 
 O checkout `D:\nite-connect` permanece na investigação B05. A implementação usa o worktree `C:\Users\breno\.codex\worktrees\b06-contrato\nite-connect`, branch `feat/bloco-06-avaliacao-academica`, derivada de `22415af` (contrato/plano), sobre a base `d787916bbd581ee2ec4c9d2ee85fe5af02f97239` da `main`.
 
@@ -78,4 +78,23 @@ Este resultado é baseline atual de B01–B04; não valida código B06 ainda ine
 
 ## Validação final
 
-Em andamento: `mvnw.cmd --batch-mode verify`, seguido de revisão independente da branch. Não antecipar contagem ou aprovação antes da saída real. Pendências institucionais e B05 continuam fora da ativação de produto, independentemente do resultado dos testes.
+Revisão independente realizada sobre a branch completa até `d4bc737`, em contexto novo. Nenhum achado crítico; quatro achados importantes tratados na rodada de correção:
+
+1. Projeções do gestor geral sem notas individuais, motivos privados ou insumos completos de cálculo; auditoria limitada a metadados. A mesma proteção foi estendida à listagem de atributos das evidências por não coordenadores.
+2. Motivos administrativos de revisões iniciadas pela coordenação ocultos na consulta própria.
+3. Divulgação própria restrita aos cálculos realmente homologados e às revisões de notas efetivamente utilizadas, preservando o histórico já publicado.
+4. Orientação pública ao integrante em `feedback`, separada de `reason` privado, nas decisões de adesão/plano. V7 aditiva preserva V6 já publicada.
+
+Regressões: cinco testes de privacidade observados com cinco falhas esperadas antes das correções; grupo de 11 testes de privacidade/concorrência/B04/migração aprovado depois. O sexto teste reproduziu separadamente a exposição de atributos na listagem (uma falha, zero erros) antes da proteção adicional. Duas tentativas sem Docker disponível falharam na inicialização e não contam como evidência RED de comportamento. Docker Desktop foi reiniciado; nenhuma configuração de ambiente ou credencial foi alterada.
+
+Cobertura adicional de concorrência usa mutação real B03 enquanto a homologação aguarda o lock; releitura recusa a origem alterada. Leitor B04 cobre recorte do intervalo, período aberto sem duração consolidada e autorização contextual. Não houve segunda rodada de revisão independente: os achados foram tratados com regressão e nova suíte integral conforme o método aprovado.
+
+Após a última alteração de código: `mvnw.cmd --batch-mode verify` com Java 21 — **218 testes, 0 falhas, 0 erros, 0 ignorados; BUILD SUCCESS**, duração 02:26 min, em 23/10/2026. PostgreSQL 17/Testcontainers, migrações V1→V7 e V3→V5→V7 e empacotamento executados. Log local: `apps/api/target-b06-final-verify.log` (ignorado).
+
+Validação documental: OpenAPI JSON corresponde às 40 operações dos controllers, sem operationId duplicado e com referências resolvidas. JAR contém o contrato documental e não contém a fixture/provedor sintético de teste. `git diff --check` sem erros. V1–V5 não alteradas desde a base main; V6 não alterada desde a publicação anterior. Correção de feedback aplicada por V7 aditiva.
+
+As execuções anteriores de 185 testes (baseline), 209 testes (núcleo antes da revisão) e 11 testes direcionados são registros válidos dos estados anteriores; o resultado de 218 testes é a evidência final e as substitui para a conclusão atual. Documentação e atualização do PR após essa execução não alteram o código validado; não exigem outra suíte integral. Frontend, serviços externos, homologação institucional e carga não foram testados, pois não integram este escopo. Banco persistente local e Neon não receberam migrações.
+
+Entrega: [PR #16](https://github.com/IasminLuise/00_NiteConnect_2026.2_UNIJORGE/pull/16), base `docs/bloco-06-contrato` ([PR #15](https://github.com/IasminLuise/00_NiteConnect_2026.2_UNIJORGE/pull/15)). Branch/worktree mantidos para revisão; sem merge/deploy. CI do commit final deve ser consultado no PR, sem usar os checks da versão anterior como prova das correções.
+
+Pendências reais: provedor documental B05 real e parâmetros/rito institucional confirmados; G5 e encerramento funcional integral não declarados. Encaminhamento é registro interno condicionado, sem envio ou confirmação de lançamento universitário.

@@ -18,9 +18,13 @@ Todas as coleções são paginadas: `page=0`, `size=20`, tamanho máximo 100 e o
 | Revisão | `/api/v1/me/academic/enrollments/{id}/reviews`, `/api/v1/academic/enrollments/{id}/reviews`, `/api/v1/academic/reviews/{id}/decisions` | Titular solicita no rito/prazo configurado; coordenador inicia correção e decide |
 | Homologação | `/api/v1/academic/calculations/{id}/homologations`, `/api/v1/academic/homologations/{id}/reopen` | Somente coordenador, com confirmação, motivo e versão |
 | Encaminhamento | `/api/v1/academic/homologations/{id}/forwardings` | Coordenador registra comprovante conforme procedimento confirmado; administração consulta |
-| Auditoria | `/api/v1/academic/enrollments/{id}/history` | Coordenador consulta valores anteriores/posteriores; trilha acadêmica não é copiada à auditoria administrativa genérica |
+| Auditoria | `/api/v1/academic/enrollments/{id}/history` | Coordenador consulta valores anteriores/posteriores; gestor geral recebe metadados sem motivos ou conteúdo; trilha acadêmica não é copiada à auditoria administrativa genérica |
 
 As rotas abreviadas na tabela são apenas agrupamento de leitura; os caminhos completos e métodos estão no OpenAPI. Consultas próprias de planos, evidências, avaliações, cálculos e revisões usam `/api/v1/me/academic/enrollments/{id}/...` conforme o contrato.
+
+Consultas e cálculo pelo gestor geral retornam projeções de preparação: avaliações sem nota, motivo ou referências privadas; cálculos com resultado agregado e metadados, sem política/insumos completos. Listagem de evidências por não coordenadores omite `snapshot.attributes`; o conteúdo atual deve ser consultado no módulo de origem com sua autorização contextual. A captura continua exigindo autorização na origem. Motivos de revisão iniciada pela coordenação ficam ocultos nas consultas do integrante.
+
+`DecideEnrollment.feedback` é obrigatório para `REQUEST_CORRECTION` e `REJECT`; `DecidePlan.feedback` é obrigatório para `REQUEST_CORRECTION`. Esse texto (até 1000 caracteres) é destinado ao integrante e aparece em `Enrollment.feedback`/`Plan.feedback`. `reason` continua sendo a justificativa administrativa privada; não deve ser usado como substituto de `feedback`.
 
 ## Fluxo
 
@@ -40,7 +44,7 @@ As rotas abreviadas na tabela são apenas agrupamento de leitura; os caminhos co
 - Ausência de avaliação não significa zero. Pilar ausente ou fonte indisponível impede resultado completo/homologável.
 - Não existe implementação de `DocumentEvidenceReader` no produto enquanto B05 estiver bloqueado. Assim, não há evidência documental oficial disponível para completar o pilar documental; não há redução/redistribuição de peso como atalho.
 - O teste positivo de homologação usa provedor documental exclusivamente no classpath de teste. Não comprova integração documental real, aceite institucional ou prontidão de produção.
-- Notas/cálculos próprios só são divulgados com homologação e `discloseResults=true` na política confirmada. Antes disso, o integrante acompanha adesão, plano e referências próprias, sem rascunhos de notas.
+- Notas/cálculos próprios só são divulgados com homologação e `discloseResults=true` na política confirmada. A consulta retorna exclusivamente cálculos homologados e as revisões das avaliações efetivamente utilizadas; homologar uma versão não publica rascunhos descartados. O resultado agregado não inclui os insumos privados. A homologação anterior continua consultável enquanto outra revisão está em andamento.
 - `reviewWindowSeconds` ausente impede a solicitação de revisão que depende do prazo institucional. `forwardingProcedureReference` ausente impede marcar encaminhamento.
 - Não há endpoint de confirmação de lançamento universitário, emissão de certificado, assinatura, publicação no Portal do Aluno ou envio real de notificações. Os records de integração futura contêm referências e não ativam esses serviços.
 
@@ -50,4 +54,4 @@ Erros usam `application/problem+json`: 400 para dados inválidos, 401 para auten
 
 Uma origem retirada/inacessível provoca recusa explícita na releitura; não altera a captura nem produz zero. Comparação de revisão diferente retorna `changed=true`. Nenhuma origem atual é usada para reconstruir silenciosamente cálculo histórico.
 
-V6 cria tabelas acadêmicas, vínculos relacionais entre avaliação e evidências da mesma adesão, proteção de histórico e políticas confirmadas imutáveis. V1–V5 permanecem intactas. Desativação cadastral restringe acesso, sem apagar as informações acadêmicas.
+V6 cria tabelas acadêmicas, vínculos relacionais entre avaliação e evidências da mesma adesão, proteção de histórico e políticas confirmadas imutáveis. V7 acrescenta o retorno público de correção/indeferimento e índices de consulta do histórico publicado. V1–V6 permanecem intactas nesta correção posterior à revisão. Desativação cadastral restringe acesso, sem apagar as informações acadêmicas.

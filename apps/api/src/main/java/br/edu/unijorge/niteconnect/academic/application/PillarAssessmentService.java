@@ -37,8 +37,13 @@ public class PillarAssessmentService {
     public void requireVisible(UUID actor,Enrollment e,boolean own) {
         if(own) {
             auth.requireActive(actor);if(!actor.equals(e.memberId())) throw ApiException.forbidden();
-            if(e.status()!=EnrollmentStatus.HOMOLOGADA || !Boolean.TRUE.equals(repo.policy(e.policyId()).rules().discloseResults())) throw ApiException.conflict("Resultado ainda não disponível para divulgação");
+            if(repo.currentHomologation(e.id()).isEmpty() || !Boolean.TRUE.equals(repo.policy(e.policyId()).rules().discloseResults())) throw ApiException.conflict("Resultado ainda não disponível para divulgação");
         } else auth.requireAdministrator(actor);
     }
-    @Transactional(readOnly=true) public PageResult<Assessment> list(UUID actor,UUID id,boolean own,int page,int size) { auth.requireActive(actor);Enrollment e=repo.enrollment(id);requireVisible(actor,e,own);return repo.assessments(id,page,size); }
+    @Transactional(readOnly=true) public PageResult<Assessment> list(UUID actor,UUID id,boolean own,int page,int size) {
+        auth.requireActive(actor);Enrollment e=repo.enrollment(id);requireVisible(actor,e,own);var result=repo.assessments(id,own,page,size);
+        if(!own && auth.isCoordinator(actor)) return result;
+        var items=result.items().stream().map(a->new Assessment(a.id(),a.enrollmentId(),a.pillar(),own?a.score():null,List.of(),null,a.revision(),null,a.createdAt())).toList();
+        return new PageResult<>(items,result.page(),result.size(),result.total());
+    }
 }

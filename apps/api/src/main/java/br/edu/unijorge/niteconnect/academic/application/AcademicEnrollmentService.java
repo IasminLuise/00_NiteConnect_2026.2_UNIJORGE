@@ -34,8 +34,9 @@ public class AcademicEnrollmentService {
         else if(e.status()==EnrollmentStatus.EM_ANALISE) {
             next=switch(c.decision()) { case REQUEST_CORRECTION -> EnrollmentStatus.CORRECAO_SOLICITADA;case APPROVE -> EnrollmentStatus.DEFERIDA;case REJECT -> EnrollmentStatus.INDEFERIDA;default -> throw ApiException.conflict("Transição inválida"); };
         } else throw ApiException.conflict("Transição inválida");
+        if(next==EnrollmentStatus.CORRECAO_SOLICITADA || next==EnrollmentStatus.INDEFERIDA || c.feedback()!=null) text(c.feedback(),1000,"Orientação ao integrante");
         if(next==EnrollmentStatus.DEFERIDA && !repo.policy(e.policyId()).status().equals("CONFIRMED")) throw ApiException.conflict("Política não confirmada");
-        var result=repo.updateEnrollment(e,next,e.disciplines());repo.event(actor,id,"ENROLLMENT",id,"DECIDED",e,result,c.reason());return result;
+        var result=repo.updateEnrollment(e,next,e.disciplines(),c.feedback());repo.event(actor,id,"ENROLLMENT",id,"DECIDED",e,result,c.reason());return result;
     }
     public Enrollment own(UUID actor,UUID id) {
         auth.requireActive(actor);Enrollment e=repo.enrollment(id);if(!actor.equals(e.memberId())) throw ApiException.forbidden();return e;

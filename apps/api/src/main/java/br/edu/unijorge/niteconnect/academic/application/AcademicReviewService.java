@@ -46,6 +46,9 @@ public class AcademicReviewService {
     }
     @Transactional(readOnly=true) public PageResult<Review> list(UUID actor,UUID enrollmentId,boolean own,int page,int size) {
         auth.requireActive(actor);Enrollment e=repo.enrollment(enrollmentId);if(own) { if(!actor.equals(e.memberId())) throw ApiException.forbidden(); } else auth.requireCoordinator(actor);
-        return repo.reviews(enrollmentId,page,size);
+        var result=repo.reviews(enrollmentId,page,size);
+        if(!own) return result;
+        var items=result.items().stream().map(r->actor.equals(r.requestedBy())?r:new Review(r.id(),r.enrollmentId(),r.calculationId(),r.homologationId(),r.requestedBy(),null,r.status(),r.decidedBy(),null,r.version(),r.createdAt())).toList();
+        return new PageResult<>(items,result.page(),result.size(),result.total());
     }
 }

@@ -10,7 +10,7 @@
 
 **Spec:** [Contrato B06.0](../../implementation/bloco-06-contrato.md), RF-042–047, Q24–29 e CA-13/14 da especificação consolidada.
 
-**Estado:** plano aprovado explicitamente pelo usuário, com execução nesta sessão e revisão independente ao final. Tarefas do núcleo implementadas; regressão com 209 testes aprovada. Revisão final e PR em preparação. Valores institucionais continuam sujeitos a confirmação.
+**Estado:** plano aprovado explicitamente pelo usuário, com execução nesta sessão e revisão independente ao final. Tarefas do núcleo implementadas; revisão independente concluída e achados importantes corrigidos. Regressão final com 218 testes aprovada. PR #16 aberto sobre o contrato/plano do PR #15; CI da revisão final acompanhado separadamente no relatório. Valores institucionais continuam sujeitos a confirmação.
 
 ## Global Constraints
 
@@ -135,13 +135,13 @@ Diretório Java base: `apps/api/src/main/java/br/edu/unijorge/niteconnect/`. Dir
 
 ## Tarefa 8 — Contrato HTTP, regressão e encerramento técnico (B06.9)
 
-**Arquivos:** criar `docs/implementation/bloco-06-api.yaml` (OpenAPI 3.1), `bloco-06-api.md`; atualizar `bloco-06-execution.md` e estado do contrato conforme evidências reais. Testes: `AcademicBoundaryTest`, complementar testes das tarefas anteriores sem duplicar seus cenários.
+**Arquivos:** criar `docs/implementation/bloco-06-api.json` (OpenAPI 3.1; ruling registrado no relatório), `bloco-06-api.md`; atualizar `bloco-06-execution.md` e estado do contrato conforme evidências reais. Testes: `AcademicBoundaryTest`, complementar testes das tarefas anteriores sem duplicar seus cenários.
 
-- [ ] Escrever e executar testes RED para endpoints finais, campos obrigatórios/limites, paginação, versão obsoleta, método não permitido, rota desconhecida, acesso sem JWT/Entra desabilitado e dados próprios versus alheios. Preservar todos os campos dos contratos anteriores.
-- [ ] Documentar todas as rotas/DTOs implementados, erros 400/401/403/404/409, autenticação bearer e autorização contextual, estados e indisponibilidade B05. Validar correspondência entre OpenAPI, controllers e testes; não prometer endpoints ausentes.
-- [ ] Executar testes específicos finais; depois `mvnw.cmd --batch-mode verify` uma vez para regressão integral, PostgreSQL real e Flyway. Reexecutar amplos somente se correção posterior invalidar os resultados. `git diff --check` e confirmar V1–V5 inalteradas.
-- [ ] Revisão independente da branch inteira conforme `superpowers:requesting-code-review`, corrigindo achados relevantes com regressão antes de publicar a entrega. Não considerar resultado institucional homologado a partir de testes sintéticos.
-- [ ] Abrir PR próprio de implementação, com base explicitada se o contrato ainda não estiver integrado; acompanhar CI aplicável. Sem merge/deploy automático. Registrar gates técnicos atingidos e pendências B05/institucionais mantidas fora de ativação.
+- [x] Escrever e executar testes RED para endpoints finais, campos obrigatórios/limites, paginação, versão obsoleta, método não permitido, rota desconhecida, acesso sem JWT/Entra desabilitado e dados próprios versus alheios. Preservar todos os campos dos contratos anteriores.
+- [x] Documentar todas as rotas/DTOs implementados, erros 400/401/403/404/409, autenticação bearer e autorização contextual, estados e indisponibilidade B05. Validar correspondência entre OpenAPI, controllers e testes; não prometer endpoints ausentes.
+- [x] Executar testes específicos finais; depois `mvnw.cmd --batch-mode verify` uma vez para regressão integral, PostgreSQL real e Flyway. Reexecutar amplos somente se correção posterior invalidar os resultados. `git diff --check` e confirmar V1–V5 inalteradas.
+- [x] Revisão independente da branch inteira conforme `superpowers:requesting-code-review`, corrigindo achados relevantes com regressão antes de publicar a entrega. Não considerar resultado institucional homologado a partir de testes sintéticos.
+- [x] Abrir PR próprio de implementação, com base explicitada se o contrato ainda não estiver integrado; acompanhar CI aplicável. Sem merge/deploy automático. Registrar gates técnicos atingidos e pendências B05/institucionais mantidas fora de ativação.
 
 ## Limite de conclusão
 

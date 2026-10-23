@@ -1,6 +1,6 @@
 # Bloco 06 — Contrato de Implementação B06.0
 
-**Data:** 23/10/2026. **Estado atual:** contrato/plano aprovados pelo usuário para implementação nesta sessão; validação do núcleo em andamento.
+**Data:** 23/10/2026. **Estado atual:** contrato/plano aprovados pelo usuário para implementação nesta sessão; núcleo implementado, revisão independente tratada e 218 testes aprovados; PR #16 aberto para revisão. Ativação integral continua condicionada ao B05 e às decisões institucionais.
 **G0-A:** aprovado com o plano de execução. **G0-B:** ambientes conhecidos auditados e V6 acadêmica adotada. **G0:** encerrado nesse escopo; ver [evidências de execução](bloco-06-execution.md). O texto abaixo preserva o contrato inicialmente submetido; estados históricos de preparação não substituem o registro atual.
 **Branch:** `docs/bloco-06-contrato`. **Base:** `origin/main`, commit `d787916bbd581ee2ec4c9d2ee85fe5af02f97239`.
 

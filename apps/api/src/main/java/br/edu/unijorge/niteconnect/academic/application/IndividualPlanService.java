@@ -35,7 +35,8 @@ public class IndividualPlanService {
         else if(p.status()==PlanStatus.EM_ANALISE && c.decision()==PlanDecision.APPROVE) next=PlanStatus.APROVADO;
         else if(p.status()==PlanStatus.EM_ANALISE && c.decision()==PlanDecision.REQUEST_CORRECTION) next=PlanStatus.CORRECAO_SOLICITADA;
         else throw ApiException.conflict("Transição inválida");
-        var result=repo.planState(p,next);repo.updateEnrollment(e,e.status(),e.disciplines());repo.event(actor,e.id(),"PLAN",id,"DECIDED",p,result,c.reason());return result;
+        if(next==PlanStatus.CORRECAO_SOLICITADA || c.feedback()!=null) text(c.feedback(),1000,"Orientação ao integrante");
+        var result=repo.planState(p,next,c.feedback());repo.updateEnrollment(e,e.status(),e.disciplines());repo.event(actor,e.id(),"PLAN",id,"DECIDED",p,result,c.reason());return result;
     }
     @Transactional(readOnly=true) public PageResult<Plan> list(UUID actor,UUID enrollmentId,boolean own,int page,int size) {
         enrollments.read(actor,enrollmentId,own);return repo.plans(enrollmentId,page,size);

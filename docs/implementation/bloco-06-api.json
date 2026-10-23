@@ -170,7 +170,7 @@
             }
           }
         },
-        "description": "Autorização no backend conforme operação. Histórico e revisões exigem coordenador; períodos e políticas confirmadas podem ser consultados por integrante ativo.",
+        "description": "Autorização no backend conforme operação. Revisões administrativas exigem coordenador. Gestor geral recebe somente projeções de preparação em evidências, avaliações, cálculos e histórico; sem conteúdo pedagógico privado. Períodos e políticas confirmadas podem ser consultados por integrante ativo.",
         "parameters": [
           {
             "name": "id",
@@ -367,7 +367,7 @@
             }
           }
         },
-        "description": "Autorização no backend conforme operação. Histórico e revisões exigem coordenador; períodos e políticas confirmadas podem ser consultados por integrante ativo.",
+        "description": "Autorização no backend conforme operação. Revisões administrativas exigem coordenador. Gestor geral recebe somente projeções de preparação em evidências, avaliações, cálculos e histórico; sem conteúdo pedagógico privado. Períodos e políticas confirmadas podem ser consultados por integrante ativo.",
         "parameters": [
           {
             "name": "id",
@@ -1034,7 +1034,7 @@
             }
           }
         },
-        "description": "Autorização no backend conforme operação. Histórico e revisões exigem coordenador; períodos e políticas confirmadas podem ser consultados por integrante ativo.",
+        "description": "Autorização no backend conforme operação. Revisões administrativas exigem coordenador. Gestor geral recebe somente projeções de preparação em evidências, avaliações, cálculos e histórico; sem conteúdo pedagógico privado. Períodos e políticas confirmadas podem ser consultados por integrante ativo.",
         "parameters": [
           {
             "name": "id",
@@ -1119,7 +1119,7 @@
             }
           }
         },
-        "description": "Autorização no backend conforme operação. Histórico e revisões exigem coordenador; períodos e políticas confirmadas podem ser consultados por integrante ativo.",
+        "description": "Autorização no backend conforme operação. Revisões administrativas exigem coordenador. Gestor geral recebe somente projeções de preparação em evidências, avaliações, cálculos e histórico; sem conteúdo pedagógico privado. Períodos e políticas confirmadas podem ser consultados por integrante ativo.",
         "parameters": [
           {
             "name": "page",
@@ -1599,7 +1599,7 @@
             }
           }
         },
-        "description": "Autorização no backend conforme operação. Histórico e revisões exigem coordenador; períodos e políticas confirmadas podem ser consultados por integrante ativo.",
+        "description": "Autorização no backend conforme operação. Revisões administrativas exigem coordenador. Gestor geral recebe somente projeções de preparação em evidências, avaliações, cálculos e histórico; sem conteúdo pedagógico privado. Períodos e políticas confirmadas podem ser consultados por integrante ativo.",
         "parameters": [
           {
             "name": "id",
@@ -2088,7 +2088,7 @@
             }
           }
         },
-        "description": "Autorização no backend conforme operação. Histórico e revisões exigem coordenador; períodos e políticas confirmadas podem ser consultados por integrante ativo.",
+        "description": "Autorização no backend conforme operação. Revisões administrativas exigem coordenador. Gestor geral recebe somente projeções de preparação em evidências, avaliações, cálculos e histórico; sem conteúdo pedagógico privado. Períodos e políticas confirmadas podem ser consultados por integrante ativo.",
         "parameters": [
           {
             "name": "id",
@@ -2477,7 +2477,7 @@
             }
           }
         },
-        "description": "Autorização no backend conforme operação. Histórico e revisões exigem coordenador; períodos e políticas confirmadas podem ser consultados por integrante ativo.",
+        "description": "Autorização no backend conforme operação. Revisões administrativas exigem coordenador. Gestor geral recebe somente projeções de preparação em evidências, avaliações, cálculos e histórico; sem conteúdo pedagógico privado. Períodos e políticas confirmadas podem ser consultados por integrante ativo.",
         "parameters": [
           {
             "name": "id",
@@ -2655,7 +2655,7 @@
             }
           }
         },
-        "description": "Autorização no backend conforme operação. Histórico e revisões exigem coordenador; períodos e políticas confirmadas podem ser consultados por integrante ativo.",
+        "description": "Autorização no backend conforme operação. Revisões administrativas exigem coordenador. Gestor geral recebe somente projeções de preparação em evidências, avaliações, cálculos e histórico; sem conteúdo pedagógico privado. Períodos e políticas confirmadas podem ser consultados por integrante ativo.",
         "parameters": [
           {
             "name": "id",
@@ -2759,7 +2759,7 @@
             }
           }
         },
-        "description": "Autorização no backend conforme operação. Histórico e revisões exigem coordenador; períodos e políticas confirmadas podem ser consultados por integrante ativo.",
+        "description": "Autorização no backend conforme operação. Revisões administrativas exigem coordenador. Gestor geral recebe somente projeções de preparação em evidências, avaliações, cálculos e histórico; sem conteúdo pedagógico privado. Períodos e políticas confirmadas podem ser consultados por integrante ativo.",
         "parameters": [
           {
             "name": "id",
@@ -2945,7 +2945,7 @@
             }
           }
         },
-        "description": "Autorização no backend conforme operação. Histórico e revisões exigem coordenador; períodos e políticas confirmadas podem ser consultados por integrante ativo.",
+        "description": "Autorização no backend conforme operação. Revisões administrativas exigem coordenador. Gestor geral recebe somente projeções de preparação em evidências, avaliações, cálculos e histórico; sem conteúdo pedagógico privado. Períodos e políticas confirmadas podem ser consultados por integrante ativo.",
         "parameters": [
           {
             "name": "page",
@@ -3133,7 +3133,7 @@
             }
           }
         },
-        "description": "Autorização no backend conforme operação. Histórico e revisões exigem coordenador; períodos e políticas confirmadas podem ser consultados por integrante ativo.",
+        "description": "Autorização no backend conforme operação. Revisões administrativas exigem coordenador. Gestor geral recebe somente projeções de preparação em evidências, avaliações, cálculos e histórico; sem conteúdo pedagógico privado. Períodos e políticas confirmadas podem ser consultados por integrante ativo.",
         "parameters": [
           {
             "name": "id",
@@ -3719,7 +3719,7 @@
             }
           }
         },
-        "description": "Autorização no backend conforme operação. Histórico e revisões exigem coordenador; períodos e políticas confirmadas podem ser consultados por integrante ativo.",
+        "description": "Autorização no backend conforme operação. Revisões administrativas exigem coordenador. Gestor geral recebe somente projeções de preparação em evidências, avaliações, cálculos e histórico; sem conteúdo pedagógico privado. Períodos e políticas confirmadas podem ser consultados por integrante ativo.",
         "parameters": [
           {
             "name": "id",
@@ -3782,6 +3782,12 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Dados inválidos"
+          },
+          "401": {
+            "description": "Autenticação ausente ou inválida"
           },
           "403": {
             "description": "Acesso negado"
@@ -3936,6 +3942,17 @@
           },
           "reason": {
             "type": "string"
+          },
+          "feedback": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Texto público destinado ao integrante, até 1000 caracteres; obrigatório para REQUEST_CORRECTION e REJECT. Distinto do motivo administrativo privado."
           }
         },
         "required": [
@@ -3996,6 +4013,17 @@
           },
           "reason": {
             "type": "string"
+          },
+          "feedback": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Texto público destinado ao integrante, até 1000 caracteres; obrigatório para REQUEST_CORRECTION."
           }
         },
         "required": [
@@ -4614,6 +4642,16 @@
                 "type": "null"
               }
             ]
+          },
+          "feedback": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -4672,6 +4710,16 @@
           "version": {
             "type": "integer",
             "format": "int64"
+          },
+          "feedback": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -4826,7 +4874,8 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "description": "Conteúdo capturado autorizado. Listagens por não coordenadores retornam objeto vazio; consultar a origem para conteúdo atual autorizado."
           },
           "readBy": {
             "anyOf": [
@@ -5012,7 +5061,8 @@
         },
         "required": [
           "revision"
-        ]
+        ],
+        "description": "Coordenador recebe registro completo. Gestor geral recebe metadados sem nota, motivo, avaliador ou evidências. Titular recebe apenas revisões publicadas, sem motivo privado, avaliador ou referências."
       },
       "CalculationData": {
         "type": "object",
@@ -5085,7 +5135,8 @@
               }
             ]
           }
-        }
+        },
+        "description": "Coordenador recebe insumos completos. Gestor geral e titular autorizado recebem resultado, algoritmo e instante de corte; policy nula e assessments/evidence vazios. Titular consulta apenas cálculos homologados com divulgação habilitada."
       },
       "Calculation": {
         "type": "object",

@@ -19,8 +19,8 @@ public final class AcademicRecords {
                               Boolean discloseResults, Boolean planRequired, String forwardingProcedureReference) {}
     public record Policy(UUID id, UUID termId, int revision, String status, PolicyRules rules, String authorityReference, long version) {}
     public record Enrollment(UUID id, UUID termId, UUID memberId, UUID policyId, EnrollmentStatus status,
-                             List<Discipline> disciplines, long version, Instant createdAt) {}
-    public record Plan(UUID id, UUID enrollmentId, int revision, PlanStatus status, String content, long version) {}
+                             List<Discipline> disciplines, long version, Instant createdAt, String feedback) {}
+    public record Plan(UUID id, UUID enrollmentId, int revision, PlanStatus status, String content, long version, String feedback) {}
     /** Contract version is independent of the provider's revision. Attributes contain only relevant, authorized data. */
     public record SourceSnapshot(int contractVersion, Source source, UUID sourceId, UUID memberId, UUID projectId,
                                  String sourceRevision, UUID authorId, UUID validatedBy, String validationStatus,
