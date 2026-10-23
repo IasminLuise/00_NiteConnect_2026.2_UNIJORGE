@@ -26,3 +26,6 @@
 Thumbs.db
 *.log
 *.tmp
+
+# Evidências e bytes privados de desenvolvimento
+.private/
