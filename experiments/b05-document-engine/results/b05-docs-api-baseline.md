@@ -10,7 +10,8 @@ runtime identifica versão 10.0.0, build 169. Não houve troca de versão. O pro
 Compose `nite-b05-docs-api` usa cache, dados e credenciais novos. Gateway em
 loopback 19982, host em loopback 18087, motor sem porta publicada. Limites do
 motor: 4 GiB/2 CPUs. Disponibilidade do Docker local foi restabelecida iniciando
-o Docker Desktop instalado. Nenhum Collabora/LibreOffice foi iniciado.
+o Docker Desktop instalado. A execução congelada identifica somente o serviço
+ONLYOFFICE usado no controle WOPI/Docs API.
 
 F01 é a cópia exata da fixture sintética histórica de texto/estilos/lista; F02 é
 a cópia complexa já adaptada de B05.0.2. **F02 não foi editada no motor nesta

@@ -5,7 +5,7 @@ import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-COMPOSE = ['docker', 'compose', '-f', str(ROOT / 'compose.yaml')]
+COMPOSE = ['docker', 'compose', '-f', str(ROOT / 'compose.onlyoffice.yaml')]
 
 def compose_env():
     env = os.environ.copy()

@@ -31,7 +31,7 @@ O reviewer listou explicitamente assuntos que não julgou. O executor decidiu:
 1. Preservar checkout, branch derivada e ledger A–F privado em vez dos helpers
    genéricos: evita alterar mounts históricos. Custo: organização de execução
    diferente da skill, sem isolamento físico extra; diff/branch revisados.
-2. Renderizar pelo Word/PDF/PNG em vez de LibreOffice: cumpre exclusão expressa
+2. Renderizar pelo Word/PDF/PNG: cumpre o requisito de comparação visual
    do plano e usa a referência exigida. Custo: sem segundo renderer nesta rodada.
 3. Oficiais e SAVEDATE na Docs API continuam bloqueados por B, sem julgamento
    positivo presumido. Custo: compatibilidade desses arquivos segue desconhecida.

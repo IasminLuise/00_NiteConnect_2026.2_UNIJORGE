@@ -83,10 +83,8 @@ espera a estrutura local `active/fixtures/F01.docx`. Nunca recebe modelo oficial
 atualização de links. O Word abre readonly para medição; não salva a candidata.
 
 Inventário independente em `fidelity.inventory`, PDFs do Word e PNGs privados
-devem ser inspecionados, incluindo texto, espaçamento e quebras. Não usar renderer
-baseado em LibreOffice: exclusão explícita do plano tem precedência sobre a
-rotina genérica da skill de documentos. Não corrigir os arquivos para eliminar
-o defeito observado. Screens/JSON detalhados são privados.
+devem ser inspecionados, incluindo texto, espaçamento e quebras. Não corrigir os
+arquivos para eliminar o defeito observado. Screens/JSON detalhados são privados.
 
 Evidência local desta execução: `.runtime/b0503/active/browser/` (quatro
 tentativas de save, readonly e recuperação), `analysis/` (inventários, XML,
@@ -95,9 +93,8 @@ controle Word e métricas), `wopi-control/` (inconclusivo), logs RED/GREEN e
 
 ## CI e encerramento
 
-O workflow B05 agora executa host/Python/adapter e **somente ONLYOFFICE** com
-smoke de transporte/recusa/retenção; não executa o antigo laboratório
-Collabora/LibreOffice. Não publica artifacts do runtime. CI verde significa
+O workflow B05 executa host/Python/adapter e ONLYOFFICE com smoke de
+transporte/recusa/retenção. Não publica artifacts do runtime. CI verde significa
 regressão sintética, não GO de fidelidade. Word e oficiais ficam fora da CI.
 
 ```text

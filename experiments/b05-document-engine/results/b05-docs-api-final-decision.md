@@ -10,9 +10,9 @@ do ONLYOFFICE.
 
 Branch `spike/b05-docs-api-vs-wopi`, baseada em
 `da96df43618114fe71e494cc9ccc8183d9d6797c` (PR #11). Imagem e ambiente em
-[baseline](b05-docs-api-baseline.md). O ensaio usa o mesmo motor 10.0.0.1 fixado
-por digest, sem Collabora/LibreOffice novos. Não comparar dois motores distintos
-quando a variável é Docs API/WOPI.
+[baseline](b05-docs-api-baseline.md). WOPI e Docs API foram comparados usando a
+mesma imagem ONLYOFFICE 10.0.0.1 fixada por digest; a variável avaliada era o
+protocolo de integração, não o motor DOCX.
 
 ## Resultado dos gates
 
@@ -71,7 +71,7 @@ Nenhum dado privado acompanha a matriz pública.
 | T27 | Permissões/coedição básica | NOT-RUN | Readonly/negativas locais; dois coeditores e revogação não exercitados |
 | T28 | Estado de erro/rejeição na UX | PASS | Screen estrita + recuperação pós-restart, sem falsa confirmação NITE |
 | T29 | Direitos Community/AGPL/branding/conexões | NOT-RUN | [licença](b05-docs-api-licensing.md), nenhuma aprovação presumida |
-| T30 | Riscos e lacunas G1 operacionais | PASS | [ADR](../ADR-B05-001.md), lacunas registradas; **G1 não aprovado** |
+| T30 | Riscos e lacunas G1 operacionais | PASS | [ADR B05-005](../../../docs/implementation/adr-b05-005-selecao-motor-documental.md), lacunas registradas; **G1 não aprovado** |
 | T31 | Revisão independente e CI sintética | PASS | [Revisão e correções](b05-docs-api-review.md); [CI 39089268410](https://github.com/IasminLuise/00_NiteConnect_2026.2_UNIJORGE/actions/runs/39089268410), código `ffe2b0d`; sem approval formal/GO |
 | T32 | Parecer GO/NO-GO e contingência decidida | PASS | Este relatório + adendo ADR; nova solução depende de decisão institucional |
 
@@ -125,3 +125,13 @@ Gates C/D/E. Nenhum componente do produto mudou.
 aberto sobre #11, sem merge. Este fechamento documental não modifica o código
 ensaiado em `ffe2b0d`. Evidências privadas e comandos de reprodução:
 [protocolo](../scripts/DOCS-API-B0503.md).
+
+## Disponibilidade da evidência privada nesta cópia
+
+Na auditoria de limpeza de 25/10/2026, o caminho `.runtime/b0503/` citado acima
+não foi encontrado. Os manifests presentes em `.runtime/aud-onlyoffice-spacing-02`
+identificam outro experimento (`B05-AUD-ONLYOFFICE-PAIR-1`), com casos A/B/C
+marcados `NOT_RUN`; portanto, esses arquivos não substituem os dados brutos
+específicos da decisão B05.0.3. Este relatório e seus artefatos versionados são
+mantidos como registro da conclusão anterior, mas os arquivos privados brutos
+correspondentes não estão disponíveis neste checkout para reprodução independente.

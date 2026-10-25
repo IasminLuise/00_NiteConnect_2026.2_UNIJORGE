@@ -4,7 +4,7 @@ from urllib.request import urlopen
 
 def wait_ready():
     deadline = time.monotonic() + 50
-    pending = {'http://localhost:18085/lab/health', 'http://localhost:19980/hosting/discovery'}
+    pending = {'http://localhost:18086/lab/health', 'http://localhost:19981/hosting/discovery'}
     while pending and time.monotonic() < deadline:
         for url in list(pending):
             try:

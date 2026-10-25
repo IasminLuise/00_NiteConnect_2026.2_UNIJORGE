@@ -1,9 +1,0 @@
-.private/
-node_modules/
-web/node_modules/
-web/dist/
-web/public/lib/
-web/public/models/
-*.local.json
-__pycache__/
-.pytest_cache/

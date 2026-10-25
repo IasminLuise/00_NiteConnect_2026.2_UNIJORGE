@@ -28,24 +28,24 @@ class WopiHttpTest {
     @Test void putFileUsesPostOverrideAndReturnsSavedTimestampAndVersion()throws Exception {
         var before=store.info(id,session.token());
         mvc.perform(post("/wopi/files/"+id+"/contents").param("access_token",session.token())
-            .header("X-WOPI-Override","PUT").header("X-COOL-WOPI-Timestamp",before.modified()).content(DocumentStoreTest.docx("two")))
+            .header("X-WOPI-Override","PUT").header("X-WOPI-Timestamp",before.modified()).content(DocumentStoreTest.docx("two")))
             .andExpect(status().isOk()).andExpect(header().exists("X-WOPI-ItemVersion"))
             .andExpect(jsonPath("LastModifiedTime").isString());
         Assertions.assertEquals(2,store.versions(id).size());
     }
-    @Test void stalePutHasCollaboraConflictCodeAndLockHeader()throws Exception {
+    @Test void stalePutReturnsConflictAndLockHeader()throws Exception {
         mvc.perform(post("/wopi/files/"+id+"/contents").param("access_token",session.token())
-            .header("X-WOPI-Override","PUT").header("X-COOL-WOPI-Timestamp","2000-01-01T00:00:00Z").content(DocumentStoreTest.docx("two")))
+            .header("X-WOPI-Override","PUT").header("X-WOPI-Timestamp","2000-01-01T00:00:00Z").content(DocumentStoreTest.docx("two")))
             .andExpect(status().isConflict()).andExpect(header().string("X-WOPI-Lock",""))
-            .andExpect(jsonPath("COOLStatusCode").value(1010));
+            .andExpect(jsonPath("error").value("Versão de origem alterada"));
     }
-    @Test void legacyTimestampFromOnlyofficeStillEnforcesVersionCas()throws Exception {
+    @Test void timestampFromWopiStillEnforcesVersionCas()throws Exception {
         var before=store.info(id,session.token());
         mvc.perform(post("/wopi/files/"+id+"/contents").param("access_token",session.token())
-            .header("X-WOPI-Override","PUT").header("X-LOOL-WOPI-Timestamp",before.modified()).content(DocumentStoreTest.docx("two")))
+            .header("X-WOPI-Override","PUT").header("X-WOPI-Timestamp",before.modified()).content(DocumentStoreTest.docx("two")))
             .andExpect(status().isOk());
         mvc.perform(post("/wopi/files/"+id+"/contents").param("access_token",session.token())
-            .header("X-WOPI-Override","PUT").header("X-LOOL-WOPI-Timestamp",before.modified()).content(DocumentStoreTest.docx("three")))
+            .header("X-WOPI-Override","PUT").header("X-WOPI-Timestamp",before.modified()).content(DocumentStoreTest.docx("three")))
             .andExpect(status().isConflict());
     }
     @Test void unknownOperationAndUnauthenticatedDownloadAreDenied()throws Exception {
@@ -72,7 +72,7 @@ class WopiHttpTest {
         var before=rejected.info(id,grant.token());
         var guarded=MockMvcBuilders.standaloneSetup(new WopiController(rejected)).setControllerAdvice(new WopiController.Errors()).build();
         guarded.perform(post("/wopi/files/"+id+"/contents").param("access_token",grant.token())
-            .header("X-WOPI-Override","PUT").header("X-LOOL-WOPI-Timestamp",before.modified()).content(DocumentStoreTest.docx("two")))
+            .header("X-WOPI-Override","PUT").header("X-WOPI-Timestamp",before.modified()).content(DocumentStoreTest.docx("two")))
             .andExpect(status().isInternalServerError()).andExpect(header().doesNotExist("X-WOPI-ItemVersion"))
             .andExpect(jsonPath("error").value("SAVE_REJECTED_TEST"));
         Assertions.assertEquals(before.version(),rejected.currentVersion(id));

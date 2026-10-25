@@ -73,7 +73,7 @@ public final class DocumentStore {
         synchronized(this) {
             authorize(id,token,true);var before=pointer(id);String held=lockValue(id);
             if(!held.isEmpty()&&!held.equals(lock))throw new Failure(409,"Lock conflitante",held);
-            // Collabora's timestamp is the CAS base. Missing timestamp never authorizes a force-overwrite.
+            // WOPI timestamp is the CAS base. Missing timestamp never authorizes a force-overwrite.
             Instant expected=null;
             if(base!=null)try{expected=Instant.parse(base);}catch(java.time.format.DateTimeParseException ignored){/* invalid base conflicts */}
             if(expected==null||!before.modified().truncatedTo(java.time.temporal.ChronoUnit.MICROS).equals(expected.truncatedTo(java.time.temporal.ChronoUnit.MICROS)))throw new Failure(409,"Versão de origem alterada",held);

@@ -101,10 +101,8 @@ def capture(base, document, out, previous=None, pdf=True, version=None):
     result['version'] = version
     converted = None
     if pdf:
-        with request(base, f'/lab/documents/{document}/versions/{version}/pdf', True) as response:
-            if response.headers.get('X-Source-Version') != version:
-                raise ValueError('PDF does not identify the exact source version')
-            converted = response.read()
+        convert_onlyoffice(base, document, version, out)
+        converted = (out / 'engine.pdf').read_bytes()
         if not converted.startswith(b'%PDF-'):
             raise ValueError('Invalid PDF')
     (out / 'source.docx').write_bytes(data)
@@ -155,7 +153,7 @@ def environment(containers):
     for name in containers:
         data = json.loads(subprocess.check_output(['docker', 'inspect', name], text=True))[0]
         # Do not record environment variables, commands or logs: may contain credentials.
-        allowed_env = ('LANG=', 'LC_ALL=', 'LAB_ENGINE=')
+        allowed_env = ('LANG=', 'LC_ALL=')
         results.append({'container': name, 'image_id': data['Image'], 'image': data['Config']['Image'],
                         'locale': [e for e in data['Config']['Env'] if e.startswith(allowed_env)],
                         'mounts': [{'source': m['Source'], 'target': m['Destination'], 'read_only': not m['RW']}
@@ -202,7 +200,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     subs = parser.add_subparsers(dest='command', required=True)
     p = subs.add_parser('capture')
-    p.add_argument('--host', default='http://localhost:18085')
+    p.add_argument('--host', default='http://localhost:18086')
     p.add_argument('--document', required=True)
     p.add_argument('--out', type=Path, required=True)
     p.add_argument('--previous')

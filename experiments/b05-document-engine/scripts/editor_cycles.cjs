@@ -8,7 +8,7 @@ const run = path.resolve(args.run);
 const runtime = path.resolve(__dirname, '../.runtime') + path.sep;
 if (!run.startsWith(runtime)) throw new Error('Private run directory required');
 const pw = createRequire(path.join(args.playwright, 'package.json'))('playwright');
-const host = args.host || 'http://localhost:18085';
+const host = args.host || 'http://localhost:18086';
 async function current(id) {
   const response = await fetch(`${host}/lab/documents/${id}/current`);
   if (!response.ok) throw new Error('Current version unavailable');

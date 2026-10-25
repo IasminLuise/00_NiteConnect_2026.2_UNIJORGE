@@ -8,9 +8,8 @@ services:
       LAB_DATA: /data
       LAB_FIXTURES: /fixtures
       LAB_ORIGIN: http://localhost:18086
-      LAB_ENGINE: onlyoffice
-      COLLABORA_INTERNAL: http://onlyoffice:80
-      COLLABORA_PUBLIC: http://localhost:19981
+      ONLYOFFICE_INTERNAL: http://onlyoffice:80
+      ONLYOFFICE_PUBLIC: http://localhost:19981
     volumes:
       - ./.runtime/onlyoffice/data:/data
       - ./.runtime/onlyoffice/fixtures:/fixtures:ro

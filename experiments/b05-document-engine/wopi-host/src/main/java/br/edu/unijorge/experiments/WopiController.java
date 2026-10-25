@@ -28,8 +28,7 @@ public final class WopiController {
         if(!"PUT".equals(request.getHeader("X-WOPI-Override")))throw new DocumentStore.Failure(501,"Operação não implementada");
         byte[] bytes=request.getInputStream().readNBytes(DocxValidator.MAX_BYTES+1);
         if(bytes.length>DocxValidator.MAX_BYTES)throw new DocumentStore.Failure(413,"Arquivo excede limite técnico");
-        String timestamp=request.getHeader("X-COOL-WOPI-Timestamp");
-        if(timestamp==null)timestamp=request.getHeader("X-LOOL-WOPI-Timestamp");
+        String timestamp=request.getHeader("X-WOPI-Timestamp");
         var saved=store.save(id,token,bytes,timestamp,request.getHeader("X-WOPI-Lock"));
         return ResponseEntity.ok().header("X-WOPI-ItemVersion",saved.version()).body(Map.of("LastModifiedTime",saved.modified()));
     }
@@ -43,8 +42,7 @@ public final class WopiController {
         @ExceptionHandler(DocumentStore.Failure.class) ResponseEntity<Map<String,Object>> failure(DocumentStore.Failure f) {
             var response=ResponseEntity.status(f.status()).cacheControl(CacheControl.noStore());
             if(f.status()==409)response.header("X-WOPI-Lock",f.lock());
-            Map<String,Object> body=f.status()==409&&f.getMessage().equals("Versão de origem alterada")?Map.of("COOLStatusCode",1010):Map.of("error",f.getMessage());
-            return response.body(body);
+            return response.body(Map.of("error",f.getMessage()));
         }
         @ExceptionHandler(IOException.class) ResponseEntity<Map<String,String>> io(){return ResponseEntity.status(503).body(Map.of("error","Operação indisponível"));}
     }

@@ -6,8 +6,8 @@ services:
     environment:
       LAB_ORIGIN: http://localhost:18087
       LAB_ENGINE: onlyoffice
-      COLLABORA_INTERNAL: http://onlyoffice:80
-      COLLABORA_PUBLIC: http://localhost:19982
+      ONLYOFFICE_INTERNAL: http://onlyoffice:80
+      ONLYOFFICE_PUBLIC: http://localhost:19982
       B05_DOCS_ENABLED: "true"
     cap_drop: [ALL]
     security_opt: ["no-new-privileges:true"]
