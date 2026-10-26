@@ -20,12 +20,12 @@ import static br.edu.unijorge.niteconnect.documents.infrastructure.DocumentRepos
 @Service
 public class DocumentEditorService {
     private final DocumentRepository repo;private final DocumentService documents;private final DocumentEditorProvider provider;
-    private final DocumentObjectStore store;private final DocxIntegrity guard;private final Clock clock;private final TransactionTemplate tx;
+    private final DocumentObjectStore store;private final DocxIntegrity guard;private final DocxFontMetadataRepair fontMetadataRepair;private final Clock clock;private final TransactionTemplate tx;
     private final String publicBase;private final byte[] secret;
     public DocumentEditorService(DocumentRepository repo,DocumentService documents,DocumentEditorProvider provider,DocumentObjectStore store,
-            DocxIntegrity guard,Clock clock,PlatformTransactionManager manager,
+            DocxIntegrity guard,DocxFontMetadataRepair fontMetadataRepair,Clock clock,PlatformTransactionManager manager,
             @Value("${nite.documents.public-base-url:}") String publicBase,@Value("${nite.documents.capability-secret:}") String secret){
-        this.repo=repo;this.documents=documents;this.provider=provider;this.store=store;this.guard=guard;this.clock=clock;this.tx=new TransactionTemplate(manager);
+        this.repo=repo;this.documents=documents;this.provider=provider;this.store=store;this.guard=guard;this.fontMetadataRepair=fontMetadataRepair;this.clock=clock;this.tx=new TransactionTemplate(manager);
         this.publicBase=publicBase;this.secret=secret.getBytes(StandardCharsets.UTF_8);
     }
     public record Open(@jakarta.validation.constraints.NotNull @jakarta.validation.constraints.Min(0) Long expectedVersion,boolean readOnly){}
@@ -105,8 +105,10 @@ public class DocumentEditorService {
         }
         // Remote I/O has a bounded timeout and takes place outside the database transaction/lock.
         byte[] bytes=provider.download(callback.url(),8*1024*1024);
-        var verdict=guard.assess(store.read(prepared.head().objectId(),prepared.head().size(),prepared.head().sha256()),bytes);
-        var object=store.put(bytes);
+        byte[] source=store.read(prepared.head().objectId(),prepared.head().size(),prepared.head().sha256());
+        byte[] repaired=fontMetadataRepair.restoreMissingAlternateNames(source,bytes);
+        var verdict=guard.assess(source,repaired);
+        var object=store.put(repaired);
         tx.executeWithoutResult(status->{
             documents.lock();Cycle c=repo.cycle(id);
             if(repo.count("select count(*) from nite_connect.document_callback_receipts where cycle_id=? and request_sha256=?",id,requestHash)>0)return;

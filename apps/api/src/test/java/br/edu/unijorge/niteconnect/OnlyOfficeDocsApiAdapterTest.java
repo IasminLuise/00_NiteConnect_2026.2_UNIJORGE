@@ -34,6 +34,16 @@ class OnlyOfficeDocsApiAdapterTest {
         jwt.sign(new MACSigner(SECRET));return jwt.serialize();
     }
     private Map<String,Object> callback(){return Map.of("key","revision-1","status",2,"url",origin+"/docx","filetype","docx");}
+    @Test void inspectionRefusesRemoteEngineWhileNormalConfigurationRemainsSupported(){
+        var remote=new OnlyOfficeDocsApiAdapter(true,"https://editor.example.test",SECRET,true,clock,JsonMapper.builder().build());
+        URI source=URI.create("http://127.0.0.1:18083/source"),callback=URI.create("http://127.0.0.1:18083/callback");
+        UUID actor=UUID.randomUUID();
+        assertThat(remote.open("normal-1","Documento",source,callback,false,actor).apiScriptUrl())
+                .startsWith("https://editor.example.test/");
+        assertThatThrownBy(()->remote.openInspection("inspection-1","Documento",source,callback,actor))
+                .isInstanceOfSatisfying(br.edu.unijorge.niteconnect.shared.api.ApiException.class,
+                        error->assertThat(error.status().value()).isEqualTo(503));
+    }
     @Test void acceptsRootAndWrappedVendorTokensWithoutExpiration() throws Exception {
         var body=callback();
         for(boolean wrapped:List.of(true,false))assertThat(adapter.verifyCallback(token(body,wrapped,null,JWSAlgorithm.HS256),body).key()).isEqualTo("revision-1");

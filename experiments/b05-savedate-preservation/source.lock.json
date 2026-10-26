@@ -1,0 +1,16 @@
+{
+  "schema": "nite-savedate-source-build-v1",
+  "repository": "https://github.com/ONLYOFFICE/sdkjs.git",
+  "revision": "3679e0375a758d7dc59d31337a45461be3525ed8",
+  "source_date_epoch": 1791665755,
+  "source_archive_sha256": "7ef758e74dc5d479660377e246a291107749480a0fd6e7c27358bb984cd68adc",
+  "base_image": "onlyoffice/documentserver@sha256:ca17889f10b11141cc6441836aebdd2835cf3e1b49681b2fd6e155c94b7850b3",
+  "original_files": {
+    "configs/word.json": "0ba327bd38bba845535946b3a6fc44ae5ee9685d7703fab639d57d7e9db35142",
+    "word/Editor/Field.js": "09dc9f8a2da45a39a84e31ffcc661164f02b8274a45540ea2268ffb1055aeaf1",
+    "word/Editor/Paragraph/ComplexField.js": "bb8fa39bde10494ec65923cf18ccfb172f37dfe20dac8dae9ac682d73788fe2a",
+    "word/Editor/Paragraph/ComplexFieldInstruction.js": "5bffe85d7bf4d3ef5639ba05e74f42af0678608ce764f6b1d4467eabd72f2343",
+    "word/Editor/Paragraph/RunContent/PagesCount.js": "03614990df9992e3a898b9e277c3f782b96516a6117f69a70dd136553f3d2afd",
+    "word/Editor/Serialize2.js": "13a4b4388f1068d7f7d6ca677bbbf5f62a5f68c33d4a0f7907b0a02353d5d39a"
+  }
+}

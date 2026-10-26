@@ -22,6 +22,10 @@
 **/coverage/
 *.tsbuildinfo
 
+# Python cache files
+**/__pycache__/
+*.py[cod]
+
 # SO e arquivos temporários
 .DS_Store
 Thumbs.db

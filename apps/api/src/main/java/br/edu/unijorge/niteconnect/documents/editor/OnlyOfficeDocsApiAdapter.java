@@ -50,12 +50,20 @@ public final class OnlyOfficeDocsApiAdapter implements DocumentEditorProvider {
 
     @Override public boolean enabled(){return enabled;}
     @Override public EditorConfiguration open(String editorKey,String title,URI source,URI callback,boolean readOnly,UUID actor){
+        return configuration(editorKey,title,source,callback,readOnly,false,actor);
+    }
+    @Override public EditorConfiguration openInspection(String editorKey,String title,URI source,URI callback,UUID actor){
+        requireEnabled();
+        if(!loopback(server.getHost()))throw unavailable();
+        return configuration(editorKey,title,source,callback,true,true,actor);
+    }
+    private EditorConfiguration configuration(String editorKey,String title,URI source,URI callback,boolean readOnly,boolean inspectionExport,UUID actor){
         requireEnabled();validateWebUri(source);validateWebUri(callback);validateKey(editorKey);
         if(title==null||title.isBlank()||title.length()>255)throw ApiException.invalid("Título inválido");
         var config=new LinkedHashMap<String,Object>();
         config.put("documentType","word");
         config.put("document",Map.of("key",editorKey,"fileType","docx","title",title,"url",source.toString(),
-            "permissions",Map.of("edit",!readOnly,"download",false,"print",false,"copy",false,"review",false,"comment",false)));
+            "permissions",Map.of("edit",!readOnly,"download",inspectionExport,"print",false,"copy",false,"review",false,"comment",false)));
         config.put("editorConfig",Map.of("callbackUrl",callback.toString(),"mode",readOnly?"view":"edit","user",Map.of("id",Objects.requireNonNull(actor).toString())));
         config.put("token",sign(config));
         return new EditorConfiguration(server.resolve("/web-apps/apps/api/documents/api.js").toString(),config);

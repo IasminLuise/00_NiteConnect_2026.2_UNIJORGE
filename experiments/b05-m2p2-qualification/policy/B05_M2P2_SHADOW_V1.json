@@ -1,0 +1,19 @@
+{
+  "policyId": "B05_M2P2_SHADOW_V1",
+  "status": "DIAGNOSTIC_ONLY",
+  "scope": "SYNTHETIC_ONLY",
+  "productPublicationEnabled": false,
+  "officialModelsEnabled": false,
+  "requires": [
+    "exact_expected_text_change",
+    "no_unauthorized_OOXML_transformations",
+    "style_definitions_equivalent",
+    "field_instructions_preserved_or_marked_not_exercised",
+    "no_new_note_infrastructure_without_separate_proof",
+    "same_word_page_count_and_untouched_paragraph_layout",
+    "zero_unexplained_PDF_pixels",
+    "manual_fidelity_review_before_backend_policy_change"
+  ],
+  "onUncertainty": "HOLD_QUARANTINE",
+  "cannot": ["change_java_guard", "promote_quarantine", "use_official_model", "release_gates"]
+}

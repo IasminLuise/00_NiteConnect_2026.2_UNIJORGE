@@ -6,5 +6,6 @@ import java.util.UUID;
 @FunctionalInterface
 public interface CandidateGate {
     void validate(UUID document, byte[] candidate, long nextNumber);
+    default byte[] normalizeCandidate(UUID document, byte[] candidate, long nextNumber) { return candidate; }
     default void register(UUID document, String name, byte[] source) {}
 }

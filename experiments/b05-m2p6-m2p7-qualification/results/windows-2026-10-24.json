@@ -1,0 +1,1054 @@
+{
+  "schema_version": 1,
+  "campaign_id": "B05-M2P6-M2P7-WINDOWS-2026-10-24",
+  "source_m2p5_campaign_id": "B05-M2P4-M2P5-WINDOWS-2026-10-24",
+  "all_inputs_hash_verified_before_and_after": true,
+  "m2p6": {
+    "scope": "STRUCTURE_AND_SEMANTIC_BOUNDS",
+    "documents": [
+      {
+        "id": "CTRL-01",
+        "origin": "synthetic",
+        "operation": "no_edit",
+        "authorization_receipt_present": false,
+        "semantic_changes_require_review": true,
+        "semantic_review_receipt_present": false,
+        "features_claimed_not_proven": [
+          "fields",
+          "footnotes",
+          "headers_footers",
+          "images",
+          "page_breaks",
+          "styles",
+          "tables"
+        ],
+        "features_observed_source": [
+          "fields",
+          "footnotes",
+          "headers_footers",
+          "images",
+          "page_breaks",
+          "section_breaks",
+          "styles",
+          "tables"
+        ],
+        "pairs": {
+          "SOURCE_TO_SDK": {
+            "paragraph_counts": [
+              25,
+              25
+            ],
+            "paragraphs_positionally_aligned": true,
+            "expected_visible_text_only": true,
+            "matching_text_characters_compared": 1173,
+            "explicit_format_mismatch_chars_on_matched_text": 1173,
+            "effective_style_equivalence_proven": false,
+            "parts_added": [
+              "word/_rels/comments.xml.rels",
+              "word/_rels/endnotes.xml.rels",
+              "word/_rels/footer1.xml.rels",
+              "word/_rels/footnotes.xml.rels",
+              "word/_rels/header1.xml.rels",
+              "word/endnotes.xml"
+            ],
+            "parts_removed": [
+              "docProps/thumbnail.jpeg",
+              "word/stylesWithEffects.xml"
+            ],
+            "parts_modified": [
+              "[Content_Types].xml",
+              "_rels/.rels",
+              "customXml/_rels/item1.xml.rels",
+              "customXml/item1.xml",
+              "customXml/itemProps1.xml",
+              "docProps/app.xml",
+              "docProps/core.xml",
+              "word/_rels/document.xml.rels",
+              "word/document.xml",
+              "word/fontTable.xml",
+              "word/footer1.xml",
+              "word/footnotes.xml",
+              "word/header1.xml",
+              "word/numbering.xml",
+              "word/settings.xml",
+              "word/styles.xml",
+              "word/theme/theme1.xml",
+              "word/webSettings.xml"
+            ],
+            "opcs_before_after": [
+              {
+                "missing_content_types": 0,
+                "broken_relations": 0,
+                "missing_owners": 0,
+                "missing_xml_references": 0,
+                "external_relations_declared": 0,
+                "diagnostics": {},
+                "part_count": 21
+              },
+              {
+                "missing_content_types": 0,
+                "broken_relations": 0,
+                "missing_owners": 1,
+                "missing_xml_references": 0,
+                "external_relations_declared": 0,
+                "diagnostics": {},
+                "part_count": 25
+              }
+            ],
+            "candidate_new_broken_relationships": 1,
+            "candidate_new_missing_content_types": 0,
+            "notes_referenced_text_signatures_equal": true,
+            "notes_semantic_equivalence_proven": false,
+            "field_instruction_occurrences": [
+              3,
+              3
+            ],
+            "field_instructions_equal_in_order": false,
+            "field_effective_results_equivalence_proven": false,
+            "styles_ids_added": 308,
+            "styles_ids_removed": 164,
+            "style_definitions_changed_same_id": 0,
+            "style_equivalence_proven": false,
+            "noted_limit": "Explicit run/paragraph properties, not computed Word font; sequence matching can be ambiguous; all OPC/field/note transforms remain unapproved."
+          }
+        }
+      },
+      {
+        "id": "TYPE-03",
+        "origin": "synthetic",
+        "operation": "edited",
+        "authorization_receipt_present": false,
+        "semantic_changes_require_review": true,
+        "semantic_review_receipt_present": false,
+        "features_claimed_not_proven": [
+          "fields",
+          "footnotes",
+          "headers_footers",
+          "images",
+          "page_breaks",
+          "styles",
+          "tables"
+        ],
+        "features_observed_source": [
+          "fields",
+          "footnotes",
+          "headers_footers",
+          "images",
+          "page_breaks",
+          "section_breaks",
+          "styles",
+          "tables"
+        ],
+        "pairs": {
+          "SOURCE_TO_SDK": {
+            "paragraph_counts": [
+              25,
+              25
+            ],
+            "paragraphs_positionally_aligned": true,
+            "expected_visible_text_only": true,
+            "matching_text_characters_compared": 1170,
+            "explicit_format_mismatch_chars_on_matched_text": 1170,
+            "effective_style_equivalence_proven": false,
+            "parts_added": [
+              "word/_rels/comments.xml.rels",
+              "word/_rels/endnotes.xml.rels",
+              "word/_rels/footer1.xml.rels",
+              "word/_rels/footnotes.xml.rels",
+              "word/_rels/header1.xml.rels",
+              "word/endnotes.xml"
+            ],
+            "parts_removed": [
+              "docProps/thumbnail.jpeg",
+              "word/stylesWithEffects.xml"
+            ],
+            "parts_modified": [
+              "[Content_Types].xml",
+              "_rels/.rels",
+              "customXml/_rels/item1.xml.rels",
+              "customXml/item1.xml",
+              "customXml/itemProps1.xml",
+              "docProps/app.xml",
+              "docProps/core.xml",
+              "word/_rels/document.xml.rels",
+              "word/document.xml",
+              "word/fontTable.xml",
+              "word/footer1.xml",
+              "word/footnotes.xml",
+              "word/header1.xml",
+              "word/numbering.xml",
+              "word/settings.xml",
+              "word/styles.xml",
+              "word/theme/theme1.xml",
+              "word/webSettings.xml"
+            ],
+            "opcs_before_after": [
+              {
+                "missing_content_types": 0,
+                "broken_relations": 0,
+                "missing_owners": 0,
+                "missing_xml_references": 0,
+                "external_relations_declared": 0,
+                "diagnostics": {},
+                "part_count": 21
+              },
+              {
+                "missing_content_types": 0,
+                "broken_relations": 0,
+                "missing_owners": 1,
+                "missing_xml_references": 0,
+                "external_relations_declared": 0,
+                "diagnostics": {},
+                "part_count": 25
+              }
+            ],
+            "candidate_new_broken_relationships": 1,
+            "candidate_new_missing_content_types": 0,
+            "notes_referenced_text_signatures_equal": true,
+            "notes_semantic_equivalence_proven": false,
+            "field_instruction_occurrences": [
+              3,
+              3
+            ],
+            "field_instructions_equal_in_order": false,
+            "field_effective_results_equivalence_proven": false,
+            "styles_ids_added": 308,
+            "styles_ids_removed": 164,
+            "style_definitions_changed_same_id": 0,
+            "style_equivalence_proven": false,
+            "noted_limit": "Explicit run/paragraph properties, not computed Word font; sequence matching can be ambiguous; all OPC/field/note transforms remain unapproved."
+          },
+          "SOURCE_TO_CALLBACK": {
+            "paragraph_counts": [
+              25,
+              25
+            ],
+            "paragraphs_positionally_aligned": true,
+            "expected_visible_text_only": true,
+            "matching_text_characters_compared": 1170,
+            "explicit_format_mismatch_chars_on_matched_text": 1170,
+            "effective_style_equivalence_proven": false,
+            "parts_added": [
+              "word/_rels/comments.xml.rels",
+              "word/_rels/endnotes.xml.rels",
+              "word/_rels/footer1.xml.rels",
+              "word/_rels/footnotes.xml.rels",
+              "word/_rels/header1.xml.rels",
+              "word/endnotes.xml"
+            ],
+            "parts_removed": [
+              "docProps/thumbnail.jpeg",
+              "word/stylesWithEffects.xml"
+            ],
+            "parts_modified": [
+              "[Content_Types].xml",
+              "_rels/.rels",
+              "customXml/_rels/item1.xml.rels",
+              "customXml/item1.xml",
+              "customXml/itemProps1.xml",
+              "docProps/app.xml",
+              "docProps/core.xml",
+              "word/_rels/document.xml.rels",
+              "word/document.xml",
+              "word/fontTable.xml",
+              "word/footer1.xml",
+              "word/footnotes.xml",
+              "word/header1.xml",
+              "word/numbering.xml",
+              "word/settings.xml",
+              "word/styles.xml",
+              "word/theme/theme1.xml",
+              "word/webSettings.xml"
+            ],
+            "opcs_before_after": [
+              {
+                "missing_content_types": 0,
+                "broken_relations": 0,
+                "missing_owners": 0,
+                "missing_xml_references": 0,
+                "external_relations_declared": 0,
+                "diagnostics": {},
+                "part_count": 21
+              },
+              {
+                "missing_content_types": 0,
+                "broken_relations": 0,
+                "missing_owners": 1,
+                "missing_xml_references": 0,
+                "external_relations_declared": 0,
+                "diagnostics": {},
+                "part_count": 25
+              }
+            ],
+            "candidate_new_broken_relationships": 1,
+            "candidate_new_missing_content_types": 0,
+            "notes_referenced_text_signatures_equal": true,
+            "notes_semantic_equivalence_proven": false,
+            "field_instruction_occurrences": [
+              3,
+              3
+            ],
+            "field_instructions_equal_in_order": false,
+            "field_effective_results_equivalence_proven": false,
+            "styles_ids_added": 308,
+            "styles_ids_removed": 164,
+            "style_definitions_changed_same_id": 0,
+            "style_equivalence_proven": false,
+            "noted_limit": "Explicit run/paragraph properties, not computed Word font; sequence matching can be ambiguous; all OPC/field/note transforms remain unapproved."
+          },
+          "SDK_TO_CALLBACK": {
+            "paragraph_counts": [
+              25,
+              25
+            ],
+            "paragraphs_positionally_aligned": true,
+            "expected_visible_text_only": true,
+            "matching_text_characters_compared": 1172,
+            "explicit_format_mismatch_chars_on_matched_text": 0,
+            "effective_style_equivalence_proven": false,
+            "parts_added": [],
+            "parts_removed": [],
+            "parts_modified": [
+              "docProps/core.xml",
+              "word/footer1.xml"
+            ],
+            "opcs_before_after": [
+              {
+                "missing_content_types": 0,
+                "broken_relations": 0,
+                "missing_owners": 1,
+                "missing_xml_references": 0,
+                "external_relations_declared": 0,
+                "diagnostics": {},
+                "part_count": 25
+              },
+              {
+                "missing_content_types": 0,
+                "broken_relations": 0,
+                "missing_owners": 1,
+                "missing_xml_references": 0,
+                "external_relations_declared": 0,
+                "diagnostics": {},
+                "part_count": 25
+              }
+            ],
+            "candidate_new_broken_relationships": 0,
+            "candidate_new_missing_content_types": 0,
+            "notes_referenced_text_signatures_equal": true,
+            "notes_semantic_equivalence_proven": false,
+            "field_instruction_occurrences": [
+              3,
+              3
+            ],
+            "field_instructions_equal_in_order": true,
+            "field_effective_results_equivalence_proven": false,
+            "styles_ids_added": 0,
+            "styles_ids_removed": 0,
+            "style_definitions_changed_same_id": 0,
+            "style_equivalence_proven": true,
+            "noted_limit": "Explicit run/paragraph properties, not computed Word font; sequence matching can be ambiguous; all OPC/field/note transforms remain unapproved."
+          }
+        }
+      },
+      {
+        "id": "PLAIN-01",
+        "origin": "synthetic",
+        "operation": "edited",
+        "authorization_receipt_present": false,
+        "semantic_changes_require_review": true,
+        "semantic_review_receipt_present": false,
+        "features_claimed_not_proven": [
+          "fields",
+          "footnotes",
+          "headers_footers",
+          "images",
+          "page_breaks",
+          "styles",
+          "tables"
+        ],
+        "features_observed_source": [
+          "fields",
+          "footnotes",
+          "headers_footers",
+          "images",
+          "page_breaks",
+          "section_breaks",
+          "styles",
+          "tables"
+        ],
+        "pairs": {
+          "SOURCE_TO_SDK": {
+            "paragraph_counts": [
+              25,
+              25
+            ],
+            "paragraphs_positionally_aligned": true,
+            "expected_visible_text_only": true,
+            "matching_text_characters_compared": 1170,
+            "explicit_format_mismatch_chars_on_matched_text": 1170,
+            "effective_style_equivalence_proven": false,
+            "parts_added": [
+              "word/_rels/comments.xml.rels",
+              "word/_rels/endnotes.xml.rels",
+              "word/_rels/footer1.xml.rels",
+              "word/_rels/footnotes.xml.rels",
+              "word/_rels/header1.xml.rels",
+              "word/endnotes.xml"
+            ],
+            "parts_removed": [
+              "docProps/thumbnail.jpeg",
+              "word/stylesWithEffects.xml"
+            ],
+            "parts_modified": [
+              "[Content_Types].xml",
+              "_rels/.rels",
+              "customXml/_rels/item1.xml.rels",
+              "customXml/item1.xml",
+              "customXml/itemProps1.xml",
+              "docProps/app.xml",
+              "docProps/core.xml",
+              "word/_rels/document.xml.rels",
+              "word/document.xml",
+              "word/fontTable.xml",
+              "word/footer1.xml",
+              "word/footnotes.xml",
+              "word/header1.xml",
+              "word/numbering.xml",
+              "word/settings.xml",
+              "word/styles.xml",
+              "word/theme/theme1.xml",
+              "word/webSettings.xml"
+            ],
+            "opcs_before_after": [
+              {
+                "missing_content_types": 0,
+                "broken_relations": 0,
+                "missing_owners": 0,
+                "missing_xml_references": 0,
+                "external_relations_declared": 0,
+                "diagnostics": {},
+                "part_count": 21
+              },
+              {
+                "missing_content_types": 0,
+                "broken_relations": 0,
+                "missing_owners": 1,
+                "missing_xml_references": 0,
+                "external_relations_declared": 0,
+                "diagnostics": {},
+                "part_count": 25
+              }
+            ],
+            "candidate_new_broken_relationships": 1,
+            "candidate_new_missing_content_types": 0,
+            "notes_referenced_text_signatures_equal": true,
+            "notes_semantic_equivalence_proven": false,
+            "field_instruction_occurrences": [
+              3,
+              3
+            ],
+            "field_instructions_equal_in_order": false,
+            "field_effective_results_equivalence_proven": false,
+            "styles_ids_added": 308,
+            "styles_ids_removed": 164,
+            "style_definitions_changed_same_id": 0,
+            "style_equivalence_proven": false,
+            "noted_limit": "Explicit run/paragraph properties, not computed Word font; sequence matching can be ambiguous; all OPC/field/note transforms remain unapproved."
+          },
+          "SOURCE_TO_CALLBACK": {
+            "paragraph_counts": [
+              25,
+              25
+            ],
+            "paragraphs_positionally_aligned": true,
+            "expected_visible_text_only": true,
+            "matching_text_characters_compared": 1170,
+            "explicit_format_mismatch_chars_on_matched_text": 1170,
+            "effective_style_equivalence_proven": false,
+            "parts_added": [
+              "word/_rels/comments.xml.rels",
+              "word/_rels/endnotes.xml.rels",
+              "word/_rels/footer1.xml.rels",
+              "word/_rels/footnotes.xml.rels",
+              "word/_rels/header1.xml.rels",
+              "word/endnotes.xml"
+            ],
+            "parts_removed": [
+              "docProps/thumbnail.jpeg",
+              "word/stylesWithEffects.xml"
+            ],
+            "parts_modified": [
+              "[Content_Types].xml",
+              "_rels/.rels",
+              "customXml/_rels/item1.xml.rels",
+              "customXml/item1.xml",
+              "customXml/itemProps1.xml",
+              "docProps/app.xml",
+              "docProps/core.xml",
+              "word/_rels/document.xml.rels",
+              "word/document.xml",
+              "word/fontTable.xml",
+              "word/footer1.xml",
+              "word/footnotes.xml",
+              "word/header1.xml",
+              "word/numbering.xml",
+              "word/settings.xml",
+              "word/styles.xml",
+              "word/theme/theme1.xml",
+              "word/webSettings.xml"
+            ],
+            "opcs_before_after": [
+              {
+                "missing_content_types": 0,
+                "broken_relations": 0,
+                "missing_owners": 0,
+                "missing_xml_references": 0,
+                "external_relations_declared": 0,
+                "diagnostics": {},
+                "part_count": 21
+              },
+              {
+                "missing_content_types": 0,
+                "broken_relations": 0,
+                "missing_owners": 1,
+                "missing_xml_references": 0,
+                "external_relations_declared": 0,
+                "diagnostics": {},
+                "part_count": 25
+              }
+            ],
+            "candidate_new_broken_relationships": 1,
+            "candidate_new_missing_content_types": 0,
+            "notes_referenced_text_signatures_equal": true,
+            "notes_semantic_equivalence_proven": false,
+            "field_instruction_occurrences": [
+              3,
+              3
+            ],
+            "field_instructions_equal_in_order": false,
+            "field_effective_results_equivalence_proven": false,
+            "styles_ids_added": 308,
+            "styles_ids_removed": 164,
+            "style_definitions_changed_same_id": 0,
+            "style_equivalence_proven": false,
+            "noted_limit": "Explicit run/paragraph properties, not computed Word font; sequence matching can be ambiguous; all OPC/field/note transforms remain unapproved."
+          },
+          "SDK_TO_CALLBACK": {
+            "paragraph_counts": [
+              25,
+              25
+            ],
+            "paragraphs_positionally_aligned": true,
+            "expected_visible_text_only": true,
+            "matching_text_characters_compared": 1172,
+            "explicit_format_mismatch_chars_on_matched_text": 0,
+            "effective_style_equivalence_proven": false,
+            "parts_added": [],
+            "parts_removed": [],
+            "parts_modified": [
+              "docProps/core.xml",
+              "word/footer1.xml"
+            ],
+            "opcs_before_after": [
+              {
+                "missing_content_types": 0,
+                "broken_relations": 0,
+                "missing_owners": 1,
+                "missing_xml_references": 0,
+                "external_relations_declared": 0,
+                "diagnostics": {},
+                "part_count": 25
+              },
+              {
+                "missing_content_types": 0,
+                "broken_relations": 0,
+                "missing_owners": 1,
+                "missing_xml_references": 0,
+                "external_relations_declared": 0,
+                "diagnostics": {},
+                "part_count": 25
+              }
+            ],
+            "candidate_new_broken_relationships": 0,
+            "candidate_new_missing_content_types": 0,
+            "notes_referenced_text_signatures_equal": true,
+            "notes_semantic_equivalence_proven": false,
+            "field_instruction_occurrences": [
+              3,
+              3
+            ],
+            "field_instructions_equal_in_order": true,
+            "field_effective_results_equivalence_proven": false,
+            "styles_ids_added": 0,
+            "styles_ids_removed": 0,
+            "style_definitions_changed_same_id": 0,
+            "style_equivalence_proven": true,
+            "noted_limit": "Explicit run/paragraph properties, not computed Word font; sequence matching can be ambiguous; all OPC/field/note transforms remain unapproved."
+          }
+        }
+      },
+      {
+        "id": "RICH-01",
+        "origin": "synthetic",
+        "operation": "edited",
+        "authorization_receipt_present": false,
+        "semantic_changes_require_review": true,
+        "semantic_review_receipt_present": false,
+        "features_claimed_not_proven": [
+          "fields",
+          "footnotes",
+          "headers_footers",
+          "images",
+          "page_breaks",
+          "styles",
+          "tables"
+        ],
+        "features_observed_source": [
+          "fields",
+          "footnotes",
+          "headers_footers",
+          "images",
+          "page_breaks",
+          "section_breaks",
+          "styles",
+          "tables"
+        ],
+        "pairs": {
+          "SOURCE_TO_SDK": {
+            "paragraph_counts": [
+              25,
+              25
+            ],
+            "paragraphs_positionally_aligned": true,
+            "expected_visible_text_only": true,
+            "matching_text_characters_compared": 1170,
+            "explicit_format_mismatch_chars_on_matched_text": 1170,
+            "effective_style_equivalence_proven": false,
+            "parts_added": [
+              "word/_rels/comments.xml.rels",
+              "word/_rels/endnotes.xml.rels",
+              "word/_rels/footer1.xml.rels",
+              "word/_rels/footnotes.xml.rels",
+              "word/_rels/header1.xml.rels",
+              "word/endnotes.xml"
+            ],
+            "parts_removed": [
+              "docProps/thumbnail.jpeg",
+              "word/stylesWithEffects.xml"
+            ],
+            "parts_modified": [
+              "[Content_Types].xml",
+              "_rels/.rels",
+              "customXml/_rels/item1.xml.rels",
+              "customXml/item1.xml",
+              "customXml/itemProps1.xml",
+              "docProps/app.xml",
+              "docProps/core.xml",
+              "word/_rels/document.xml.rels",
+              "word/document.xml",
+              "word/fontTable.xml",
+              "word/footer1.xml",
+              "word/footnotes.xml",
+              "word/header1.xml",
+              "word/numbering.xml",
+              "word/settings.xml",
+              "word/styles.xml",
+              "word/theme/theme1.xml",
+              "word/webSettings.xml"
+            ],
+            "opcs_before_after": [
+              {
+                "missing_content_types": 0,
+                "broken_relations": 0,
+                "missing_owners": 0,
+                "missing_xml_references": 0,
+                "external_relations_declared": 0,
+                "diagnostics": {},
+                "part_count": 21
+              },
+              {
+                "missing_content_types": 0,
+                "broken_relations": 0,
+                "missing_owners": 1,
+                "missing_xml_references": 0,
+                "external_relations_declared": 0,
+                "diagnostics": {},
+                "part_count": 25
+              }
+            ],
+            "candidate_new_broken_relationships": 1,
+            "candidate_new_missing_content_types": 0,
+            "notes_referenced_text_signatures_equal": true,
+            "notes_semantic_equivalence_proven": false,
+            "field_instruction_occurrences": [
+              3,
+              3
+            ],
+            "field_instructions_equal_in_order": false,
+            "field_effective_results_equivalence_proven": false,
+            "styles_ids_added": 308,
+            "styles_ids_removed": 164,
+            "style_definitions_changed_same_id": 0,
+            "style_equivalence_proven": false,
+            "noted_limit": "Explicit run/paragraph properties, not computed Word font; sequence matching can be ambiguous; all OPC/field/note transforms remain unapproved."
+          },
+          "SOURCE_TO_CALLBACK": {
+            "paragraph_counts": [
+              25,
+              25
+            ],
+            "paragraphs_positionally_aligned": true,
+            "expected_visible_text_only": true,
+            "matching_text_characters_compared": 1170,
+            "explicit_format_mismatch_chars_on_matched_text": 1170,
+            "effective_style_equivalence_proven": false,
+            "parts_added": [
+              "word/_rels/comments.xml.rels",
+              "word/_rels/endnotes.xml.rels",
+              "word/_rels/footer1.xml.rels",
+              "word/_rels/footnotes.xml.rels",
+              "word/_rels/header1.xml.rels",
+              "word/endnotes.xml"
+            ],
+            "parts_removed": [
+              "docProps/thumbnail.jpeg",
+              "word/stylesWithEffects.xml"
+            ],
+            "parts_modified": [
+              "[Content_Types].xml",
+              "_rels/.rels",
+              "customXml/_rels/item1.xml.rels",
+              "customXml/item1.xml",
+              "customXml/itemProps1.xml",
+              "docProps/app.xml",
+              "docProps/core.xml",
+              "word/_rels/document.xml.rels",
+              "word/document.xml",
+              "word/fontTable.xml",
+              "word/footer1.xml",
+              "word/footnotes.xml",
+              "word/header1.xml",
+              "word/numbering.xml",
+              "word/settings.xml",
+              "word/styles.xml",
+              "word/theme/theme1.xml",
+              "word/webSettings.xml"
+            ],
+            "opcs_before_after": [
+              {
+                "missing_content_types": 0,
+                "broken_relations": 0,
+                "missing_owners": 0,
+                "missing_xml_references": 0,
+                "external_relations_declared": 0,
+                "diagnostics": {},
+                "part_count": 21
+              },
+              {
+                "missing_content_types": 0,
+                "broken_relations": 0,
+                "missing_owners": 1,
+                "missing_xml_references": 0,
+                "external_relations_declared": 0,
+                "diagnostics": {},
+                "part_count": 25
+              }
+            ],
+            "candidate_new_broken_relationships": 1,
+            "candidate_new_missing_content_types": 0,
+            "notes_referenced_text_signatures_equal": true,
+            "notes_semantic_equivalence_proven": false,
+            "field_instruction_occurrences": [
+              3,
+              3
+            ],
+            "field_instructions_equal_in_order": false,
+            "field_effective_results_equivalence_proven": false,
+            "styles_ids_added": 308,
+            "styles_ids_removed": 164,
+            "style_definitions_changed_same_id": 0,
+            "style_equivalence_proven": false,
+            "noted_limit": "Explicit run/paragraph properties, not computed Word font; sequence matching can be ambiguous; all OPC/field/note transforms remain unapproved."
+          },
+          "SDK_TO_CALLBACK": {
+            "paragraph_counts": [
+              25,
+              25
+            ],
+            "paragraphs_positionally_aligned": true,
+            "expected_visible_text_only": true,
+            "matching_text_characters_compared": 1172,
+            "explicit_format_mismatch_chars_on_matched_text": 0,
+            "effective_style_equivalence_proven": false,
+            "parts_added": [],
+            "parts_removed": [],
+            "parts_modified": [
+              "docProps/core.xml",
+              "word/footer1.xml"
+            ],
+            "opcs_before_after": [
+              {
+                "missing_content_types": 0,
+                "broken_relations": 0,
+                "missing_owners": 1,
+                "missing_xml_references": 0,
+                "external_relations_declared": 0,
+                "diagnostics": {},
+                "part_count": 25
+              },
+              {
+                "missing_content_types": 0,
+                "broken_relations": 0,
+                "missing_owners": 1,
+                "missing_xml_references": 0,
+                "external_relations_declared": 0,
+                "diagnostics": {},
+                "part_count": 25
+              }
+            ],
+            "candidate_new_broken_relationships": 0,
+            "candidate_new_missing_content_types": 0,
+            "notes_referenced_text_signatures_equal": true,
+            "notes_semantic_equivalence_proven": false,
+            "field_instruction_occurrences": [
+              3,
+              3
+            ],
+            "field_instructions_equal_in_order": true,
+            "field_effective_results_equivalence_proven": false,
+            "styles_ids_added": 0,
+            "styles_ids_removed": 0,
+            "style_definitions_changed_same_id": 0,
+            "style_equivalence_proven": true,
+            "noted_limit": "Explicit run/paragraph properties, not computed Word font; sequence matching can be ambiguous; all OPC/field/note transforms remain unapproved."
+          }
+        }
+      }
+    ],
+    "prior_m2p4_no_edit_raster": [
+      {
+        "case_id": "CTRL-01",
+        "source_to_sdk_total_different_pixels": 1452,
+        "source_reexport_total_different_pixels": 0,
+        "raster_recomputed_in_this_patch": false
+      }
+    ],
+    "baseline_m2p5_report_used": true,
+    "objective_broken_candidate_opc": true,
+    "new_equivalence_rules": [],
+    "limits": [
+      "A análise de estilos é explícita, não computa formatação efetiva do Word.",
+      "Matching por offset de caracteres não estabelece equivalência de todos os runs.",
+      "Notas são alinhadas somente pelo texto referenciado, não por ciclo de vida e semântica completa.",
+      "Campos verificam instruções armazenadas, não semântica de recálculo ou resultados visuais.",
+      "Sem reexecutar Word/PDF, os 1452 pixels observados antes permanecem não resolvidos.",
+      "Partes OPC, links externos e relacionamentos não são normalizados para forçar aprovação."
+    ]
+  },
+  "m2p7": {
+    "scope": "INSTITUTIONAL_FINAL_ADOPTION_READINESS",
+    "recommendation": "STOP_AND_REVIEW_DEMONSTRATED_OR_ATTESTED_RISKS",
+    "consultative_only": true,
+    "definitive_engine_approved": false,
+    "backend_final_integration_authorized": false,
+    "required_features": [
+      "fields",
+      "footnotes",
+      "headers_footers",
+      "images",
+      "page_breaks",
+      "styles",
+      "tables"
+    ],
+    "observed_features": [
+      "fields",
+      "footnotes",
+      "headers_footers",
+      "images",
+      "page_breaks",
+      "section_breaks",
+      "styles",
+      "tables"
+    ],
+    "feature_gaps": [],
+    "official_corpus_and_authorization_proven_by_receipt": false,
+    "corpus_representativeness_independently_proven": false,
+    "corpus_scope_receipt_present": false,
+    "integration_checks": [
+      {
+        "id": "normal_api_permissions",
+        "result": "UNVERIFIED",
+        "evidence_present": false,
+        "validation": "FILE_HASH_ONLY_NOT_INDEPENDENT_API_VERIFICATION"
+      },
+      {
+        "id": "entra_authentication",
+        "result": "UNVERIFIED",
+        "evidence_present": false,
+        "validation": "FILE_HASH_ONLY_NOT_INDEPENDENT_API_VERIFICATION"
+      },
+      {
+        "id": "role_authorization",
+        "result": "UNVERIFIED",
+        "evidence_present": false,
+        "validation": "FILE_HASH_ONLY_NOT_INDEPENDENT_API_VERIFICATION"
+      },
+      {
+        "id": "signed_callbacks",
+        "result": "UNVERIFIED",
+        "evidence_present": false,
+        "validation": "FILE_HASH_ONLY_NOT_INDEPENDENT_API_VERIFICATION"
+      },
+      {
+        "id": "quarantine_and_head",
+        "result": "UNVERIFIED",
+        "evidence_present": false,
+        "validation": "FILE_HASH_ONLY_NOT_INDEPENDENT_API_VERIFICATION"
+      },
+      {
+        "id": "word_pdf_export",
+        "result": "UNVERIFIED",
+        "evidence_present": false,
+        "validation": "FILE_HASH_ONLY_NOT_INDEPENDENT_API_VERIFICATION"
+      },
+      {
+        "id": "sdk_callback_provenance",
+        "result": "UNVERIFIED",
+        "evidence_present": false,
+        "validation": "FILE_HASH_ONLY_NOT_INDEPENDENT_API_VERIFICATION"
+      },
+      {
+        "id": "recovery_and_audit",
+        "result": "UNVERIFIED",
+        "evidence_present": false,
+        "validation": "FILE_HASH_ONLY_NOT_INDEPENDENT_API_VERIFICATION"
+      }
+    ],
+    "missing_integration_checks": [
+      "entra_authentication",
+      "normal_api_permissions",
+      "quarantine_and_head",
+      "recovery_and_audit",
+      "role_authorization",
+      "sdk_callback_provenance",
+      "signed_callbacks",
+      "word_pdf_export"
+    ],
+    "reviews": [
+      {
+        "role": "technical",
+        "decision": "PENDING",
+        "evidence_present": false,
+        "validation": "REVIEW_ATTESTATION_NOT_IDENTITY_VERIFICATION"
+      },
+      {
+        "role": "editorial",
+        "decision": "PENDING",
+        "evidence_present": false,
+        "validation": "REVIEW_ATTESTATION_NOT_IDENTITY_VERIFICATION"
+      },
+      {
+        "role": "institutional",
+        "decision": "PENDING",
+        "evidence_present": false,
+        "validation": "REVIEW_ATTESTATION_NOT_IDENTITY_VERIFICATION"
+      }
+    ],
+    "missing_review_roles": [
+      "editorial",
+      "institutional",
+      "technical"
+    ],
+    "prior_unproven_adjudications": [
+      {
+        "criterion": "NOTES_SEMANTICS",
+        "status": "PENDING",
+        "evidence_present": false,
+        "validation": "ATTESTED_REVIEW_NOT_INDEPENDENTLY_CERTIFIED"
+      },
+      {
+        "criterion": "OOXML_STRUCTURAL_EQUIVALENCE",
+        "status": "PENDING",
+        "evidence_present": false,
+        "validation": "ATTESTED_REVIEW_NOT_INDEPENDENTLY_CERTIFIED"
+      },
+      {
+        "criterion": "FIELD_INSTRUCTIONS",
+        "status": "PENDING",
+        "evidence_present": false,
+        "validation": "ATTESTED_REVIEW_NOT_INDEPENDENTLY_CERTIFIED"
+      },
+      {
+        "criterion": "VISUAL_FIDELITY",
+        "status": "PENDING",
+        "evidence_present": false,
+        "validation": "ATTESTED_REVIEW_NOT_INDEPENDENTLY_CERTIFIED"
+      },
+      {
+        "criterion": "GLYPH_LOCALIZATION",
+        "status": "PENDING",
+        "evidence_present": false,
+        "validation": "ATTESTED_REVIEW_NOT_INDEPENDENTLY_CERTIFIED"
+      },
+      {
+        "criterion": "WORD_PRE_POST_EXPORT",
+        "status": "PENDING",
+        "evidence_present": false,
+        "validation": "ATTESTED_REVIEW_NOT_INDEPENDENTLY_CERTIFIED"
+      },
+      {
+        "criterion": "OFFICIAL_REPRESENTATIVE_CORPUS",
+        "status": "PENDING",
+        "evidence_present": false,
+        "validation": "ATTESTED_REVIEW_NOT_INDEPENDENTLY_CERTIFIED"
+      },
+      {
+        "criterion": "BACKEND_GATE_INTEGRATION",
+        "status": "PENDING",
+        "evidence_present": false,
+        "validation": "ATTESTED_REVIEW_NOT_INDEPENDENTLY_CERTIFIED"
+      },
+      {
+        "criterion": "INDEPENDENT_EDITORIAL_SIGNOFF",
+        "status": "PENDING",
+        "evidence_present": false,
+        "validation": "ATTESTED_REVIEW_NOT_INDEPENDENTLY_CERTIFIED"
+      }
+    ],
+    "missing_adjudications": [
+      "BACKEND_GATE_INTEGRATION",
+      "FIELD_INSTRUCTIONS",
+      "GLYPH_LOCALIZATION",
+      "INDEPENDENT_EDITORIAL_SIGNOFF",
+      "NOTES_SEMANTICS",
+      "OFFICIAL_REPRESENTATIVE_CORPUS",
+      "OOXML_STRUCTURAL_EQUIVALENCE",
+      "VISUAL_FIDELITY",
+      "WORD_PRE_POST_EXPORT"
+    ],
+    "hold_reasons": [
+      "CORPUS_SCOPE_ACCEPTANCE_NOT_PROVIDED",
+      "INDEPENDENT_BOARD_ROLES_MISSING",
+      "NEW_STRUCTURAL_DIFFERENCES_WITHOUT_SEMANTIC_REVIEW",
+      "NORMAL_BACKEND_INTEGRATION_NOT_FULLY_ATTESTED",
+      "OFFICIAL_AUTHORIZED_CORPUS_NOT_PROVEN",
+      "PRIOR_UNPROVEN_NOT_ADJUDICATED"
+    ],
+    "risk_flags": [
+      "NEW_BROKEN_OPC_IN_CALLBACK",
+      "NEW_BROKEN_OPC_IN_SDK"
+    ],
+    "documents_pending_semantic_review": 4,
+    "gate_controls_untouched": true,
+    "formal_followup": "Independent board verifies raw evidence, corpus scope, official models and reviews; this kit cannot approve adoption."
+  },
+  "status": "HOLD_QUARANTINE",
+  "canPromote": false,
+  "officialApproved": false,
+  "backend_final_integration_authorized": false,
+  "blocked_gates": [
+    "G1",
+    "G2",
+    "M3"
+  ]
+}

@@ -18,7 +18,7 @@ class Block06MigrationTest {
         String id="10000000-0000-4000-8000-000000000001";
         jdbc.update("insert into nite_connect.members(id,name,institutional_email,status) values (?::uuid,'Migração','migration@unijorge.com.br','ATIVO')",id);
         assertThat(Flyway.configure().dataSource(postgres.getJdbcUrl(),postgres.getUsername(),postgres.getPassword()).target("5").load().migrate().migrationsExecuted).isEqualTo(2);
-        var flyway=Flyway.configure().dataSource(postgres.getJdbcUrl(),postgres.getUsername(),postgres.getPassword()).load();
+        var flyway=Flyway.configure().dataSource(postgres.getJdbcUrl(),postgres.getUsername(),postgres.getPassword()).target("9").load();
         assertThat(flyway.migrate().migrationsExecuted).isEqualTo(4);flyway.validate();
         assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("9");
         assertThat(jdbc.queryForObject("select count(*) from information_schema.tables where table_schema='nite_connect' and table_name='academic_assessment_evidence'",Long.class)).isEqualTo(1);

@@ -1,0 +1,31 @@
+# syntax=docker/dockerfile:1
+ARG BASE_IMAGE=onlyoffice/documentserver@sha256:ca17889f10b11141cc6441836aebdd2835cf3e1b49681b2fd6e155c94b7850b3
+FROM ${BASE_IMAGE} AS sdk-build
+ARG SOURCE_DATE_EPOCH
+ENV PRODUCT_VERSION=10.0.0-nite-savedate BUILD_NUMBER=2
+ENV APP_COPYRIGHT="Copyright (C) Ascensio System SIA 2009-2026. NITE SAVEDATE local source build."
+WORKDIR /build/.private
+COPY original-source.tar prepare_source.py source.lock.json ./
+COPY native/savedate.js ./native/savedate.js
+RUN python3 -c "import hashlib,json,pathlib; p=pathlib.Path('.'); assert hashlib.sha256((p/'original-source.tar').read_bytes()).hexdigest()==json.loads((p/'source.lock.json').read_text())['source_archive_sha256']" \
+ && tar -xf original-source.tar \
+ && python3 prepare_source.py --sdk-source /build/.private/sdkjs --source-archive original-source.tar \
+ && python3 sdkjs/build/build.py --product word \
+ && gzip -n -9 -k sdkjs/deploy/sdkjs/word/sdk-all.js \
+ && gzip -n -9 -k sdkjs/deploy/sdkjs/word/sdk-all-min.js \
+ && touch -d @${SOURCE_DATE_EPOCH} sdkjs/deploy/sdkjs/word/sdk-all*.js* sdkjs/deploy/sdkjs/word
+
+FROM ${BASE_IMAGE}
+ARG SOURCE_DATE_EPOCH
+LABEL org.opencontainers.image.title="NITE ONLYOFFICE SAVEDATE local qualification"
+LABEL org.opencontainers.image.source="https://github.com/ONLYOFFICE/sdkjs"
+LABEL org.opencontainers.image.revision="3679e0375a758d7dc59d31337a45461be3525ed8"
+LABEL nite.scope="local-synthetic-qualification"
+COPY --from=sdk-build /build/.private/sdkjs/deploy/sdkjs/word/ /var/www/onlyoffice/documentserver/sdkjs/word/
+
+# The native callback renderer prefers this vendor snapshot over rebuilt JavaScript.
+# Remove only derived Word artifacts in the new image; the base image is immutable.
+RUN rm -f /var/www/onlyoffice/documentserver/sdkjs/word/sdk-all.bin \
+ /var/www/onlyoffice/documentserver/sdkjs/word/sdk-all.bin.gz \
+ /var/www/onlyoffice/documentserver/sdkjs/word/sdk-all.cache \
+ && touch -d @${SOURCE_DATE_EPOCH} /var/www/onlyoffice/documentserver/sdkjs/word

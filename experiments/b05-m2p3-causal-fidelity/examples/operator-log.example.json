@@ -1,0 +1,10 @@
+{
+  "session_label": "CTRL-01",
+  "confirmed_mode": "no_edit",
+  "evidence_strength": "attested",
+  "editor_version": "ONLYOFFICE documentserver:10.0.0.1",
+  "events": [
+    {"at": "2026-10-23T13:00:00-03:00", "event": "opened"},
+    {"at": "2026-10-23T13:05:00-03:00", "event": "closed"}
+  ]
+}

@@ -46,7 +46,7 @@ final class DocsApiService {
         String alias=work.path("alias").asString();if(!alias.matches("F0[1-9]\\.docx"))throw new IOException("Invalid private alias");
         CandidateGate gate=switch(work.path("mode").asString()) {
             case "structural"->(id,data,number)->{};
-            case "strict"->new ScriptedDocxGate(Map.of(alias,List.of("XYZ","")));
+            case "strict","rebase"->new ScriptedDocxGate(Map.of(alias,List.of("XYZ","")));
             case "reject"->(id,data,number)->{throw new DocumentStore.Failure(500,"INDUCED_REJECTION");};
             default->throw new IOException("Invalid private policy");
         };
@@ -54,7 +54,7 @@ final class DocsApiService {
         UUID doc=document(work);gate.register(doc,alias,original);gates.put(doc,gate);store.seed(doc,alias,original);
     }
     synchronized JsonNode create(String alias,String mode,boolean writable) {
-        if(!alias.matches("F0[1-9]\\.docx")||!Set.of("structural","strict","reject").contains(mode)||works.size()>=32)fail(400,"Caso de laboratório inválido");
+        if(!alias.matches("F0[1-9]\\.docx")||!Set.of("structural","strict","rebase","reject").contains(mode)||works.size()>=32)fail(400,"Caso de laboratório inválido");
         var work=DocsJwt.JSON.createObjectNode();UUID id=UUID.randomUUID();
         work.put("id",id.toString());work.put("document",UUID.randomUUID().toString());work.put("alias",alias);work.put("mode",mode);work.put("writable",writable);
         work.put("key","b0503-"+UUID.randomUUID());work.put("cap",random());work.put("expires",Instant.now().plusSeconds(3600).getEpochSecond());
@@ -152,9 +152,16 @@ final class DocsApiService {
         String operation=payload.path("userdata").asString("");
         if(status==6&&(operation.isEmpty()||work.path("pendingForce").asString().isEmpty()||!operation.equals(work.path("pendingForce").asString())))fail(409,"Checkpoint não solicitado ou obsoleto");
         work.put("state","candidate-received");persist(work);
-        byte[] candidate;
-        try{candidate=fetch.download(payload.path("url").asString(),work.path("key").asString());}
+        byte[] downloaded;
+        try{downloaded=fetch.download(payload.path("url").asString(),work.path("key").asString());}
         catch(DocumentStore.Failure failure){work.put("state","recovery-required");work.put("reason","DOWNLOAD_FAILED");work.put("pendingForce","");persist(work);throw failure;}
+        String downloadedHash=checksum(downloaded);
+        byte[] source=store.version(document(work),work.path("sourceVersion").asString());
+        byte[] candidate=SavedateFieldSemanticRepair.repairKnownInstructionLoss(source,downloaded);
+        candidate=ImplicitParagraphDefaultsRepair.repairIfSynthesized(source,candidate);
+        long nextVersion=store.versions(document(work)).size()+1L;
+        if("rebase".equals(work.path("mode").asString()))
+            candidate=gates.get(document(work)).normalizeCandidate(document(work),candidate,nextVersion);
         String hash=checksum(candidate);work.put("state","validation-pending");persist(work);
         try {
             DocxValidator.validate(candidate);
@@ -164,7 +171,7 @@ final class DocsApiService {
                 work.put("headVersion",saved.version());work.put("commits",work.path("commits").asInt()+1);
             }else {if(!current.equals(work.path("headVersion").asString()))work.put("commits",work.path("commits").asInt()+1);work.put("headVersion",current);}
         }catch(DocumentStore.Failure failure){
-            quarantine(id,hash,candidate);work.put("candidateHash",hash);work.put("reason",failure.status()==409?"CONFLICT":"CANDIDATE_REJECTED");work.put("state","rejected");work.put("pendingForce","");persist(work);throw failure;
+            quarantine(id,downloadedHash,downloaded);work.put("candidateHash",downloadedHash);work.put("reason",failure.status()==409?"CONFLICT":"CANDIDATE_REJECTED");work.put("state","rejected");work.put("pendingForce","");persist(work);throw failure;
         }
         String pending=work.path("pendingForce").asString();
         work.put("lastHash",hash);receipts.put(fingerprint,true);

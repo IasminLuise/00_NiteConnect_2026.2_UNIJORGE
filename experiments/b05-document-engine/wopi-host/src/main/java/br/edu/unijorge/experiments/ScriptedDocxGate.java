@@ -33,6 +33,17 @@ public final class ScriptedDocxGate implements CandidateGate {
         if(!expected.equals(body(candidate)))reject("UNEXPECTED_BODY");
         if(!snapshot(baseline.source(),script.get((int)index)).equals(snapshot(candidate,"")))reject("UNVERIFIED_FIELDS_OR_LAYOUT");
     }
+    @Override public byte[] normalizeCandidate(UUID id,byte[] candidate,long nextNumber) {
+        var baseline=sources.get(id);
+        var script=baseline==null?null:scripts.get(baseline.name());
+        long index=nextNumber-2;
+        if(script==null||index<0||index>=script.size())return candidate;
+        var expected=new ArrayList<>(baseline.body());
+        if(expected.isEmpty())return candidate;
+        expected.set(0,script.get((int)index)+expected.get(0));
+        if(!expected.equals(body(candidate)))return candidate;
+        return TextOnlyDocxRebase.rebase(baseline.source(),candidate,script.get((int)index));
+    }
     private static void reject(String reason){throw new DocumentStore.Failure(500,"SAVE_REJECTED_"+reason);}
     private static Map<String,Document> parse(byte[] data) {
         DocxValidator.validate(data);

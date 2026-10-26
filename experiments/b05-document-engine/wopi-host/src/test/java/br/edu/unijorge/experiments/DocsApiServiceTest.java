@@ -50,8 +50,8 @@ class DocsApiServiceTest {
         var closed=body(work,4);service.callback(id(work),cap(work),closed,signed(closed));
         assertEquals("rejected",service.state(id(work),cap(work)).path("state").asString());
     }
-    @Test void strictIndependentKnownScriptCanCommitWithoutLearningEngineOutput()throws Exception {
-        var service=service();var work=service.create("F01.docx","strict",true);var message=body(work,2);
+    @Test void explicitTextOnlyRebaseCanCommitWithoutLearningEngineOutput()throws Exception {
+        var service=service();var work=service.create("F01.docx","rebase",true);var message=body(work,2);
         assertEquals(0,service.callback(id(work),cap(work),message,signed(message)));
         var state=service.state(id(work),cap(work));assertEquals(1,state.path("commits").asInt());
         assertArrayEquals(bytes.get(),service.version(id(work),cap(work),state.path("headVersion").asString()));

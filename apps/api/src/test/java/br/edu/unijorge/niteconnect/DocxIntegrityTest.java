@@ -57,22 +57,55 @@ class DocxIntegrityTest {
         assertThatThrownBy(() -> guard.validate(zip(entity))).isInstanceOf(ApiException.class);
     }
 
-    @Test void preservesOnlySecureExternalHyperlinksWithoutDereferencingThem() throws Exception {
-        var linked = parts();
-        linked.put("word/_rels/document.xml.rels", "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"link1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink\" Target=\"https://example.org/path\" TargetMode=\"External\"/></Relationships>");
-        byte[] original = zip(linked);
+    @Test void preservesHttpsHyperlinkRelationshipsWithoutFetchingThem() throws Exception {
+        String relationship = "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"externalLink\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink\" TargetMode=\"External\" Target=\"https://docs.example.test/report\"/></Relationships>";
+        String document = "<w:document xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\"><w:body><w:p><w:hyperlink r:id=\"externalLink\"><w:r><w:t>Official report</w:t></w:r></w:hyperlink></w:p></w:body></w:document>";
+        var source = parts(); source.put("word/_rels/document.xml.rels", relationship); source.put("word/document.xml", document);
+        var candidate = new LinkedHashMap<>(source);
+        candidate.put("word/document.xml", document.replace("Official report", "Updated report"));
+        assertThatCode(() -> guard.validate(zip(source))).doesNotThrowAnyException();
+        assertThat(guard.assess(zip(source), zip(candidate)).accepted()).isTrue();
+        candidate.put("word/_rels/document.xml.rels", relationship.replace("https://docs.example.test/report", "https://other.example.test/report"));
+        assertThat(guard.assess(zip(source), zip(candidate)).accepted()).isFalse();
+    }
 
-        assertThatCode(() -> guard.validate(original)).doesNotThrowAnyException();
-        assertThat(guard.assess(original, original).accepted()).isTrue();
-
-        for (String relation : new String[]{
-                "<Relationship Id=\"link1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink\" Target=\"http://example.org\" TargetMode=\"External\"/>",
-                "<Relationship Id=\"link1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink\" Target=\"javascript:alert(1)\" TargetMode=\"External\"/>",
-                "<Relationship Id=\"link1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/image\" Target=\"https://example.org/image.png\" TargetMode=\"External\"/>"}) {
+    @Test void rejectsUnsafeOrNonHyperlinkExternalRelationships() throws Exception {
+        for (String typeAndTarget : new String[]{
+                "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink|javascript:alert(1)",
+                "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink|file:///C:/private.docx",
+                "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink|http://example.test/doc",
+                "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink|https://user:secret@example.test/doc",
+                "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image|https://example.test/image.png"}) {
+            String[] values = typeAndTarget.split("\\|", 2);
             var unsafe = parts();
-            unsafe.put("word/_rels/document.xml.rels", "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">" + relation + "</Relationships>");
+            unsafe.put("word/_rels/document.xml.rels", "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"external\" Type=\""+values[0]+"\" TargetMode=\"External\" Target=\""+values[1]+"\"/></Relationships>");
             assertThatThrownBy(() -> guard.validate(zip(unsafe))).isInstanceOf(ApiException.class);
         }
+    }
+
+    @Test void permitsOnlyEmptyOrphanCommentsRelationshipsAddedByEditor() throws Exception {
+        var source = parts();
+        var candidate = new LinkedHashMap<>(source);
+        candidate.put("word/document.xml", DOCUMENT.replace("Original", "Updated"));
+        candidate.put("word/_rels/comments.xml.rels", "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"/>");
+        assertThat(guard.assess(zip(source), zip(candidate)).accepted()).isTrue();
+
+        candidate.put("word/_rels/comments.xml.rels", "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"r1\" Type=\"x\" Target=\"comments.xml\"/></Relationships>");
+        assertThat(guard.assess(zip(source), zip(candidate)).accepted()).isFalse();
+
+        candidate.put("word/_rels/comments.xml.rels", "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"/>");
+        candidate.put("word/comments.xml", "<comments/>");
+        assertThat(guard.assess(zip(source), zip(candidate)).accepted()).isFalse();
+
+        candidate = new LinkedHashMap<>(source);
+        candidate.put("word/_rels/comments.xml.rels", "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><!--unexpected--></Relationships>");
+        assertThat(guard.assess(zip(source), zip(candidate)).accepted()).isFalse();
+
+        var withOrphan = new LinkedHashMap<>(source);
+        withOrphan.put("word/_rels/comments.xml.rels", "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"/>");
+        candidate = new LinkedHashMap<>(withOrphan);
+        candidate.put("word/_rels/comments.xml.rels", "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"> </Relationships>");
+        assertThat(guard.assess(zip(withOrphan), zip(candidate)).accepted()).isFalse();
     }
 
     @Test void rejectsInflatedEntryAndExcessiveEntryCount() {

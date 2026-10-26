@@ -7,6 +7,10 @@ import java.util.List;
 
 public interface DocumentEditorProvider {
     EditorConfiguration open(String editorKey,String title,URI source,URI callback,boolean readOnly,UUID actor);
+    /** Only an explicitly authorized local inspection service may issue this configuration. */
+    default EditorConfiguration openInspection(String editorKey,String title,URI source,URI callback,UUID actor){
+        throw new UnsupportedOperationException("Read-only inspection is not supported by this provider");
+    }
     Callback verifyCallback(String token,Map<String,Object> body);
     byte[] download(URI uri,int maxBytes);
     byte[] convertPdf(String key,URI source);

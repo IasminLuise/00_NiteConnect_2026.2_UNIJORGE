@@ -1,0 +1,123 @@
+{
+  "schema": "b05-m2p2-shareable-v1",
+  "semantics": {
+    "schema": "b05-m2p2-semantics-v1",
+    "scope": "SYNTHETIC_ONLY_READ_ONLY",
+    "expectedEditExact": true,
+    "parts": {
+      "original": 17,
+      "candidate": 20,
+      "added": 5,
+      "removed": 2,
+      "changedCommon": 15
+    },
+    "styles": {
+      "state": "DIFFERENT_OR_UNPROVEN",
+      "mappingCount": 152,
+      "styleIdsRenamed": 152,
+      "styleSetEqual": false,
+      "styleDefinitionsEqualAfterIdResolution": false,
+      "stylePropertiesDiffer": 320
+    },
+    "fields": {
+      "sourceFieldTokens": 0,
+      "candidateFieldTokens": 0,
+      "state": "NOT_EXERCISED"
+    },
+    "notes": {
+      "sourceReferences": 0,
+      "candidateReferences": 0,
+      "candidateSeparatorOnly": true,
+      "status": "NEW_EMPTY_NOTES_NOT_APPROVED"
+    },
+    "relationships": {
+      "changedSharedSources": 2,
+      "sourceSetsChanged": true,
+      "resolvedReferencesEqual": true
+    },
+    "contentTypes": {
+      "changedCommon": 0,
+      "partTypesAddedOrRemoved": true
+    },
+    "protectedParts": {
+      "stylesWithEffectsRemoved": true,
+      "thumbnailRemoved": true,
+      "mediaChanged": false
+    },
+    "risks": [],
+    "classification": "OOXML_TRANSFORMATIONS_REQUIRE_JUSTIFICATION",
+    "mayPromote": false
+  },
+  "visual": {
+    "schema": "b05-m2p2-visual-v1",
+    "sourcePages": 1,
+    "candidatePages": 1,
+    "pages": [
+      {
+        "page": 1,
+        "pagePixels": 1938816,
+        "authorizedROIPixels": 22505,
+        "authorizedROIPageFraction": 0.011608,
+        "rawChangedPixels": 5604,
+        "pixelsInChangedLineROI": 5569,
+        "unexpectedPixels": 35,
+        "residualComponents": [
+          {
+            "pixels": 29,
+            "bboxPx": [
+              244,
+              428,
+              250,
+              439
+            ]
+          },
+          {
+            "pixels": 3,
+            "bboxPx": [
+              245,
+              424,
+              246,
+              427
+            ]
+          },
+          {
+            "pixels": 3,
+            "bboxPx": [
+              247,
+              424,
+              248,
+              427
+            ]
+          }
+        ],
+        "sameDocumentRenderRepeatStable": true,
+        "nonEditedLinesGeometryAndFontsEqual": true,
+        "changedTextLineCount": 1
+      }
+    ],
+    "unexplainedPixels": 35,
+    "editedPixels": 5569,
+    "changedTextLines": 1,
+    "layoutPreserved": true,
+    "classification": "UNEXPLAINED_RESIDUAL_HOLD"
+  },
+  "shadowPolicy": {
+    "schema": "b05-m2p2-policy-v1",
+    "policy": "B05_M2P2_SHADOW_V1",
+    "scope": "SYNTHETIC_ONLY_SHADOW_NO_PRODUCT_WRITE",
+    "decision": "HOLD_QUARANTINE",
+    "blockers": [
+      "NOTE_PARTS_NOT_QUALIFIED",
+      "OOXML_TRANSFORMS_NOT_AUTHORIZED",
+      "STYLE_SEMANTICS_NOT_PROVEN",
+      "WORD_METRICS_NOT_PREQUALIFIED",
+      "WORD_PDF_VISUAL_NOT_PREQUALIFIED"
+    ],
+    "canPromote": false,
+    "officialApproved": false,
+    "releaseGate": "G1_G2_M3_STILL_BLOCKED",
+    "notice": "A successful shadow outcome is not authorization for promotion or official editing."
+  },
+  "dataClassification": "NO_TEXT_BYTES_TOKENS_HASHES_OR_FILEPATHS",
+  "conditions": "Requires private manual review of DOCX, Word and PDF before any policy implementation."
+}

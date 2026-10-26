@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 :root{color-scheme:light;--ink:#152d3c;--muted:#637783;--line:#dce5e8;--soft:#f4f8f8;--teal:#0b756f;--teal-dark:#075d59;--orange:#e8973d;--paper:#fff}
 *{box-sizing:border-box}
 body{margin:0;background:#f6f8f8;color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
