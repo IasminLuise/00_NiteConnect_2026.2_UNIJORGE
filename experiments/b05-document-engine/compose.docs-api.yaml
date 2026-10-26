@@ -1,0 +1,43 @@
+name: nite-b05-docs-api
+services:
+  wopi-host:
+    image: nite-b05-wopi:b0503
+    ports: ["127.0.0.1:18087:8080"]
+    environment:
+      LAB_ORIGIN: http://localhost:18087
+      LAB_ENGINE: onlyoffice
+      ONLYOFFICE_INTERNAL: http://onlyoffice:80
+      ONLYOFFICE_PUBLIC: http://localhost:19982
+      B05_DOCS_ENABLED: "true"
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 512m
+    networks:
+      comparison:
+        ipv4_address: 172.29.53.20
+  onlyoffice:
+    image: onlyoffice/documentserver:10.0.0.1@sha256:ca17889f10b11141cc6441836aebdd2835cf3e1b49681b2fd6e155c94b7850b3
+    environment:
+      WOPI_ENABLED: "true"
+      JWT_ENABLED: "true"
+      JWT_HEADER: Authorization
+      ALLOW_PRIVATE_IP_ADDRESS: "true"
+      ALLOW_META_IP_ADDRESS: "false"
+    shm_size: 256m
+    mem_limit: 4g
+    cpus: 2.0
+    networks:
+      comparison:
+        ipv4_address: 172.29.53.10
+  gateway:
+    image: nginx:stable-alpine@sha256:970364228b1e4f932abc22d321932816782cca8a20b85a77552a7cfe9acfb3b5
+    ports: ["127.0.0.1:19982:8080"]
+    volumes: ["./gateway/onlyoffice.conf:/etc/nginx/nginx.conf:ro"]
+    depends_on: [onlyoffice]
+    mem_limit: 64m
+    networks: [comparison]
+networks:
+  comparison:
+    ipam:
+      config:
+        - subnet: 172.29.53.0/24

@@ -56,6 +56,10 @@ public class EvidenceService {
     @Transactional(readOnly=true) public PageResult<View> personalList(UUID actor,int page,int size) {
         access.requireActive(actor);return views(repo.list(null,actor,page,size),false);
     }
+    @Transactional(readOnly=true) public PageResult<View> personalBetween(UUID actor,Instant from,Instant to,int page,int size) {
+        access.requireActive(actor);if(from==null||to==null||!from.isBefore(to))throw ApiException.invalid("Intervalo de evidências inválido");
+        return views(repo.personalBetween(actor,from,to,page,size),false);
+    }
     @Transactional(readOnly=true) public View personal(UUID actor,UUID id) {
         access.requireActive(actor);Evidence e=repo.require(id);if(!actor.equals(e.authorId())) throw ApiException.notFound();return view(e,false);
     }

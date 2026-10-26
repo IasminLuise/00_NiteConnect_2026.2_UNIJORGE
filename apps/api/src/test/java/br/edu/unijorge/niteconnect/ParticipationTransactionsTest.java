@@ -70,15 +70,21 @@ class ParticipationTransactionsTest extends AttendanceTestSupport {
     }
     @Test void cancelledMeetingsDoNotGenerateAbsenceAndNoExpectationMeansNoAbsence() throws Exception {
         UUID event=event();
+        String eventDate=localEventDate(event);
         mvc.perform(post("/api/v1/agenda/events/"+event+"/cancel").with(token(ADMIN)).contentType("application/json")
                 .content(json.writeValueAsString(Map.of("expectedVersion",ev(event),"reason","Cancelamento","confirmed",true)))).andExpect(status().isOk());
-        String date=java.time.LocalDate.now(java.time.ZoneId.of("America/Bahia")).toString();
-        mvc.perform(get("/api/v1/me/participation-summary?from="+date+"&to="+date).with(token(MEMBER))).andExpect(status().isOk()).andExpect(jsonPath("$.absentMeetings").value(0));
+        mvc.perform(get("/api/v1/me/participation-summary?from="+eventDate+"&to="+eventDate).with(token(MEMBER))).andExpect(status().isOk()).andExpect(jsonPath("$.absentMeetings").value(0));
         UUID second=event();qr(second);
         mvc.perform(post("/api/v1/agenda/events/"+second+"/close").with(token(ADMIN)).contentType("application/json")
                 .content(json.writeValueAsString(Map.of("expectedVersion",ev(second),"reason","Conferência")))).andExpect(status().isOk());
-        mvc.perform(get("/api/v1/me/participation-summary?from="+date+"&to="+date).with(token(MEMBER))).andExpect(jsonPath("$.absentMeetings").value(1));
-        mvc.perform(get("/api/v1/me/participation-summary?from="+date+"&to="+date).with(token(OTHER))).andExpect(jsonPath("$.absentMeetings").value(0));
+        String secondDate=localEventDate(second);
+        mvc.perform(get("/api/v1/me/participation-summary?from="+secondDate+"&to="+secondDate).with(token(MEMBER))).andExpect(jsonPath("$.absentMeetings").value(1));
+        mvc.perform(get("/api/v1/me/participation-summary?from="+secondDate+"&to="+secondDate).with(token(OTHER))).andExpect(jsonPath("$.absentMeetings").value(0));
+    }
+
+    private String localEventDate(UUID event) {
+        return jdbc.queryForObject("select starts_at from nite_connect.calendar_events where id=?",java.sql.Timestamp.class,event)
+                .toInstant().atZone(java.time.ZoneId.of("America/Bahia")).toLocalDate().toString();
     }
     @Test void eventUpdateEnforcesVersionAndFreezesOpenedProgram() throws Exception {
         UUID event=event();String body=json.writeValueAsString(Map.of("title","Revisado","description","Outro","kind","ENCONTRO","modality","REMOTA",
