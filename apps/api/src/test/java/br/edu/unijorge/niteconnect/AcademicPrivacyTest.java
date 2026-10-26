@@ -14,10 +14,12 @@ class AcademicPrivacyTest extends AcademicSyntheticSupport {
         mvc.perform(get("/api/v1/academic/enrollments/"+e+"/assessments").with(token(OTHER))).andExpect(status().isOk())
                 .andExpect(jsonPath("$.items[0].reason").doesNotExist()).andExpect(jsonPath("$.items[0].score").doesNotExist()).andExpect(jsonPath("$.items[0].evidenceIds").isEmpty());
         mvc.perform(get("/api/v1/academic/enrollments/"+e+"/calculations").with(token(OTHER))).andExpect(status().isOk())
-                .andExpect(jsonPath("$.items[0].data.assessments").isEmpty()).andExpect(jsonPath("$.items[0].data.evidence").isEmpty());
+                .andExpect(jsonPath("$.items[0].data.assessments").isEmpty()).andExpect(jsonPath("$.items[0].data.evidence").isEmpty())
+                .andExpect(jsonPath("$.items[0].data.result").value(org.hamcrest.Matchers.nullValue()));
         var response=postAs(OTHER,"/api/v1/academic/enrollments/"+e+"/calculations",command(ev(e)),201);
         org.assertj.core.api.Assertions.assertThat(response.get("data").get("assessments").size()).isZero();
         org.assertj.core.api.Assertions.assertThat(response.get("data").get("evidence").size()).isZero();
+        org.assertj.core.api.Assertions.assertThat(response.get("data").get("result").isNull()).isTrue();
     }
     @Test void ownAdministrativeReviewDoesNotLeakPrivateReasonsBeforeDisclosure() throws Exception {
         var r=new HashMap<>(rules());r.put("discloseResults",false);UUID e=enrollment(policy(term(),r));approve(e);UUID c=completedCalculation(e);

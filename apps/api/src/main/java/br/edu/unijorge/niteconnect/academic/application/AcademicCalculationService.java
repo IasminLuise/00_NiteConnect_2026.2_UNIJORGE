@@ -30,15 +30,15 @@ public class AcademicCalculationService {
         // Later writers cannot alter any local source until this capture commits.
         var updated=repo.updateEnrollment(e,EnrollmentStatus.CALCULADA,e.disciplines());
         var data=new CalculationData(policy,List.copyOf(inputs),List.copyOf(sources.values()),value,AcademicCalculator.ALGORITHM,clock.instant());
-        var result=repo.calculate(updated,data);repo.event(actor,e.id(),"CALCULATION",result.id(),"CALCULATED",null,result,c.reason());return auth.isCoordinator(actor)?result:summary(result);
+        var result=repo.calculate(updated,data);repo.event(actor,e.id(),"CALCULATION",result.id(),"CALCULATED",null,result,c.reason());return auth.isCoordinator(actor)?result:summary(result,false);
     }
-    private Calculation summary(Calculation c) {
-        var data=new CalculationData(null,List.of(),List.of(),c.data().result(),c.data().algorithm(),c.data().cutAt());
+    private Calculation summary(Calculation c,boolean includeResult) {
+        var data=new CalculationData(null,List.of(),List.of(),includeResult?c.data().result():null,c.data().algorithm(),c.data().cutAt());
         return new Calculation(c.id(),c.enrollmentId(),c.policyId(),c.enrollmentVersion(),data,c.createdAt());
     }
     @Transactional(readOnly=true) public PageResult<Calculation> list(UUID actor,UUID enrollmentId,boolean own,int page,int size) {
         auth.requireActive(actor);Enrollment e=repo.enrollment(enrollmentId);assessments.requireVisible(actor,e,own);var result=repo.calculations(enrollmentId,own,page,size);
         if(!own && auth.isCoordinator(actor)) return result;
-        return new PageResult<>(result.items().stream().map(this::summary).toList(),result.page(),result.size(),result.total());
+        return new PageResult<>(result.items().stream().map(c->summary(c,own)).toList(),result.page(),result.size(),result.total());
     }
 }
