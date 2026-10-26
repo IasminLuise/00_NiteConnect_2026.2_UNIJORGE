@@ -20,9 +20,14 @@
 **/.next/
 **/out/
 **/coverage/
+*.tsbuildinfo
 
 # SO e arquivos temporários
 .DS_Store
 Thumbs.db
 *.log
 *.tmp
+
+# Evidências e bytes privados de desenvolvimento
+.private/
+.playwright-cli/

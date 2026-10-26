@@ -4,7 +4,7 @@ Repositório para desenvolvimento do Sistema de Gerenciamento do Núcleo de Inov
 ## Implementação atual — backend
 
 A base atual usa Java 21, Spring Boot 4.1.1, Maven e PostgreSQL 17 em
-`apps/api`, como monólito modular. `apps/web` permanece reservado ao frontend.
+`apps/api`, como monólito modular. `apps/web` contém uma interface mínima em Next.js para o Diário contínuo, ainda pendente da composição com a autenticação Entra.
 As propostas de tecnologias e autenticação nas seções iniciais abaixo são
 anteriores à especificação funcional consolidada e não orientam a implementação.
 
@@ -20,6 +20,11 @@ O staging do Bloco 02 está preparado para Cloudflare Workers/Containers e
 PostgreSQL no Neon. O pacote não foi implantado em contas externas; pré-requisitos,
 secrets, bootstrap, deploy manual e roteiro de aceite estão no
 [runbook de staging do Bloco 02](docs/implementation/staging-bloco-02.md).
+
+O B05 adiciona o core documental e o adaptador ONLYOFFICE Docs API, com bytes
+somente locais de desenvolvimento e editor desativado por padrão. Modelos oficiais
+continuam bloqueados para edição/conversão. Configuração, endpoints e limites estão
+no [contrato B05 local](docs/implementation/bloco-05-core-docs-api.md).
 
 Validação local (Java 21 e Docker disponíveis):
 
