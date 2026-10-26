@@ -98,3 +98,30 @@ As execuções anteriores de 185 testes (baseline), 209 testes (núcleo antes da
 Entrega: [PR #16](https://github.com/IasminLuise/00_NiteConnect_2026.2_UNIJORGE/pull/16), base `docs/bloco-06-contrato` ([PR #15](https://github.com/IasminLuise/00_NiteConnect_2026.2_UNIJORGE/pull/15)). Branch/worktree mantidos para revisão; sem merge/deploy. CI do commit final deve ser consultado no PR, sem usar os checks da versão anterior como prova das correções.
 
 Pendências reais: provedor documental B05 real e parâmetros/rito institucional confirmados; G5 e encerramento funcional integral não declarados. Encaminhamento é registro interno condicionado, sem envio ou confirmação de lançamento universitário.
+
+## Atualização posterior — sequência B05/B06 (26/10/2026)
+
+Após a auditoria persistente dos bancos, o pedido do usuário autorizou aplicar as migrações B05 V1–V7. Flyway aplicou V1–V7 em `niteconnect` local e `niteconnect_staging` no Neon; ambos registram sete migrações bem-sucedidas, sem falhas. A estratégia histórica de V6 acadêmica foi supersedida.
+
+Para preservar a identidade append-only já aplicada, as migrações acadêmicas desta branch passam a ser `V8__academic_assessment.sql` e `V9__academic_public_feedback.sql`. A ordem de integração é B05 primeiro, B06 depois. Esta branch ainda não contém os arquivos B05 V6/V7; portanto, a validação combinada V1–V9 depende da integração/rebase do B05 e não deve ser declarada a partir do teste isolado desta branch.
+
+No PostgreSQL local, o papel de aplicação `niteconnect` foi criado após autorização do usuário, com a senha fornecida aplicada interativamente via `psql` (`\password`), sem gravá-la em arquivo ou `.env`. O papel é proprietário do schema `nite_connect`, das 34 tabelas de domínio e de `public.flyway_schema_history`. A conexão autenticada como `niteconnect` confirmou o histórico V1–V7 sem falhas e nenhuma linha em `nite_connect.members`. A API foi iniciada com `DB_PASSWORD` inserida por prompt seguro e variável de ambiente temporária: Flyway validou as sete migrações, Hibernate concluiu `ddl-auto: validate`, Spring Boot iniciou e `/actuator/health` respondeu `UP`. A variável foi removida no encerramento; não houve escrita em `.env`.
+
+Validação após a renumeração:
+
+- No worktree B05: `mvnw.cmd --batch-mode '-Dtest=Block02MigrationTest,Block03MigrationTest,Block04MigrationTest,DocumentMigrationTest' test` — **4 testes, 0 falhas, 0 erros; BUILD SUCCESS**. V1–V7 aplicadas e validadas em PostgreSQL 17/Testcontainers.
+- Neste worktree B06: `mvnw.cmd --batch-mode -Dtest=Block06MigrationTest test` — **1 teste, 0 falhas, 0 erros; BUILD SUCCESS**. V8/V9 aplicadas sobre V1–V5 no cenário isolado desta branch.
+- Neste worktree B06: `mvnw.cmd --batch-mode verify` — **218 testes, 0 falhas, 0 erros, 0 ignorados; BUILD SUCCESS**.
+- Checagem combinada descartável: os nove arquivos reais V1–V7 do B05 e V8/V9 do B06 foram carregados por Flyway em PostgreSQL 17/Testcontainers; **9 migrações aplicadas, validação concluída, versão final v9**. A checagem usou apenas arquivos temporários sob `apps/api/target`; o container encerrou ao final.
+- PostgreSQL local persistente PostgreSQL 18.1: autenticação com o papel `niteconnect` e leitura do histórico V1–V7 aprovadas; inicialização real da API com Flyway e Hibernate `validate` aprovada; `/actuator/health` retornou `UP`. Senha fornecida via prompt seguro, não persistida em arquivo.
+
+A branch B06 continua sem os arquivos B05 V6/V7. Portanto, antes de integrar este código, rebaseá-lo sobre o B05 e executar a suíte combinada no checkout integrado. A checagem descartável confirma a sequência SQL atual, mas não substitui esse teste de regressão versionado.
+
+## Aplicação persistente de V8/V9 (26/10/2026)
+
+Após autorização explícita do usuário, V8 e V9 foram aplicadas nos bancos persistentes:
+
+- PostgreSQL local 18.1: a API foi iniciada com as localizações Flyway dos worktrees B05 (V1–V7) e B06 (V8/V9). Flyway validou nove migrações, aplicou V8/V9 e concluiu a inicialização com Hibernate `ddl-auto: validate`. Histórico final V9; checksums `1247765447` e `-1585058834`.
+- Neon, projeto `nite-connect`, branch `main`, banco `niteconnect_staging`: o SQL das fontes V8/V9 e os registros correspondentes do histórico Flyway foram executados em uma transação pela conexão Neon. Verificação posterior confirmou versão V9, ambas as migrações bem-sucedidas com os mesmos checksums, 12 tabelas acadêmicas, as duas colunas `feedback` e os dois índices de V9.
+
+A branch B06 continua isolada; a sequência V1–V9 precisa ser validada de novo no checkout integrado antes da integração do código. Nenhum dado acadêmico foi inserido.

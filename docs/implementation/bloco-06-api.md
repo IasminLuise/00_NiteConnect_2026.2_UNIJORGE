@@ -54,4 +54,4 @@ Erros usam `application/problem+json`: 400 para dados inválidos, 401 para auten
 
 Uma origem retirada/inacessível provoca recusa explícita na releitura; não altera a captura nem produz zero. Comparação de revisão diferente retorna `changed=true`. Nenhuma origem atual é usada para reconstruir silenciosamente cálculo histórico.
 
-V6 cria tabelas acadêmicas, vínculos relacionais entre avaliação e evidências da mesma adesão, proteção de histórico e políticas confirmadas imutáveis. V7 acrescenta o retorno público de correção/indeferimento e índices de consulta do histórico publicado. V1–V6 permanecem intactas nesta correção posterior à revisão. Desativação cadastral restringe acesso, sem apagar as informações acadêmicas.
+V8 cria tabelas acadêmicas, vínculos relacionais entre avaliação e evidências da mesma adesão, proteção de histórico e políticas confirmadas imutáveis. V9 acrescenta o retorno público de correção/indeferimento e índices de consulta do histórico publicado. V1–V8 permanecem intactas nesta correção posterior à revisão. Desativação cadastral restringe acesso, sem apagar as informações acadêmicas.
