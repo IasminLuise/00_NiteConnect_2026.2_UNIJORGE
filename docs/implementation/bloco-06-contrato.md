@@ -1,7 +1,9 @@
 # Bloco 06 — Contrato de Implementação B06.0
 
-**Data:** 23/10/2026. **Estado:** contrato documental para revisão; não autoriza B06.1.
-**G0-A:** formalizado, aguardando aprovação deste artefato. **G0-B:** pendente de auditoria dos bancos. **G0:** aberto.
+**Atualização da sequência de migrações (26/10/2026):** a decisão histórica de usar V6 acadêmica foi supersedida após a aplicação persistente das migrações documentais B05 V6/V7 no banco local e no Neon staging. O B06 usa agora V8/V9 e deve ser integrado depois do B05. O registro de execução contém o estado e a validação atuais.
+
+**Data:** 23/10/2026. **Estado atual:** contrato/plano aprovados pelo usuário para implementação nesta sessão; núcleo implementado, revisão independente tratada e 218 testes aprovados; PR #16 aberto para revisão. Ativação integral continua condicionada ao B05 e às decisões institucionais.
+**G0-A:** aprovado com o plano de execução. **G0-B:** ambientes conhecidos auditados e V6 acadêmica adotada. **G0:** encerrado nesse escopo; ver [evidências de execução](bloco-06-execution.md). O texto abaixo preserva o contrato inicialmente submetido; estados históricos de preparação não substituem o registro atual.
 **Branch:** `docs/bloco-06-contrato`. **Base:** `origin/main`, commit `d787916bbd581ee2ec4c9d2ee85fe5af02f97239`.
 
 ## 1. Objetivo, autoridade e limites
@@ -232,7 +234,7 @@ Não representam testes executados nesta entrega documental.
 
 Comandos serão selecionados por teste/módulo na implementação, seguindo `apps/api/AGENTS.md`. Verificação completa aplicável antes do encerramento técnico e após mudanças em contratos compartilhados ou persistência. G0 aprovado não substitui os gates posteriores G1–G5 nem autoriza operação institucional.
 
-## 10. Registro desta entrega
+## 10. Registro da entrega documental anterior à implementação
 
 - Único artefato novo: este contrato; nenhum código de produto, dependência, `.env`, migração, README ou experimento B05 alterado.
 - Worktree isolado criado a partir da `main` remota atualizada; checkout `D:\nite-connect` mantido em sua branch de investigação com alterações locais preservadas.
