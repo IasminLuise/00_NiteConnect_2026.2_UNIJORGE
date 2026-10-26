@@ -1,8 +1,8 @@
 # NITE CONNECT — Bloco 05: Gestão Documental e Diário de Bordo
 
-**Estado da rota de edição:** ONLYOFFICE Docs API/WOPI permanece em avaliação local. O relatório mais recente conclui **NO-GO para documentos oficiais**. Nenhuma integração com `apps/api` ou `apps/web` foi encontrada neste checkout; a bancada experimental não é o backend do produto.
+**Estado da escolha do motor:** **ONLYOFFICE aprovado pelo responsável em 25/10/2026. G1 de seleção encerrado com ressalvas; comparação de candidatos encerrada.** Os critérios técnicos/editoriais do G1 original permanecem em G1-F, ainda **NO-GO para documentos oficiais**. A aprovação da escolha não declara correções ou testes inexistentes.
 
-**Decisão técnica vigente:** [ADR B05-005](adr-b05-005-selecao-motor-documental.md). Os protocolos Docs API e WOPI são caminhos de integração do mesmo motor ONLYOFFICE, não motores distintos. Esta decisão documental não habilita o editor no produto, não aprova uso institucional e não autoriza deploy.
+**Decisão técnica vigente:** [ADR B05-005](adr-b05-005-selecao-motor-documental.md), incluindo a separação explícita entre aprovação arquitetural e aceite técnico/editorial. Docs API e WOPI são protocolos do mesmo motor, não candidatos distintos. Esta decisão documental não habilita o editor no produto, não aprova uso institucional e não autoriza deploy. Há núcleo/adaptador Docs API em branch separada no [PR #17](https://github.com/IasminLuise/00_NiteConnect_2026.2_UNIJORGE/pull/17); sua integração e aceite não são presumidos por este checkout experimental.
 
 ## Objetivos funcionais do bloco
 
@@ -34,12 +34,15 @@
 | RF-038 | Visualização e exportação | DOCX/PDF vinculados à versão exata |
 | RF-039 | Metadados e controle de acesso/edição | Autoria, datas e acesso conforme autorização |
 | RF-034 / Q20 | Registro narrativo e histórico de contribuições | Entradas estruturadas com referências e revisões |
-| Q22 | Edição documental integrada | Avaliação ONLYOFFICE sob os gates definidos no ADR |
+| Q22 | Edição documental integrada | Motor ONLYOFFICE escolhido; integração e aceite sob os gates definidos no ADR |
 
 A especificação consolidada permanece fonte de verdade para regras de negócio; este documento não cria pesos, prazos, tolerâncias ou normas institucionais.
 
 ## Estado de engenharia e gates
 
+- G1 de seleção aprovado com ressalvas por decisão explícita do responsável. Não retomar comparação de motores como pré-requisito de B05.1; os contratos devem seguir a escolha ONLYOFFICE.
+- G1-F preserva as exigências técnicas/editoriais do G1 original. A aprovação da escolha não aceita silenciosamente as diferenças de layout e não certifica o runtime.
+- G2 e os gates de fechamento técnico/institucional não são liberados automaticamente. Decisões e implementações em outras branches devem ser conciliadas, sem sobrescrever seu trabalho.
 - A implementação do host em `experiments/b05-document-engine/wopi-host` é isolada e experimental. Não é integração real ao backend NITE.
 - O ONLYOFFICE Docs API/WOPI passou por controles técnicos locais, mas o ensaio Docs API encontrou alteração real de espaçamento confirmada no Word. O gate de fidelidade rejeitou a candidata.
 - O relatório B05.0.3 registra NO-GO, com os gates C/D/E bloqueados ou não executados; não há aceite para documentos oficiais.
