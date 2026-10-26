@@ -46,7 +46,7 @@ final class DocsApiService {
         String alias=work.path("alias").asString();if(!alias.matches("F0[1-9]\\.docx"))throw new IOException("Invalid private alias");
         CandidateGate gate=switch(work.path("mode").asString()) {
             case "structural"->(id,data,number)->{};
-            case "strict"->new ScriptedDocxGate(Map.of(alias,List.of("XYZ","")));
+            case "strict","rebase"->new ScriptedDocxGate(Map.of(alias,List.of("XYZ","")));
             case "reject"->(id,data,number)->{throw new DocumentStore.Failure(500,"INDUCED_REJECTION");};
             default->throw new IOException("Invalid private policy");
         };
@@ -54,7 +54,7 @@ final class DocsApiService {
         UUID doc=document(work);gate.register(doc,alias,original);gates.put(doc,gate);store.seed(doc,alias,original);
     }
     synchronized JsonNode create(String alias,String mode,boolean writable) {
-        if(!alias.matches("F0[1-9]\\.docx")||!Set.of("structural","strict","reject").contains(mode)||works.size()>=32)fail(400,"Caso de laboratório inválido");
+        if(!alias.matches("F0[1-9]\\.docx")||!Set.of("structural","strict","rebase","reject").contains(mode)||works.size()>=32)fail(400,"Caso de laboratório inválido");
         var work=DocsJwt.JSON.createObjectNode();UUID id=UUID.randomUUID();
         work.put("id",id.toString());work.put("document",UUID.randomUUID().toString());work.put("alias",alias);work.put("mode",mode);work.put("writable",writable);
         work.put("key","b0503-"+UUID.randomUUID());work.put("cap",random());work.put("expires",Instant.now().plusSeconds(3600).getEpochSecond());
@@ -160,7 +160,8 @@ final class DocsApiService {
         byte[] candidate=SavedateFieldSemanticRepair.repairKnownInstructionLoss(source,downloaded);
         candidate=ImplicitParagraphDefaultsRepair.repairIfSynthesized(source,candidate);
         long nextVersion=store.versions(document(work)).size()+1L;
-        candidate=gates.get(document(work)).normalizeCandidate(document(work),candidate,nextVersion);
+        if("rebase".equals(work.path("mode").asString()))
+            candidate=gates.get(document(work)).normalizeCandidate(document(work),candidate,nextVersion);
         String hash=checksum(candidate);work.put("state","validation-pending");persist(work);
         try {
             DocxValidator.validate(candidate);
