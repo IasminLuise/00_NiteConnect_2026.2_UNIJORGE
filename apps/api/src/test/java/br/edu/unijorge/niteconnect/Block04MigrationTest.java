@@ -27,7 +27,7 @@ class Block04MigrationTest {
             jdbc.update("insert into nite_connect.activity_assignments(id,activity_id,member_id,role,started_by,start_reason) values (?,?,?,'EXECUTOR',?,'Anterior à V5')",assignment,activity,member,member);
             jdbc.update("insert into nite_connect.activity_evidence(id,activity_id,author_id,assignment_id,type,content) values (?,?,?,?,'TEXT','Evidência V4')",evidence,activity,member,assignment);
         });
-        var flyway=Flyway.configure().dataSource(postgres.getJdbcUrl(),postgres.getUsername(),postgres.getPassword()).load();
+        var flyway=Flyway.configure().dataSource(postgres.getJdbcUrl(),postgres.getUsername(),postgres.getPassword()).target("5").load();
         assertThat(flyway.migrate().migrationsExecuted).isEqualTo(1);
         flyway.validate();
         assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("5");

@@ -31,6 +31,11 @@ public class EvidenceRepository {
         return new PageResult<>(jdbc.query(SELECT+where+" order by e.created_at desc,e.id limit ? offset ?",EVIDENCE,target,size,(long)page*size),page,size,
                 jdbc.queryForObject("select count(*) from nite_connect.activity_evidence e"+where,Long.class,target));
     }
+    public PageResult<Evidence> personalBetween(UUID author,Instant from,Instant to,int page,int size) {
+        PageResult.validate(page,size);String where=" where e.author_id=? and e.created_at>=? and e.created_at<?";
+        return new PageResult<>(jdbc.query(SELECT+where+" order by e.created_at desc,e.id limit ? offset ?",EVIDENCE,author,Timestamp.from(from),Timestamp.from(to),size,(long)page*size),page,size,
+                jdbc.queryForObject("select count(*) from nite_connect.activity_evidence e"+where,Long.class,author,Timestamp.from(from),Timestamp.from(to)));
+    }
     public Receipt begin(UUID actor,UUID activity,String filename) {
         UUID id=UUID.randomUUID(),key=UUID.randomUUID();
         jdbc.update("insert into nite_connect.evidence_objects(id,activity_id,author_id,object_key,filename,state) values (?,?,?,?,?,'PENDING')",id,activity,actor,key,filename);return receipt(id);

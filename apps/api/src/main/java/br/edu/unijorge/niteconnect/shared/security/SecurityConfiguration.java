@@ -33,6 +33,16 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/document-templates", "/api/v1/document-templates/*/versions",
+                                "/api/v1/documents", "/api/v1/documents/*", "/api/v1/documents/*/versions",
+                                "/api/v1/documents/*/versions/*/download", "/api/v1/documents/*/history",
+                                "/api/v1/diaries/me", "/api/v1/diaries/*", "/api/v1/diaries/me/activities").access(authenticatedJwt)
+                        .requestMatchers(HttpMethod.POST, "/api/v1/document-templates", "/api/v1/document-templates/*/versions",
+                                "/api/v1/document-templates/*/retire", "/api/v1/documents", "/api/v1/documents/*/versions",
+                                "/api/v1/documents/*/grants", "/api/v1/documents/*/grants/*/revoke",
+                                "/api/v1/documents/*/archive", "/api/v1/documents/*/restore",
+                                "/api/v1/documents/*/editor-sessions", "/api/v1/documents/*/editor-sessions/*/close",
+                                "/api/v1/documents/*/versions/*/pdf", "/api/v1/diaries/*/import").access(authenticatedJwt)
                         .requestMatchers(HttpMethod.GET, "/api/v1/agenda/events", "/api/v1/agenda/events/*", "/api/v1/agenda/events/*/participants",
                                 "/api/v1/me/attendance", "/api/v1/me/work-logs", "/api/v1/me/absence-justifications", "/api/v1/me/attendance/corrections",
                                 "/api/v1/me/participation-summary", "/api/v1/me/participation-history", "/api/v1/attendance/records",
