@@ -1,0 +1,7 @@
+import { notFound } from "next/navigation";
+import { ColorFoundationLab } from "../../../../components/color-foundation-lab";
+
+export default function DesignSystemColorsPage() {
+  if (process.env.NODE_ENV === "production") notFound();
+  return <ColorFoundationLab />;
+}
