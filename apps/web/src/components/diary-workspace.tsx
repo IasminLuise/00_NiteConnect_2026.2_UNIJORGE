@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { DiaryApi, type DiaryActivityPanel, type DiaryView, type EditorSession } from "@/lib/diary-api";
 import { OnlyOfficeEditor } from "@/components/onlyoffice-editor";
 
@@ -99,7 +100,7 @@ export function DiaryWorkspace({ accessToken, apiBaseUrl }: Props) {
   return (
     <main className="shell">
       <header className="topbar">
-        <a className="brand" href="/" aria-label="NITE Connect, início"><span className="brand-mark">N</span><span>NITE <b>CONNECT</b></span></a>
+        <Link className="brand" href="/" aria-label="NITE Connect, início"><span className="brand-mark">N</span><span>NITE <b>CONNECT</b></span></Link>
         <span className="topbar-label">DOCUMENTOS</span>
       </header>
 

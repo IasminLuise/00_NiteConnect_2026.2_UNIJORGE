@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "campaign_id": "b05-m2p3-campaign-01",
+  "trials": [
+    {
+      "id": "CTRL-01",
+      "mode": "no_edit",
+      "source_docx": "CTRL-01/source.docx",
+      "candidate_docx": "CTRL-01/candidate.docx",
+      "source_pdf": "CTRL-01/source-word.pdf",
+      "candidate_pdf": "CTRL-01/candidate-word.pdf",
+      "expected_edit": null,
+      "evidence": {
+        "operator_log": "CTRL-01/operator.json",
+        "source_docx_sha256": "REPLACE_WITH_SHA256",
+        "candidate_docx_sha256": "REPLACE_WITH_SHA256",
+        "source_pdf_sha256": "REPLACE_WITH_SHA256",
+        "candidate_pdf_sha256": "REPLACE_WITH_SHA256"
+      }
+    },
+    {
+      "id": "TYPE-01",
+      "mode": "typed",
+      "source_docx": "TYPE-01/source.docx",
+      "candidate_docx": "TYPE-01/candidate.docx",
+      "source_pdf": "TYPE-01/source-word.pdf",
+      "candidate_pdf": "TYPE-01/candidate-word.pdf",
+      "expected_edit": {"before": "texto antigo da fixture sintética", "after": "texto novo da fixture sintética"},
+      "evidence": {
+        "operator_log": "TYPE-01/operator.json",
+        "source_docx_sha256": "REPLACE_WITH_SHA256",
+        "candidate_docx_sha256": "REPLACE_WITH_SHA256",
+        "source_pdf_sha256": "REPLACE_WITH_SHA256",
+        "candidate_pdf_sha256": "REPLACE_WITH_SHA256"
+      }
+    },
+    {
+      "id": "PLAIN-01",
+      "mode": "plain_paste",
+      "source_docx": "PLAIN-01/source.docx",
+      "candidate_docx": "PLAIN-01/candidate.docx",
+      "source_pdf": "PLAIN-01/source-word.pdf",
+      "candidate_pdf": "PLAIN-01/candidate-word.pdf",
+      "expected_edit": {"before": "texto antigo da fixture sintética", "after": "texto novo da fixture sintética"},
+      "evidence": {
+        "operator_log": "PLAIN-01/operator.json",
+        "source_docx_sha256": "REPLACE_WITH_SHA256",
+        "candidate_docx_sha256": "REPLACE_WITH_SHA256",
+        "source_pdf_sha256": "REPLACE_WITH_SHA256",
+        "candidate_pdf_sha256": "REPLACE_WITH_SHA256"
+      }
+    },
+    {
+      "id": "RICH-01",
+      "mode": "rich_paste",
+      "source_docx": "RICH-01/source.docx",
+      "candidate_docx": "RICH-01/candidate.docx",
+      "source_pdf": "RICH-01/source-word.pdf",
+      "candidate_pdf": "RICH-01/candidate-word.pdf",
+      "expected_edit": {"before": "texto antigo da fixture sintética", "after": "texto novo da fixture sintética"},
+      "evidence": {
+        "operator_log": "RICH-01/operator.json",
+        "source_docx_sha256": "REPLACE_WITH_SHA256",
+        "candidate_docx_sha256": "REPLACE_WITH_SHA256",
+        "source_pdf_sha256": "REPLACE_WITH_SHA256",
+        "candidate_pdf_sha256": "REPLACE_WITH_SHA256"
+      }
+    }
+  ]
+}

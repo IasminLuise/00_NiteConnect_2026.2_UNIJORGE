@@ -55,7 +55,9 @@ public class SecurityConfiguration {
                                 "/api/v1/documents/*/grants", "/api/v1/documents/*/grants/*/revoke",
                                 "/api/v1/documents/*/archive", "/api/v1/documents/*/restore",
                                 "/api/v1/documents/*/editor-sessions", "/api/v1/documents/*/editor-sessions/*/close",
-                                "/api/v1/documents/*/versions/*/pdf", "/api/v1/diaries/*/import").access(authenticatedJwt)
+                                "/api/v1/documents/*/versions/*/pdf", "/api/v1/diaries/*/import",
+                                "/api/v1/documents/*/inspection-samples", "/api/v1/documents/*/inspection-sessions",
+                                "/api/v1/documents/*/inspection-sessions/*/close").access(authenticatedJwt)
                         .requestMatchers(HttpMethod.GET, "/api/v1/agenda/events", "/api/v1/agenda/events/*", "/api/v1/agenda/events/*/participants",
                                 "/api/v1/me/attendance", "/api/v1/me/work-logs", "/api/v1/me/absence-justifications", "/api/v1/me/attendance/corrections",
                                 "/api/v1/me/participation-summary", "/api/v1/me/participation-history", "/api/v1/attendance/records",

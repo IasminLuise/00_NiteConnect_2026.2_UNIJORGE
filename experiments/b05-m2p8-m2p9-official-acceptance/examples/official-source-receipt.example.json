@@ -1,0 +1,8 @@
+{
+  "kind": "official_source",
+  "document": "AV3",
+  "sha256": "SHA-256_DO_DOCX_REAL_ENTREGUE_PELO_NITE",
+  "authorized_corpus": true,
+  "owner_approval": "Identificação do responsável pela autorização, mantida no recibo privado",
+  "scope": "Modelo operacional do NITE autorizado para ensaios em ambiente isolado, com dados protegidos"
+}

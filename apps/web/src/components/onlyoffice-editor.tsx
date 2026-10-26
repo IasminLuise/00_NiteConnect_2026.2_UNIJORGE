@@ -15,29 +15,28 @@ export function OnlyOfficeEditor({ session, trustedOrigin, onClose }: Props) {
   const generatedId = useId().replaceAll(":", "");
   const containerId = `onlyoffice-${generatedId}`;
   const [error, setError] = useState<string | null>(null);
+  let scriptUrl: string | null = null;
+  let validationError: string | null = null;
+  try {
+    const parsedScriptUrl = new URL(session.editor.apiScriptUrl);
+    const expectedOrigin = trustedOrigin ? new URL(trustedOrigin).origin : "";
+    if (!expectedOrigin || parsedScriptUrl.origin !== expectedOrigin) {
+      validationError = "A origem do editor não está configurada ou não corresponde ao ONLYOFFICE autorizado.";
+    } else if (parsedScriptUrl.protocol !== "https:" && !["localhost", "127.0.0.1", "::1"].includes(parsedScriptUrl.hostname)) {
+      validationError = "O script do editor exige HTTPS fora do laboratório local.";
+    } else {
+      scriptUrl = parsedScriptUrl.href;
+    }
+  } catch {
+    validationError = "A origem do editor está malformada.";
+  }
 
   useEffect(() => {
     let editor: { destroyEditor(): void } | undefined;
-    let scriptUrl: URL;
-    let expectedOrigin: string;
-    try {
-      scriptUrl = new URL(session.editor.apiScriptUrl);
-      expectedOrigin = trustedOrigin ? new URL(trustedOrigin).origin : "";
-    } catch {
-      setError("A origem do editor está malformada.");
-      return;
-    }
-    if (!expectedOrigin || scriptUrl.origin !== expectedOrigin) {
-      setError("A origem do editor não está configurada ou não corresponde ao ONLYOFFICE autorizado.");
-      return;
-    }
-    if (scriptUrl.protocol !== "https:" && !["localhost", "127.0.0.1", "::1"].includes(scriptUrl.hostname)) {
-      setError("O script do editor exige HTTPS fora do laboratório local.");
-      return;
-    }
+    if (validationError || !scriptUrl) return;
 
     const script = document.createElement("script");
-    script.src = scriptUrl.href;
+    script.src = scriptUrl;
     script.async = true;
     script.onload = () => {
       if (!window.DocsAPI) {
@@ -52,12 +51,12 @@ export function OnlyOfficeEditor({ session, trustedOrigin, onClose }: Props) {
       editor?.destroyEditor();
       script.remove();
     };
-  }, [containerId, session, trustedOrigin]);
+  }, [containerId, session, scriptUrl, validationError]);
 
   return (
     <section className="editor-overlay" aria-label="Editor de documentos">
       <div className="editor-toolbar"><span>Diário contínuo</span><button type="button" onClick={onClose}>Fechar editor</button></div>
-      {error && <p className="editor-error" role="alert">{error}</p>}
+      {(validationError ?? error) && <p className="editor-error" role="alert">{validationError ?? error}</p>}
       <div id={containerId} className="editor-frame" />
     </section>
   );

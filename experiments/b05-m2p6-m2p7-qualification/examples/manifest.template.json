@@ -1,0 +1,177 @@
+{
+  "schema_version": 1,
+  "campaign_id": "B05-M2P6-M2P7-NOVA-CAMPANHA-01",
+  "corpus_kind": "synthetic",
+  "required_features": [
+    "tables",
+    "images",
+    "footnotes",
+    "page_breaks",
+    "fields",
+    "headers_footers",
+    "styles"
+  ],
+  "corpus_scope_receipt": null,
+  "m2p5_report": {
+    "path": "evidence/decision-m2p5.json",
+    "sha256": "PREENCHER_SHA256_EM_MINUSCULAS"
+  },
+  "documents": [
+    {
+      "id": "CORPUS-001",
+      "origin": "synthetic",
+      "declared_features": [
+        "tables",
+        "images",
+        "footnotes",
+        "page_breaks",
+        "fields",
+        "headers_footers",
+        "styles"
+      ],
+      "source_docx": {
+        "path": "docs/001/source.docx",
+        "sha256": "PREENCHER_SHA256_EM_MINUSCULAS"
+      },
+      "sdk_docx": {
+        "path": "docs/001/sdk.docx",
+        "sha256": "PREENCHER_SHA256_EM_MINUSCULAS"
+      },
+      "operation": "no_edit"
+    },
+    {
+      "id": "CORPUS-002",
+      "origin": "synthetic",
+      "operation": "edited",
+      "expected_edit": {
+        "before": "TEXTO_ALVO_EXATO",
+        "after": "TEXTO_NOVO_EXATO"
+      },
+      "declared_features": [
+        "tables",
+        "images",
+        "fields",
+        "styles"
+      ],
+      "source_docx": {
+        "path": "docs/002/source.docx",
+        "sha256": "PREENCHER_SHA256_EM_MINUSCULAS"
+      },
+      "sdk_docx": {
+        "path": "docs/002/sdk.docx",
+        "sha256": "PREENCHER_SHA256_EM_MINUSCULAS"
+      },
+      "callback_docx": {
+        "path": "docs/002/callback.docx",
+        "sha256": "PREENCHER_SHA256_EM_MINUSCULAS"
+      },
+      "semantic_review_receipt": null
+    }
+  ],
+  "integration_checks": [
+    {
+      "id": "normal_api_permissions",
+      "result": "UNVERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "entra_authentication",
+      "result": "UNVERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "role_authorization",
+      "result": "UNVERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "signed_callbacks",
+      "result": "UNVERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "quarantine_and_head",
+      "result": "UNVERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "word_pdf_export",
+      "result": "UNVERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "sdk_callback_provenance",
+      "result": "UNVERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "recovery_and_audit",
+      "result": "UNVERIFIED",
+      "evidence": null
+    }
+  ],
+  "reviews": [
+    {
+      "role": "technical",
+      "decision": "PENDING",
+      "evidence": null
+    },
+    {
+      "role": "editorial",
+      "decision": "PENDING",
+      "evidence": null
+    },
+    {
+      "role": "institutional",
+      "decision": "PENDING",
+      "evidence": null
+    }
+  ],
+  "adjudications": [
+    {
+      "criterion": "NOTES_SEMANTICS",
+      "status": "PENDING",
+      "evidence": null
+    },
+    {
+      "criterion": "OOXML_STRUCTURAL_EQUIVALENCE",
+      "status": "PENDING",
+      "evidence": null
+    },
+    {
+      "criterion": "FIELD_INSTRUCTIONS",
+      "status": "PENDING",
+      "evidence": null
+    },
+    {
+      "criterion": "VISUAL_FIDELITY",
+      "status": "PENDING",
+      "evidence": null
+    },
+    {
+      "criterion": "GLYPH_LOCALIZATION",
+      "status": "PENDING",
+      "evidence": null
+    },
+    {
+      "criterion": "WORD_PRE_POST_EXPORT",
+      "status": "PENDING",
+      "evidence": null
+    },
+    {
+      "criterion": "OFFICIAL_REPRESENTATIVE_CORPUS",
+      "status": "PENDING",
+      "evidence": null
+    },
+    {
+      "criterion": "BACKEND_GATE_INTEGRATION",
+      "status": "PENDING",
+      "evidence": null
+    },
+    {
+      "criterion": "INDEPENDENT_EDITORIAL_SIGNOFF",
+      "status": "PENDING",
+      "evidence": null
+    }
+  ]
+}

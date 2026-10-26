@@ -48,6 +48,8 @@ nite:
     storage-root: ${DOCUMENTS_STORAGE_ROOT:}
     public-base-url: ${DOCUMENTS_PUBLIC_BASE_URL:}
     capability-secret: ${DOCUMENTS_CAPABILITY_SECRET:}
+    inspection:
+      enabled: ${DOCUMENTS_INSPECTION_ENABLED:false}
     editor:
       enabled: ${DOCUMENTS_EDITOR_ENABLED:false}
       server-url: ${DOCUMENTS_EDITOR_SERVER_URL:}

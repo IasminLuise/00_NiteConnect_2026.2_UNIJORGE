@@ -1,0 +1,442 @@
+{
+  "schema": "b05-m2p2-shareable-v1",
+  "semantics": {
+    "schema": "b05-m2p2-semantics-v1",
+    "scope": "SYNTHETIC_ONLY_READ_ONLY",
+    "expectedEditExact": false,
+    "parts": {
+      "original": 21,
+      "candidate": 25,
+      "added": 6,
+      "removed": 2,
+      "changedCommon": 18
+    },
+    "styles": {
+      "state": "DIFFERENT_OR_UNPROVEN",
+      "mappingCount": 152,
+      "styleIdsRenamed": 152,
+      "styleSetEqual": false,
+      "styleDefinitionsEqualAfterIdResolution": false,
+      "stylePropertiesDiffer": 320
+    },
+    "fields": {
+      "sourceFieldTokens": 9,
+      "candidateFieldTokens": 9,
+      "state": "DIFFERENT"
+    },
+    "notes": {
+      "sourceReferences": 1,
+      "candidateReferences": 1,
+      "candidateSeparatorOnly": true,
+      "status": "NEW_EMPTY_NOTES_NOT_APPROVED"
+    },
+    "relationships": {
+      "changedSharedSources": 2,
+      "sourceSetsChanged": true,
+      "resolvedReferencesEqual": false
+    },
+    "contentTypes": {
+      "changedCommon": 0,
+      "partTypesAddedOrRemoved": true
+    },
+    "protectedParts": {
+      "stylesWithEffectsRemoved": true,
+      "thumbnailRemoved": true,
+      "mediaChanged": false
+    },
+    "risks": [],
+    "classification": "OOXML_TRANSFORMATIONS_REQUIRE_JUSTIFICATION",
+    "mayPromote": false
+  },
+  "visual": {
+    "schema": "b05-m2p2-visual-v1",
+    "sourcePages": 2,
+    "candidatePages": 2,
+    "pages": [
+      {
+        "page": 1,
+        "pagePixels": 1938816,
+        "authorizedROIPixels": 19210,
+        "authorizedROIPageFraction": 0.009908,
+        "rawChangedPixels": 4836,
+        "pixelsInChangedLineROI": 4727,
+        "unexpectedPixels": 109,
+        "residualComponents": [
+          {
+            "pixels": 68,
+            "bboxPx": [
+              805,
+              342,
+              814,
+              358
+            ]
+          },
+          {
+            "pixels": 18,
+            "bboxPx": [
+              831,
+              345,
+              836,
+              358
+            ]
+          },
+          {
+            "pixels": 17,
+            "bboxPx": [
+              827,
+              345,
+              831,
+              358
+            ]
+          },
+          {
+            "pixels": 2,
+            "bboxPx": [
+              811,
+              347,
+              812,
+              349
+            ]
+          },
+          {
+            "pixels": 2,
+            "bboxPx": [
+              831,
+              358,
+              833,
+              359
+            ]
+          },
+          {
+            "pixels": 2,
+            "bboxPx": [
+              834,
+              347,
+              835,
+              349
+            ]
+          }
+        ],
+        "sameDocumentRenderRepeatStable": true,
+        "nonEditedLinesGeometryAndFontsEqual": true,
+        "changedTextLineCount": 1
+      },
+      {
+        "page": 2,
+        "pagePixels": 1938816,
+        "authorizedROIPixels": 0,
+        "authorizedROIPageFraction": 0.0,
+        "rawChangedPixels": 1343,
+        "pixelsInChangedLineROI": 0,
+        "unexpectedPixels": 1343,
+        "residualComponents": [
+          {
+            "pixels": 160,
+            "bboxPx": [
+              834,
+              328,
+              859,
+              342
+            ]
+          },
+          {
+            "pixels": 153,
+            "bboxPx": [
+              716,
+              325,
+              743,
+              341
+            ]
+          },
+          {
+            "pixels": 138,
+            "bboxPx": [
+              928,
+              325,
+              947,
+              342
+            ]
+          },
+          {
+            "pixels": 132,
+            "bboxPx": [
+              650,
+              325,
+              667,
+              342
+            ]
+          },
+          {
+            "pixels": 97,
+            "bboxPx": [
+              762,
+              330,
+              780,
+              341
+            ]
+          },
+          {
+            "pixels": 76,
+            "bboxPx": [
+              916,
+              330,
+              928,
+              341
+            ]
+          },
+          {
+            "pixels": 72,
+            "bboxPx": [
+              780,
+              330,
+              791,
+              342
+            ]
+          },
+          {
+            "pixels": 72,
+            "bboxPx": [
+              638,
+              330,
+              650,
+              342
+            ]
+          },
+          {
+            "pixels": 71,
+            "bboxPx": [
+              811,
+              330,
+              822,
+              342
+            ]
+          },
+          {
+            "pixels": 66,
+            "bboxPx": [
+              905,
+              330,
+              915,
+              342
+            ]
+          },
+          {
+            "pixels": 64,
+            "bboxPx": [
+              691,
+              330,
+              701,
+              342
+            ]
+          },
+          {
+            "pixels": 63,
+            "bboxPx": [
+              876,
+              330,
+              888,
+              342
+            ]
+          }
+        ],
+        "sameDocumentRenderRepeatStable": true,
+        "nonEditedLinesGeometryAndFontsEqual": true,
+        "changedTextLineCount": 0
+      }
+    ],
+    "unexplainedPixels": 1452,
+    "editedPixels": 4727,
+    "changedTextLines": 1,
+    "layoutPreserved": true,
+    "classification": "UNEXPLAINED_RESIDUAL_HOLD"
+  },
+  "shadowPolicy": {
+    "schema": "b05-m2p2-policy-v1",
+    "policy": "B05_M2P2_SHADOW_V1",
+    "scope": "SYNTHETIC_ONLY_SHADOW_NO_PRODUCT_WRITE",
+    "decision": "HOLD_QUARANTINE",
+    "blockers": [
+      "EXPECTED_EDIT_NOT_PROVEN",
+      "FIELD_SEMANTICS_DIFFER",
+      "NOTE_PARTS_NOT_QUALIFIED",
+      "OOXML_TRANSFORMS_NOT_AUTHORIZED",
+      "STYLE_SEMANTICS_NOT_PROVEN",
+      "WORD_METRICS_NOT_PREQUALIFIED",
+      "WORD_PDF_VISUAL_NOT_PREQUALIFIED"
+    ],
+    "canPromote": false,
+    "officialApproved": false,
+    "releaseGate": "G1_G2_M3_STILL_BLOCKED",
+    "notice": "A successful shadow outcome is not authorization for promotion or official editing."
+  },
+  "dataClassification": "NO_TEXT_BYTES_TOKENS_HASHES_OR_FILEPATHS",
+  "conditions": "Requires private manual review of DOCX, Word and PDF before any policy implementation.",
+  "runtime": {
+    "schema": "b05-m2r-v1",
+    "source": "LIVE_ONLYOFFICE_DOCS_API",
+    "editorRuntimeReal": true,
+    "wordFidelityApproved": false,
+    "officialTemplateUsed": false,
+    "createdAt": "2026-10-24T02:06:34.368Z",
+    "checks": {
+      "anonymousDenied": true,
+      "signedSession": true,
+      "docsApiScriptReachable": true,
+      "callbackOriginConsistent": true,
+      "tamperedCapabilityDenied": true,
+      "unsignedCallbackDenied": true,
+      "editorAppReady": true,
+      "documentReady": true,
+      "editEventObserved": true,
+      "editorError": false,
+      "operatorFinished": true,
+      "sourceValidBeforeRevocation": true,
+      "explicitRevocationCompleted": true,
+      "sourceDeniedAfterRevocation": true,
+      "pdfMagic": true,
+      "pdfVersionHeader": true,
+      "pdfRepeatByteIdentical": true
+    },
+    "result": "M2R_INTEGRATION_DEMONSTRATED_NOT_EDITORIAL_APPROVAL",
+    "persistence": {
+      "status": "QUARANTINED_GUARD_ENFORCED",
+      "versionsCreated": 1,
+      "available": 0,
+      "quarantined": 1,
+      "headChanged": false,
+      "quarantineCodes": [
+        "OOXML_PROTECTED_CHANGE"
+      ]
+    },
+    "pending": [
+      "FULL_OOXML_WORD_PDF_FIDELITY",
+      "MULTI_ACTOR_REAL_COEDIT",
+      "VENDOR_CALLBACK_EXACT_REPLAY",
+      "REVOKED_CONCURRENT_EDITOR",
+      "WINDOWS_SYMLINK_SECURITY",
+      "LICENSING_OPERATIONS",
+      "OFFICIAL_TEMPLATES_PROHIBITED"
+    ]
+  },
+  "wordSummary": {
+    "schema": "b05-m2p-summary-v1",
+    "decision": "HOLD_QUARANTINE",
+    "canPromote": false,
+    "officialApproved": false,
+    "metrics": {
+      "wordBuildsMatch": true,
+      "wordPdfLayoutStateStable": true,
+      "wordPageCountsEqual": true,
+      "wordPdfPageCountsEqual": true,
+      "paperSizesEqual": true,
+      "wordFieldCodesEqual": false,
+      "wordParagraphCountsEqual": true,
+      "wordEditPositionVerified": true,
+      "unchangedParagraphFormatsEqual": true,
+      "unchangedAnchorsWithinTolerance": true,
+      "ooxmlTextOnlyPrequalified": false
+    },
+    "blockers": [
+      "wordFieldCodesEqual",
+      "ooxmlTextOnlyPrequalified"
+    ],
+    "pdf": {
+      "sourcePages": 2,
+      "candidatePages": 2,
+      "paper": [
+        {
+          "page": 1,
+          "referencePt": [
+            612.0,
+            792.0
+          ],
+          "candidatePt": [
+            612.0,
+            792.0
+          ]
+        },
+        {
+          "page": 2,
+          "referencePt": [
+            612.0,
+            792.0
+          ],
+          "candidatePt": [
+            612.0,
+            792.0
+          ]
+        }
+      ],
+      "rawPixelDifferences": [
+        {
+          "page": 1,
+          "changedPixels": 4836,
+          "totalPixels": 1938816
+        },
+        {
+          "page": 2,
+          "changedPixels": 1343,
+          "totalPixels": 1938816
+        }
+      ]
+    },
+    "firstFormatDiffs": [],
+    "formatDiffCount": 0,
+    "firstAnchorDiffs": [],
+    "anchorDiffCount": 0,
+    "ooxmlBlockers": [
+      "FIELD_INSTRUCTIONS_CHANGED",
+      "LAYOUT_PROPERTIES_CHANGED",
+      "MAIN_STRUCTURE_CHANGED",
+      "NON_MAIN_PART_CHANGED",
+      "PART_SET_CHANGED",
+      "UNEXPECTED_TEXT_CHANGE"
+    ],
+    "interpretation": "PDF pixel differences include the authorized text edit; visual sign-off is separate."
+  },
+  "observations": {
+    "displayedMainTextOnlyExpectedEdit": true,
+    "tableCellTextsEqual": true,
+    "noteUserTextsEqual": true,
+    "wordInputHashesUnchanged": [
+      true,
+      true
+    ],
+    "wordPages": [
+      2,
+      2
+    ],
+    "wordLayoutsChangedDuringPdf": [
+      false,
+      false
+    ],
+    "controlAttributeAdded": "w:br/@w:clear=all",
+    "editedRunFormattingRegression": {
+      "font": "Arial",
+      "bold": true,
+      "color": "FCFCFC",
+      "sizeHalfPoints": 20,
+      "attribution": "NOT_ISOLATED_FROM_OPERATOR_INPUT_METHOD"
+    },
+    "residualRegions": [
+      {
+        "page": 1,
+        "location": "TABLE_CELL_2_3",
+        "pixels": 109,
+        "maxCharOriginDeltaPt": 0.016326904296875
+      },
+      {
+        "page": 2,
+        "location": "VALIDATION_PARAGRAPH_5",
+        "pixels": 1343,
+        "maxCharOriginDeltaPt": 0.07586669921875
+      }
+    ],
+    "savedateResultChangedByPdfSave": true,
+    "fieldTypesPreserved": [
+      22,
+      33,
+      26
+    ]
+  }
+}

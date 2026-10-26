@@ -152,9 +152,15 @@ final class DocsApiService {
         String operation=payload.path("userdata").asString("");
         if(status==6&&(operation.isEmpty()||work.path("pendingForce").asString().isEmpty()||!operation.equals(work.path("pendingForce").asString())))fail(409,"Checkpoint não solicitado ou obsoleto");
         work.put("state","candidate-received");persist(work);
-        byte[] candidate;
-        try{candidate=fetch.download(payload.path("url").asString(),work.path("key").asString());}
+        byte[] downloaded;
+        try{downloaded=fetch.download(payload.path("url").asString(),work.path("key").asString());}
         catch(DocumentStore.Failure failure){work.put("state","recovery-required");work.put("reason","DOWNLOAD_FAILED");work.put("pendingForce","");persist(work);throw failure;}
+        String downloadedHash=checksum(downloaded);
+        byte[] source=store.version(document(work),work.path("sourceVersion").asString());
+        byte[] candidate=SavedateFieldSemanticRepair.repairKnownInstructionLoss(source,downloaded);
+        candidate=ImplicitParagraphDefaultsRepair.repairIfSynthesized(source,candidate);
+        long nextVersion=store.versions(document(work)).size()+1L;
+        candidate=gates.get(document(work)).normalizeCandidate(document(work),candidate,nextVersion);
         String hash=checksum(candidate);work.put("state","validation-pending");persist(work);
         try {
             DocxValidator.validate(candidate);
@@ -164,7 +170,7 @@ final class DocsApiService {
                 work.put("headVersion",saved.version());work.put("commits",work.path("commits").asInt()+1);
             }else {if(!current.equals(work.path("headVersion").asString()))work.put("commits",work.path("commits").asInt()+1);work.put("headVersion",current);}
         }catch(DocumentStore.Failure failure){
-            quarantine(id,hash,candidate);work.put("candidateHash",hash);work.put("reason",failure.status()==409?"CONFLICT":"CANDIDATE_REJECTED");work.put("state","rejected");work.put("pendingForce","");persist(work);throw failure;
+            quarantine(id,downloadedHash,downloaded);work.put("candidateHash",downloadedHash);work.put("reason",failure.status()==409?"CONFLICT":"CANDIDATE_REJECTED");work.put("state","rejected");work.put("pendingForce","");persist(work);throw failure;
         }
         String pending=work.path("pendingForce").asString();
         work.put("lastHash",hash);receipts.put(fingerprint,true);

@@ -21,9 +21,10 @@ import org.w3c.dom.Node;
 import org.xml.sax.helpers.DefaultHandler;
 
 /** Strict experimental text-only gate, not a visual-fidelity certification or official-template support.
- * Non-main parts must remain byte-identical; only existing core metadata may change (64 KiB).
+ * Non-main parts must remain byte-identical, except for one empty orphan comments relationship part added by the editor;
+ * only existing core metadata may otherwise change (64 KiB).
  * Main XML must preserve its entire tree and attributes, except text inside existing w:t nodes.
- * HTTPS hyperlinks are preserved as opaque relationship values and are never dereferenced by the server.
+ * HTTPS hyperlink relationships are preserved but never dereferenced by the server.
  */
 @Component
 public class DocxIntegrity {
@@ -33,7 +34,9 @@ public class DocxIntegrity {
     private static final int MAX_ENTRIES = 1024;
     private static final String MAIN = "word/document.xml";
     private static final String CORE = "docProps/core.xml";
-    private static final String HYPERLINK_RELATIONSHIP = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink";
+    private static final String ORPHAN_COMMENTS_RELS = "word/_rels/comments.xml.rels";
+    private static final String COMMENTS = "word/comments.xml";
+    private static final String PACKAGE_RELATIONSHIPS = "http://schemas.openxmlformats.org/package/2006/relationships";
     private static final String WORD = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
     private static final Set<String> REQUIRED = Set.of("[Content_Types].xml", "_rels/.rels", MAIN);
 
@@ -47,7 +50,7 @@ public class DocxIntegrity {
         try {
             Map<String, byte[]> original = unpack(source);
             Map<String, byte[]> edited = unpack(candidate);
-            if (!original.keySet().equals(edited.keySet())) return rejected();
+            if (!samePartsExceptEmptyOrphanCommentsRels(original, edited)) return rejected();
             for (String name : original.keySet()) {
                 if (name.equals(CORE)) continue;
                 if (name.equals(MAIN)) {
@@ -60,6 +63,35 @@ public class DocxIntegrity {
 
     private static Verdict rejected() { return new Verdict(false, List.of("Documento fora das alterações textuais permitidas pelo experimento")); }
     private static ApiException invalid() { return ApiException.invalid("Pacote DOCX inválido ou não suportado pelo experimento"); }
+
+    private static boolean samePartsExceptEmptyOrphanCommentsRels(Map<String, byte[]> original, Map<String, byte[]> edited) {
+        if (original.keySet().equals(edited.keySet())) return true;
+        if (original.containsKey(ORPHAN_COMMENTS_RELS) || original.containsKey(COMMENTS)
+                || edited.containsKey(COMMENTS) || !edited.containsKey(ORPHAN_COMMENTS_RELS)) return false;
+        Set<String> expected = new java.util.HashSet<>(original.keySet());
+        expected.add(ORPHAN_COMMENTS_RELS);
+        return expected.equals(edited.keySet()) && isEmptyOrphanRelationships(edited.get(ORPHAN_COMMENTS_RELS));
+    }
+
+    private static boolean isEmptyOrphanRelationships(byte[] bytes) {
+        try {
+            Document document = xml(bytes);
+            var root = document.getDocumentElement();
+            if (!PACKAGE_RELATIONSHIPS.equals(root.getNamespaceURI()) || !"Relationships".equals(root.getLocalName())) return false;
+            for (int i = 0; i < root.getAttributes().getLength(); i++) {
+                Node attribute = root.getAttributes().item(i);
+                if (!XMLConstants.XMLNS_ATTRIBUTE_NS_URI.equals(attribute.getNamespaceURI())) return false;
+            }
+            var children = root.getChildNodes();
+            for (int i = 0; i < children.getLength(); i++) {
+                Node child = children.item(i);
+                if (child.getNodeType() != Node.TEXT_NODE || !child.getNodeValue().isBlank()) return false;
+            }
+            return true;
+        } catch (Exception error) {
+            return false;
+        }
+    }
 
     private static Map<String, byte[]> unpack(byte[] bytes) {
         if (bytes == null || bytes.length < 22 || bytes.length > MAX_ARCHIVE) throw invalid();
@@ -172,23 +204,24 @@ public class DocxIntegrity {
             if ("Relationship".equals(node.getLocalName())) {
                 var element = (org.w3c.dom.Element) node;
                 String target = element.getAttribute("Target");
-                boolean external = "External".equalsIgnoreCase(element.getAttribute("TargetMode"));
-                if (external) {
-                    if (!HYPERLINK_RELATIONSHIP.equals(element.getAttribute("Type")) || !isSafeHttpsHyperlink(target)) throw invalid();
-                } else if (element.hasAttribute("TargetMode") || target.contains(":")
-                        || target.startsWith("/") || target.contains("\\")) throw invalid();
+                String targetMode = element.getAttribute("TargetMode");
+                if ("External".equalsIgnoreCase(targetMode)) {
+                    validateExternalHyperlink(element);
+                } else {
+                    if (!targetMode.isEmpty() && !"Internal".equalsIgnoreCase(targetMode)) throw invalid();
+                    if (target.contains(":") || target.startsWith("/") || target.contains("\\")) throw invalid();
+                }
             }
         }
     }
 
-    private static boolean isSafeHttpsHyperlink(String target) {
-        try {
-            URI uri = URI.create(target);
-            return "https".equalsIgnoreCase(uri.getScheme()) && uri.isAbsolute()
-                    && uri.getHost() != null && !uri.getHost().isBlank() && uri.getUserInfo() == null;
-        } catch (IllegalArgumentException error) {
-            return false;
-        }
+    private static void validateExternalHyperlink(org.w3c.dom.Element relationship) {
+        if (!relationship.getAttribute("Type").endsWith("/hyperlink")) throw invalid();
+        URI target;
+        try { target = URI.create(relationship.getAttribute("Target")); }
+        catch (IllegalArgumentException error) { throw invalid(); }
+        if (!target.isAbsolute() || !"https".equalsIgnoreCase(target.getScheme()) || target.getHost() == null
+                || target.getRawUserInfo() != null || target.getPort() == 0 || target.getPort() > 65535) throw invalid();
     }
 
     private static boolean sameTree(Node first, Node second) {

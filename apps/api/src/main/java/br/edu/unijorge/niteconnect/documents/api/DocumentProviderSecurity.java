@@ -12,7 +12,7 @@ import org.springframework.security.web.SecurityFilterChain;
 public class DocumentProviderSecurity {
     @Bean @Order(0) SecurityFilterChain documentProviderChain(HttpSecurity http) throws Exception {
         return http.securityMatcher("/api/v1/document-provider/**").csrf(c->c.disable()).sessionManagement(s->s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(a->a.requestMatchers(HttpMethod.GET,"/api/v1/document-provider/sources/*").permitAll()
-                .requestMatchers(HttpMethod.POST,"/api/v1/document-provider/cycles/*/callback").permitAll().anyRequest().denyAll()).build();
+            .authorizeHttpRequests(a->a.requestMatchers(HttpMethod.GET,"/api/v1/document-provider/sources/*","/api/v1/document-provider/inspection-sources/*").permitAll()
+                .requestMatchers(HttpMethod.POST,"/api/v1/document-provider/cycles/*/callback","/api/v1/document-provider/inspection-cycles/*/callback").permitAll().anyRequest().denyAll()).build();
     }
 }
