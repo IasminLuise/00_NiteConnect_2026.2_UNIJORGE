@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { DiaryApi, type DiaryActivityPanel, type DiaryView, type EditorSession } from "@/lib/diary-api";
 import { OnlyOfficeEditor } from "@/components/onlyoffice-editor";
+import { ThemeControl } from "@/components/theme-control";
 
 type Props = { accessToken: string | null; apiBaseUrl: string };
 
@@ -101,7 +102,10 @@ export function DiaryWorkspace({ accessToken, apiBaseUrl }: Props) {
     <main className="shell">
       <header className="topbar">
         <Link className="brand" href="/" aria-label="NITE Connect, início"><span className="brand-mark">N</span><span>NITE <b>CONNECT</b></span></Link>
-        <span className="topbar-label">DOCUMENTOS</span>
+        <div className="topbar-tools">
+          <span className="topbar-label">DOCUMENTOS</span>
+          <ThemeControl />
+        </div>
       </header>
 
       <div className="workspace">
