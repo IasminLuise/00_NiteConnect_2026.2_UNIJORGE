@@ -1,0 +1,46 @@
+async (page) => {
+  const results = [];
+  const widths = [320, 360, 768, 1024, 1440];
+  for (const theme of ["light", "dark"]) {
+    await page.getByLabel("Tema da interface").selectOption(theme);
+    await page.waitForTimeout(150);
+    for (const width of widths) {
+      await page.setViewportSize({ width, height: 960 });
+      await page.evaluate(() => {
+        if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+      });
+      await page.waitForTimeout(100);
+      const metrics = await page.evaluate(() => {
+        const control = document.querySelector(".geometry-demo-control");
+        const input = document.querySelector("#geometry-project-name");
+        const floating = document.querySelector(".geometry-level-floating");
+        const floatingStyle = floating ? getComputedStyle(floating) : null;
+        const context = document.querySelector(".geometry-popover-context");
+        const stage = document.querySelector(".geometry-popover-stage");
+        return {
+          theme: document.documentElement.dataset.theme,
+          viewport: innerWidth,
+          documentWidth: document.documentElement.scrollWidth,
+          clientWidth: document.documentElement.clientWidth,
+          controlHeight: control?.getBoundingClientRect().height ?? null,
+          inputHeight: input?.getBoundingClientRect().height ?? null,
+          radiusControl: control ? getComputedStyle(control).borderRadius : null,
+          radiusPanel: floating ? getComputedStyle(floating).borderRadius : null,
+          elevatedSurface: floatingStyle?.backgroundColor ?? null,
+          floatingShadow: floatingStyle?.boxShadow ?? null,
+          contextWidth: context?.getBoundingClientRect().width ?? null,
+          popoverStageColumns: stage ? getComputedStyle(stage).gridTemplateColumns : null,
+          horizontalOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth
+        };
+      });
+      results.push(metrics);
+      if (width === 1440 || width === 360) {
+        await page.screenshot({
+          path: "D:/nite-connect/apps/web/output/playwright/etapa-4-2-geometry-20261027/geometry-" + theme + "-" + width + ".png",
+          fullPage: true
+        });
+      }
+    }
+  }
+  return results;
+}
