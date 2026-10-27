@@ -13,7 +13,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-/** Synthetic document provider exists exclusively in this test context; B05 remains unavailable in product. */
+/** Synthetic document provider exists exclusively in this test context. */
 @Import(AcademicSyntheticSupport.Documents.class)
 class AcademicHomologationTest extends AcademicSyntheticSupport {
     @Test void changedOriginPreventsHomologationWithoutRewritingTheCalculation() throws Exception {

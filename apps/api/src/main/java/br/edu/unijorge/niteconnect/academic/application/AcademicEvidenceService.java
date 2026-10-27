@@ -39,7 +39,7 @@ public class AcademicEvidenceService {
             case ATTENDANCE -> { var s=attendance.read(actor,e.memberId(),sourceId,from,to);
                 yield new SourceSnapshot(1,source,s.id(),e.memberId(),null,s.revision(),s.authorId(),s.validatedBy(),s.status(),s.occurredAt(),s.validatedAt(),from,to,s.attributes(),actor,scope); }
             case DOCUMENT -> {
-                var provider=documents.getIfAvailable();if(provider==null) throw ApiException.conflict("Integração documental B05 indisponível");
+                var provider=documents.getIfAvailable();if(provider==null) throw ApiException.conflict("Integração de evidências documentais indisponível");
                 SourceSnapshot s=provider.read(actor,e.memberId(),sourceId,from,to);
                 if(s==null || s.contractVersion()!=1 || s.source()!=source || !sourceId.equals(s.sourceId()) || !e.memberId().equals(s.memberId()) ||
                         !from.equals(s.from()) || !to.equals(s.to()) || !actor.equals(s.readBy()) || s.sourceRevision()==null || s.sourceRevision().isBlank() || s.attributes()==null)

@@ -9,11 +9,11 @@ Este diretório é a fonte de execução do Flyway, configurada em `application.
 | V3 | [`V3__projects_proposals_memberships.sql`](V3__projects_proposals_memberships.sql) | B02: propostas, projetos, vínculos e históricos de liderança/status; amplia o contrato de auditoria. |
 | V4 | [`V4__activities_assignments_evidence.sql`](V4__activities_assignments_evidence.sql) | B03: atividades, atribuições, eventos e evidências, com regras de preservação de histórico. |
 | V5 | [`V5__agenda_attendance_work_logs.sql`](V5__agenda_attendance_work_logs.sql) | B04: agenda, presença e registros de trabalho associados às atividades. |
-| V6 | [`V6__document_management.sql`](V6__document_management.sql) | B05: catálogo de modelos, documentos, versões, PDFs, relações de origem, callbacks e eventos documentais. |
-| V7 | [`V7__continuous_member_diaries.sql`](V7__continuous_member_diaries.sql) | B05: diários contínuos por integrante e proveniência da importação inicial. |
+| V6 | [`V6__document_management.sql`](V6__document_management.sql) | Estruturas históricas de registros, versões e eventos; mantida porque consta no histórico de bancos já migrados. |
+| V7 | [`V7__continuous_member_diaries.sql`](V7__continuous_member_diaries.sql) | Estrutura histórica complementar; mantida porque consta no histórico de bancos já migrados. |
 | V8 | [`V8__academic_assessment.sql`](V8__academic_assessment.sql) | B06: períodos, políticas, matrículas, planos, evidências, avaliações, cálculos, homologações, revisões e eventos acadêmicos. |
 | V9 | [`V9__academic_public_feedback.sql`](V9__academic_public_feedback.sql) | B06: campos de feedback público e índices de consulta para homologações e revisões. |
-| V10 | [`V10__local_document_inspection.sql`](V10__local_document_inspection.sql) | B05, ferramenta local opcional: sessões isoladas de inspeção documental; não promove versões nem altera o ciclo normal do editor. |
+| V10 | [`V10__local_document_inspection.sql`](V10__local_document_inspection.sql) | Estrutura histórica de inspeção local; mantida porque consta no histórico de bancos já migrados. |
 
 ## Aplicação
 

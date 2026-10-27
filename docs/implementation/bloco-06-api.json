@@ -3,7 +3,7 @@
   "info": {
     "title": "NITE Connect — Bloco 06",
     "version": "1.0.0",
-    "description": "Contrato do núcleo acadêmico. Sem política confirmada e evidências de todos os pilares não existe resultado homologável. B05 documental não é implementado aqui. Confirmação universitária, emissão e notificações externas permanecem inativas."
+    "description": "Contrato do núcleo acadêmico. Sem política confirmada e evidências de todos os pilares não existe resultado homologável. A integração de evidências documentais não é implementada aqui. Confirmação universitária, emissão e notificações externas permanecem inativas."
   },
   "paths": {
     "/api/v1/academic/enrollments/{id}/assessments": {
@@ -67,7 +67,7 @@
             }
           },
           "409": {
-            "description": "Versão obsoleta, estado incompatível, política pendente ou integração B05 indisponível",
+            "description": "Versão obsoleta, estado incompatível, política pendente ou integração documental indisponível",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -160,7 +160,7 @@
             }
           },
           "409": {
-            "description": "Versão obsoleta, estado incompatível, política pendente ou integração B05 indisponível",
+            "description": "Versão obsoleta, estado incompatível, política pendente ou integração documental indisponível",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -264,7 +264,7 @@
             }
           },
           "409": {
-            "description": "Versão obsoleta, estado incompatível, política pendente ou integração B05 indisponível",
+            "description": "Versão obsoleta, estado incompatível, política pendente ou integração documental indisponível",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -357,7 +357,7 @@
             }
           },
           "409": {
-            "description": "Versão obsoleta, estado incompatível, política pendente ou integração B05 indisponível",
+            "description": "Versão obsoleta, estado incompatível, política pendente ou integração documental indisponível",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -461,7 +461,7 @@
             }
           },
           "409": {
-            "description": "Versão obsoleta, estado incompatível, política pendente ou integração B05 indisponível",
+            "description": "Versão obsoleta, estado incompatível, política pendente ou integração documental indisponível",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -565,7 +565,7 @@
             }
           },
           "409": {
-            "description": "Versão obsoleta, estado incompatível, política pendente ou integração B05 indisponível",
+            "description": "Versão obsoleta, estado incompatível, política pendente ou integração documental indisponível",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -669,7 +669,7 @@
             }
           },
           "409": {
-            "description": "Versão obsoleta, estado incompatível, política pendente ou integração B05 indisponível",
+            "description": "Versão obsoleta, estado incompatível, política pendente ou integração documental indisponível",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -751,7 +751,7 @@
             }
           },
           "409": {
-            "description": "Versão obsoleta, estado incompatível, política pendente ou integração B05 indisponível",
+            "description": "Versão obsoleta, estado incompatível, política pendente ou integração documental indisponível",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -846,7 +846,7 @@
             }
           },
           "409": {
-            "description": "Versão obsoleta, estado incompatível, política pendente ou integração B05 indisponível",
+            "description": "Versão obsoleta, estado incompatível, política pendente ou integração documental indisponível",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -939,7 +939,7 @@
             }
           },
           "409": {
-            "description": "Versão obsoleta, estado incompatível, política pendente ou integração B05 indisponível",
+            "description": "Versão obsoleta, estado incompatível, política pendente ou integração documental indisponível",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1024,7 +1024,7 @@
             }
           },
           "409": {
-            "description": "Versão obsoleta, estado incompatível, política pendente ou integração B05 indisponível",
+            "description": "Versão obsoleta, estado incompatível, política pendente ou integração documental indisponível",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1109,7 +1109,7 @@
             }
           },
           "409": {
-            "description": "Versão obsoleta, estado incompatível, política pendente ou integração B05 indisponível",
+            "description": "Versão obsoleta, estado incompatível, política pendente ou integração documental indisponível",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1204,7 +1204,7 @@
             }
           },
           "409": {
-            "description": "Versão obsoleta, estado incompatível, política pendente ou integração B05 indisponível",
+            "description": "Versão obsoleta, estado incompatível, política pendente ou integração documental indisponível",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1299,7 +1299,7 @@
             }
           },
           "409": {
-            "description": "Versão obsoleta, estado incompatível, política pendente ou integração B05 indisponível",
+            "description": "Versão obsoleta, estado incompatível, política pendente ou integração documental indisponível",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1392,7 +1392,7 @@
             }
           },
           "409": {
-            "description": "Versão obsoleta, estado incompatível, política pendente ou integração B05 indisponível",
+            "description": "Versão obsoleta, estado incompatível, política pendente ou integração documental indisponível",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1496,7 +1496,7 @@
             }
           },
           "409": {
-            "description": "Versão obsoleta, estado incompatível, política pendente ou integração B05 indisponível",
+            "description": "Versão obsoleta, estado incompatível, política pendente ou integração documental indisponível",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1589,7 +1589,7 @@
             }
           },
           "409": {
-            "description": "Versão obsoleta, estado incompatível, política pendente ou integração B05 indisponível",
+            "description": "Versão obsoleta, estado incompatível, política pendente ou integração documental indisponível",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1693,7 +1693,7 @@
             }
           },
           "409": {
-            "description": "Versão obsoleta, estado incompatível, política pendente ou integração B05 indisponível",
+            "description": "Versão obsoleta, estado incompatível, política pendente ou integração documental indisponível",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1788,7 +1788,7 @@
             }
           },
           "409": {
-            "description": "Versão obsoleta, estado incompatível, política pendente ou integração B05 indisponível",
+            "description": "Versão obsoleta, estado incompatível, política pendente ou integração documental indisponível",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1881,7 +1881,7 @@
             }
           },
           "409": {
-            "description": "Versão obsoleta, estado incompatível, política pendente ou integração B05 indisponível",
+            "description": "Versão obsoleta, estado incompatível, política pendente ou integração documental indisponível",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1985,7 +1985,7 @@
             }
           },
           "409": {
-            "description": "Versão obsoleta, estado incompatível, política pendente ou integração B05 indisponível",
+            "description": "Versão obsoleta, estado incompatível, política pendente ou integração documental indisponível",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2078,7 +2078,7 @@
             }
           },
           "409": {
-            "description": "Versão obsoleta, estado incompatível, política pendente ou integração B05 indisponível",
+            "description": "Versão obsoleta, estado incompatível, política pendente ou integração documental indisponível",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2182,7 +2182,7 @@
             }
           },
           "409": {
-            "description": "Versão obsoleta, estado incompatível, política pendente ou integração B05 indisponível",
+            "description": "Versão obsoleta, estado incompatível, política pendente ou integração documental indisponível",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2277,7 +2277,7 @@
             }
           },
           "409": {
-            "description": "Versão obsoleta, estado incompatível, política pendente ou integração B05 indisponível",
+            "description": "Versão obsoleta, estado incompatível, política pendente ou integração documental indisponível",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2372,7 +2372,7 @@
             }
           },
           "409": {
-            "description": "Versão obsoleta, estado incompatível, política pendente ou integração B05 indisponível",
+            "description": "Versão obsoleta, estado incompatível, política pendente ou integração documental indisponível",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2467,7 +2467,7 @@
             }
           },
           "409": {
-            "description": "Versão obsoleta, estado incompatível, política pendente ou integração B05 indisponível",
+            "description": "Versão obsoleta, estado incompatível, política pendente ou integração documental indisponível",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2552,7 +2552,7 @@
             }
           },
           "409": {
-            "description": "Versão obsoleta, estado incompatível, política pendente ou integração B05 indisponível",
+            "description": "Versão obsoleta, estado incompatível, política pendente ou integração documental indisponível",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2645,7 +2645,7 @@
             }
           },
           "409": {
-            "description": "Versão obsoleta, estado incompatível, política pendente ou integração B05 indisponível",
+            "description": "Versão obsoleta, estado incompatível, política pendente ou integração documental indisponível",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2749,7 +2749,7 @@
             }
           },
           "409": {
-            "description": "Versão obsoleta, estado incompatível, política pendente ou integração B05 indisponível",
+            "description": "Versão obsoleta, estado incompatível, política pendente ou integração documental indisponível",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2853,7 +2853,7 @@
             }
           },
           "409": {
-            "description": "Versão obsoleta, estado incompatível, política pendente ou integração B05 indisponível",
+            "description": "Versão obsoleta, estado incompatível, política pendente ou integração documental indisponível",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -2935,7 +2935,7 @@
             }
           },
           "409": {
-            "description": "Versão obsoleta, estado incompatível, política pendente ou integração B05 indisponível",
+            "description": "Versão obsoleta, estado incompatível, política pendente ou integração documental indisponível",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3030,7 +3030,7 @@
             }
           },
           "409": {
-            "description": "Versão obsoleta, estado incompatível, política pendente ou integração B05 indisponível",
+            "description": "Versão obsoleta, estado incompatível, política pendente ou integração documental indisponível",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3123,7 +3123,7 @@
             }
           },
           "409": {
-            "description": "Versão obsoleta, estado incompatível, política pendente ou integração B05 indisponível",
+            "description": "Versão obsoleta, estado incompatível, política pendente ou integração documental indisponível",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3227,7 +3227,7 @@
             }
           },
           "409": {
-            "description": "Versão obsoleta, estado incompatível, política pendente ou integração B05 indisponível",
+            "description": "Versão obsoleta, estado incompatível, política pendente ou integração documental indisponível",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3322,7 +3322,7 @@
             }
           },
           "409": {
-            "description": "Versão obsoleta, estado incompatível, política pendente ou integração B05 indisponível",
+            "description": "Versão obsoleta, estado incompatível, política pendente ou integração documental indisponível",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3415,7 +3415,7 @@
             }
           },
           "409": {
-            "description": "Versão obsoleta, estado incompatível, política pendente ou integração B05 indisponível",
+            "description": "Versão obsoleta, estado incompatível, política pendente ou integração documental indisponível",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3519,7 +3519,7 @@
             }
           },
           "409": {
-            "description": "Versão obsoleta, estado incompatível, política pendente ou integração B05 indisponível",
+            "description": "Versão obsoleta, estado incompatível, política pendente ou integração documental indisponível",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3614,7 +3614,7 @@
             }
           },
           "409": {
-            "description": "Versão obsoleta, estado incompatível, política pendente ou integração B05 indisponível",
+            "description": "Versão obsoleta, estado incompatível, política pendente ou integração documental indisponível",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -3709,7 +3709,7 @@
             }
           },
           "409": {
-            "description": "Versão obsoleta, estado incompatível, política pendente ou integração B05 indisponível",
+            "description": "Versão obsoleta, estado incompatível, política pendente ou integração documental indisponível",
             "content": {
               "application/problem+json": {
                 "schema": {

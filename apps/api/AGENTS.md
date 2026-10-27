@@ -9,7 +9,7 @@
 - Exponha DTOs nas APIs; entidades JPA não são contratos HTTP.
 - Não use `@Data` indiscriminadamente em entidades JPA; não exponha segredos ou dados sensíveis em logs, erros ou `toString()`.
 - Transações no serviço de aplicação; consultas, paginação e índices devem ser intencionais.
-- O servidor é a autoridade de autorização, inclusive para documentos, projetos, membros e dados acadêmicos.
+- O servidor é a autoridade de autorização para projetos, membros e dados acadêmicos.
 - A API começa em modo **deny-all**: só o endpoint de saúde é público. Não abra endpoints sem implementar e testar o mecanismo de proteção.
 - OAuth2/OIDC com Microsoft Entra será implementado no Bloco 01; não criar senhas próprias nem autenticação fictícia.
 - Migrações em `src/main/resources/Migrations`: append-only, versionadas e testadas com PostgreSQL. O catálogo `Migrations/README.md` relaciona cada versão ao bloco e ao escopo do esquema.
