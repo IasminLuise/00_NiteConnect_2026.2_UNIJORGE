@@ -14,14 +14,14 @@ import static org.assertj.core.api.Assertions.*;
 class Block02MigrationTest {
     @Container static final PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:17-alpine");
     @Test void upgradePreservesV2MembersStatusHistoryAndImmutableAuditWithoutBackfill() {
-        Flyway.configure().dataSource(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())
+        Flyway.configure().dataSource(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword()).locations("classpath:Migrations")
                 .target("2").load().migrate();
         var jdbc = new JdbcTemplate(new DriverManagerDataSource(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword()));
         UUID member = UUID.randomUUID(), event = UUID.randomUUID(), history = UUID.randomUUID();
         jdbc.update("insert into nite_connect.members(id,name,institutional_email,status) values (?,'Teste migração','migration-test@unijorge.com.br','ATIVO')", member);
         jdbc.update("insert into nite_connect.audit_events(id,actor_id,member_id,action,reason) values (?,?,?,'MEMBER_CREATED','Registro anterior')", event, member, member);
         jdbc.update("insert into nite_connect.member_status_history(id,member_id,actor_id,new_status,reason) values (?,?,?,'ATIVO','Histórico anterior')", history, member, member);
-        var flyway = Flyway.configure().dataSource(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword()).target("3").load();
+        var flyway = Flyway.configure().dataSource(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword()).locations("classpath:Migrations").target("3").load();
         assertThat(flyway.migrate().migrationsExecuted).isEqualTo(1);
         flyway.validate();
         assertThat(jdbc.queryForObject("select name from nite_connect.members where id=?", String.class, member)).isEqualTo("Teste migração");

@@ -12,13 +12,13 @@ import static org.assertj.core.api.Assertions.*;
 class DocumentMigrationTest {
     @Container static final PostgreSQLContainer postgres=new PostgreSQLContainer("postgres:17-alpine");
     @Test void upgradesV5ToV7WithoutLosingExistingAuditAndEnforcesVersionBinding() {
-        var old=Flyway.configure().dataSource(postgres.getJdbcUrl(),postgres.getUsername(),postgres.getPassword()).target("5").load();
+        var old=Flyway.configure().dataSource(postgres.getJdbcUrl(),postgres.getUsername(),postgres.getPassword()).locations("classpath:Migrations").target("5").load();
         old.migrate();
         var jdbc=new JdbcTemplate(new DriverManagerDataSource(postgres.getJdbcUrl(),postgres.getUsername(),postgres.getPassword()));
         var actor=java.util.UUID.randomUUID();
         jdbc.update("insert into nite_connect.members(id,name,institutional_email,status) values (?,'Sintético','document-migration@unijorge.com.br','ATIVO')",actor);
         jdbc.update("insert into nite_connect.audit_events(id,actor_id,member_id,action,reason) values (?,?,?,'TEST','Antes de V6')",java.util.UUID.randomUUID(),actor,actor);
-        var current=Flyway.configure().dataSource(postgres.getJdbcUrl(),postgres.getUsername(),postgres.getPassword()).target("7").load();
+        var current=Flyway.configure().dataSource(postgres.getJdbcUrl(),postgres.getUsername(),postgres.getPassword()).locations("classpath:Migrations").target("7").load();
         assertThat(current.migrate().migrationsExecuted).isEqualTo(2);current.validate();
         assertThat(current.info().current().getVersion().getVersion()).isEqualTo("7");
         assertThat(jdbc.queryForObject("select count(*) from nite_connect.audit_events",Long.class)).isEqualTo(1);

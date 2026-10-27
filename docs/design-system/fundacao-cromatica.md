@@ -92,3 +92,23 @@ Pendências explícitas para validação:
 - Testar contraste no navegador, inclusive as composições de superfície translúcida.
 
 Próxima fundação sugerida: tipografia do Connect (Sora, Geist e Geist Mono), a ser discutida e implementada em outra etapa.
+
+## Etapa 1.2 — refinamento da aplicação cromática
+
+Esta etapa corrige a aplicação dos tokens no laboratório e no Diário, sem definir tipografia, geometria ou componentes de produto:
+
+- O estado React começa neutro até ler a preferência persistida, evitando anunciar Sistema/Escuro enquanto o bootstrap já aplicou outro tema. O seletor fica temporariamente indisponível e os valores dos tokens aguardam a leitura do tema; a interface permanece visível.
+- A preferência **Sistema** acompanha mudanças de `prefers-color-scheme` enquanto selecionada. A assinatura é removida no unmount; a sincronização por `storage` continua cobrindo mudanças em outras abas.
+- O menu de demonstração passou a fazer parte do fluxo do grid. Em telas estreitas ele ocupa uma linha própria, sem sobrepor o texto do painel.
+- `--nite-border-control` diferencia bordas necessárias para reconhecer controles das bordas decorativas. Controles habilitados usam a borda funcional; cartões e divisórias permanecem sutis; controles desabilitados voltam à borda suave.
+- No tema escuro, `--nite-border-hover` usa `#8190A5`, preservando diferença de interação em relação à borda-base `#64748B`. Foco continua com outline dedicado e seleção continua com marcador/fundo de marca.
+
+### Validação desta etapa
+
+Verificações locais executadas após as alterações: `npm run check` em `apps/web` (lint, typecheck, 10 testes e build Next.js 16.4.3) e `git diff --check`; todas passaram. A suíte inclui renderização inicial neutra, bootstrap para preferências salvas e System, mudança dinâmica de tema, fallback quando `localStorage` falha e limpeza do listener. O build do Next ajustou referências geradas em `next-env.d.ts`; elas foram restauradas ao conteúdo versionado para não incluir artefato incidental.
+
+A inspeção visual manual no Browser interno foi concluída nos temas Claro e Escuro em 1440×900, 768×1024, 390×844 e 320×700. Nas quatro dimensões, `documentElement.scrollWidth` permaneceu abaixo da largura do viewport (respectivamente 1425, 753, 375 e 305 px) e não houve rolagem horizontal. Medidas dos retângulos confirmaram ausência de interseção entre menu contextual, título e descrição. Em 768×1024 o menu ocupa a coluna lateral do painel; em 390×844 e 320×700 ocupa a linha inferior. As capturas de página completa mostraram a composição nas duas paletas e o empilhamento dos cartões nos tamanhos móveis. Em 768×1024, os nomes longos de tokens nas mini-amostras de superfície usam elipse visual (regra responsiva existente), mas os cartões e o conteúdo não são cortados pelo viewport.
+
+A emulação de mudança de `prefers-color-scheme` não está disponível na capacidade de viewport do navegador conectado; a sincronização dinâmica fica validada pelos testes unitários. Não foi possível mover o ponteiro por uma API nativa de hover nesta aba; o papel/tom de hover escuro é conferido no CSS e tem contraste distinto da borda-base, mas a percepção com cursor real permanece pendente.
+
+A proteção de produção da rota do laboratório continua implementada em `src/app/dev/design-system/colors/page.tsx` (`notFound()` em `NODE_ENV=production`). Após o build desta etapa, `next start` respondeu HTTP 404 em `http://127.0.0.1:3001/dev/design-system/colors`; o servidor local foi encerrado após a checagem.

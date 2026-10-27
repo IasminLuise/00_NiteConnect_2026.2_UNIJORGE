@@ -1,0 +1,2 @@
+export const formControlClasses =
+  "min-h-11 w-full min-w-0 rounded-control border border-nite-border-control bg-nite-background px-3 py-2 font-sans text-type-body text-nite-text-primary placeholder:text-nite-placeholder focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-nite-focus aria-invalid:border-status-error aria-invalid:focus-visible:outline-status-error disabled:cursor-not-allowed disabled:border-nite-border-soft disabled:bg-nite-surface-subtle disabled:text-nite-text-muted read-only:bg-nite-surface-subtle";

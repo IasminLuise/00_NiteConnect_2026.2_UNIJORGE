@@ -29,6 +29,16 @@ export function getSystemTheme(): ResolvedTheme {
     : "dark";
 }
 
+export function subscribeToSystemTheme(listener: (theme: ResolvedTheme) => void): () => void {
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") return () => {};
+
+  const mediaQuery = window.matchMedia("(prefers-color-scheme: light)");
+  const handleChange = () => listener(mediaQuery.matches ? "light" : "dark");
+  mediaQuery.addEventListener("change", handleChange);
+
+  return () => mediaQuery.removeEventListener("change", handleChange);
+}
+
 export function applyThemePreference(preference: ThemePreference): void {
   if (typeof document === "undefined") return;
 

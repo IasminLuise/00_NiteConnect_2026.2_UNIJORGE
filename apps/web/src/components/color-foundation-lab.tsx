@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { ThemeControl } from "./theme-control";
 import { useTheme } from "./theme-provider";
+import type { ResolvedTheme } from "../lib/theme";
 
 const institutionalTokens = [
   ["Fundo principal", "--nite-background"],
@@ -41,15 +42,20 @@ const dataSeries = [
 ] as const;
 
 function TokenSwatch({ label, token }: { label: string; token: string }) {
-  const { resolvedTheme } = useTheme();
-  const [value, setValue] = useState("—");
+  const { ready, resolvedTheme } = useTheme();
+  const [snapshot, setSnapshot] = useState<{ theme: ResolvedTheme; value: string | null } | null>(null);
 
   useEffect(() => {
+    if (!ready || !resolvedTheme) return;
+    const theme = resolvedTheme;
     const frame = window.requestAnimationFrame(() => {
-      setValue(getComputedStyle(document.documentElement).getPropertyValue(token).trim() || "—");
+      const value = getComputedStyle(document.documentElement).getPropertyValue(token).trim() || null;
+      setSnapshot({ theme, value });
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [resolvedTheme, token]);
+  }, [ready, resolvedTheme, token]);
+
+  const value = snapshot?.theme === resolvedTheme ? snapshot.value : null;
 
   return (
     <article className="lab-token">
@@ -57,7 +63,7 @@ function TokenSwatch({ label, token }: { label: string; token: string }) {
       <span className="lab-token-copy">
         <strong>{label}</strong>
         <code>{token}</code>
-        <small>{value}</small>
+        <small>{value ?? (!ready ? "Aguardando tema…" : "Lendo token…")}</small>
       </span>
     </article>
   );
@@ -65,6 +71,7 @@ function TokenSwatch({ label, token }: { label: string; token: string }) {
 
 export function ColorFoundationLab() {
   const { resolvedTheme } = useTheme();
+  const themeLabel = resolvedTheme === "light" ? "Claro" : resolvedTheme === "dark" ? "Escuro" : "Aguardando";
 
   return (
     <main className="lab-shell">
@@ -75,7 +82,7 @@ export function ColorFoundationLab() {
           <p className="lab-intro">Inspeção dos tokens reais da aplicação. Valores de superfície elevada e séries de dados seguem como candidatos.</p>
         </div>
         <div className="lab-header-controls">
-          <span className="lab-theme-state">Tema aplicado: <strong>{resolvedTheme === "light" ? "Claro" : "Escuro"}</strong></span>
+          <span className="lab-theme-state" aria-live="polite" aria-atomic="true">Tema aplicado: <strong>{themeLabel}</strong></span>
           <ThemeControl />
         </div>
       </header>
@@ -90,7 +97,7 @@ export function ColorFoundationLab() {
         <div className="lab-token-grid lab-token-grid-five">{surfaceTokens.map(([label, token]) => <TokenSwatch key={token} label={label} token={token} />)}</div>
         <div className="lab-composition">
           <aside className="lab-nav-sample"><span className="lab-mini-mark">N</span><strong>NITE Connect</strong><span className="lab-nav-item lab-nav-item-active">Visão geral</span><span className="lab-nav-item">Projetos</span><span className="lab-nav-item">Integrantes</span></aside>
-          <div className="lab-canvas-sample"><div className="lab-demo-panel"><p className="lab-eyebrow">PAINEL DE EXEMPLO</p><h3>Camadas de interface</h3><p>Uma superfície padrão sobre o canvas; o menu flutuante demonstra elevação.</p><div className="lab-floating-menu"><strong>Menu contextual</strong><span>Ação disponível</span><span className="lab-menu-selected">Item selecionado <b aria-hidden="true">✓</b></span></div></div></div>
+          <div className="lab-canvas-sample"><div className="lab-demo-panel"><p className="lab-eyebrow">PAINEL DE EXEMPLO</p><h3>Camadas de interface</h3><p>Uma superfície padrão sobre o canvas; o menu contextual demonstra elevação.</p><div className="lab-floating-menu"><strong>Menu contextual</strong><span>Ação disponível</span><span className="lab-menu-selected">Item selecionado <b aria-hidden="true">✓</b></span></div></div></div>
         </div>
       </section>
 
@@ -119,7 +126,7 @@ export function ColorFoundationLab() {
           <div className="lab-chart-legend">{dataSeries.map(([label, token]) => <span key={token}><i style={{ backgroundColor: `var(${token})` }} />{label}</span>)}</div>
         </div>
       </section>
-      <footer className="lab-footer">Tema ativo: {resolvedTheme === "light" ? "Claro" : "Escuro"} · Preferência e valores candidatos devem ser revistos antes de uso em produção.</footer>
+      <footer className="lab-footer">Tema ativo: {themeLabel} · Preferência e valores candidatos devem ser revistos antes de uso em produção.</footer>
     </main>
   );
 }

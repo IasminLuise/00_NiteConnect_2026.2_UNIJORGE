@@ -12,13 +12,13 @@ import static org.assertj.core.api.Assertions.*;
 class Block06MigrationTest {
     @Container static final PostgreSQLContainer postgres=new PostgreSQLContainer("postgres:17-alpine");
     @Test void upgradesPersistentV3ThroughAcademicV9AndProtectsPoliciesAndHistory() {
-        var config=Flyway.configure().dataSource(postgres.getJdbcUrl(),postgres.getUsername(),postgres.getPassword());
+        var config=Flyway.configure().dataSource(postgres.getJdbcUrl(),postgres.getUsername(),postgres.getPassword()).locations("classpath:Migrations");
         config.target("3").load().migrate();
         var jdbc=new JdbcTemplate(new DriverManagerDataSource(postgres.getJdbcUrl(),postgres.getUsername(),postgres.getPassword()));
         String id="10000000-0000-4000-8000-000000000001";
         jdbc.update("insert into nite_connect.members(id,name,institutional_email,status) values (?::uuid,'Migração','migration@unijorge.com.br','ATIVO')",id);
-        assertThat(Flyway.configure().dataSource(postgres.getJdbcUrl(),postgres.getUsername(),postgres.getPassword()).target("5").load().migrate().migrationsExecuted).isEqualTo(2);
-        var flyway=Flyway.configure().dataSource(postgres.getJdbcUrl(),postgres.getUsername(),postgres.getPassword()).target("9").load();
+        assertThat(Flyway.configure().dataSource(postgres.getJdbcUrl(),postgres.getUsername(),postgres.getPassword()).locations("classpath:Migrations").target("5").load().migrate().migrationsExecuted).isEqualTo(2);
+        var flyway=Flyway.configure().dataSource(postgres.getJdbcUrl(),postgres.getUsername(),postgres.getPassword()).locations("classpath:Migrations").target("9").load();
         assertThat(flyway.migrate().migrationsExecuted).isEqualTo(4);flyway.validate();
         assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("9");
         assertThat(jdbc.queryForObject("select count(*) from information_schema.tables where table_schema='nite_connect' and table_name='academic_assessment_evidence'",Long.class)).isEqualTo(1);

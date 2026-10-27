@@ -8,16 +8,19 @@ type ThemeControlProps = {
 };
 
 export function ThemeControl({ className }: ThemeControlProps) {
-  const { preference, setPreference } = useTheme();
+  const { preference, ready, setPreference } = useTheme();
 
   return (
     <label className={className ?? "theme-control"}>
       <span className="sr-only">Tema da interface</span>
       <select
         aria-label="Tema da interface"
-        value={preference}
+        value={preference ?? ""}
+        disabled={!ready}
+        aria-busy={!ready}
         onChange={(event) => setPreference(normalizeThemePreference(event.currentTarget.value))}
       >
+        {!ready && <option value="" disabled>Carregando tema…</option>}
         {themePreferences.map((option) => (
           <option key={option} value={option}>
             {themePreferenceLabels[option]}
