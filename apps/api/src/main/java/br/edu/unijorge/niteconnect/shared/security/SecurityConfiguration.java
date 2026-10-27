@@ -46,18 +46,6 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.PUT, "/api/v1/me/academic/enrollments/*").access(authenticatedJwt)
                         .requestMatchers(HttpMethod.GET, "/api/v1/academic/terms", "/api/v1/academic/terms/*/policies").access(authenticatedJwt)
                         .requestMatchers(HttpMethod.POST, "/api/v1/academic/terms", "/api/v1/academic/terms/*/policies", "/api/v1/academic/policies/*/confirmation").access(authenticatedJwt)
-                        .requestMatchers(HttpMethod.GET, "/api/v1/document-templates", "/api/v1/document-templates/*/versions",
-                                "/api/v1/documents", "/api/v1/documents/*", "/api/v1/documents/*/versions",
-                                "/api/v1/documents/*/versions/*/download", "/api/v1/documents/*/history",
-                                "/api/v1/diaries/me", "/api/v1/diaries/*", "/api/v1/diaries/me/activities").access(authenticatedJwt)
-                        .requestMatchers(HttpMethod.POST, "/api/v1/document-templates", "/api/v1/document-templates/*/versions",
-                                "/api/v1/document-templates/*/retire", "/api/v1/documents", "/api/v1/documents/*/versions",
-                                "/api/v1/documents/*/grants", "/api/v1/documents/*/grants/*/revoke",
-                                "/api/v1/documents/*/archive", "/api/v1/documents/*/restore",
-                                "/api/v1/documents/*/editor-sessions", "/api/v1/documents/*/editor-sessions/*/close",
-                                "/api/v1/documents/*/versions/*/pdf", "/api/v1/diaries/*/import",
-                                "/api/v1/documents/*/inspection-samples", "/api/v1/documents/*/inspection-sessions",
-                                "/api/v1/documents/*/inspection-sessions/*/close").access(authenticatedJwt)
                         .requestMatchers(HttpMethod.GET, "/api/v1/agenda/events", "/api/v1/agenda/events/*", "/api/v1/agenda/events/*/participants",
                                 "/api/v1/me/attendance", "/api/v1/me/work-logs", "/api/v1/me/absence-justifications", "/api/v1/me/attendance/corrections",
                                 "/api/v1/me/participation-summary", "/api/v1/me/participation-history", "/api/v1/attendance/records",

@@ -1,8 +1,8 @@
 # Bloco 06 — Contrato de Implementação B06.0
 
-**Atualização da sequência de migrações (26/10/2026):** a decisão histórica de usar V6 acadêmica foi supersedida após a aplicação persistente das migrações documentais B05 V6/V7 no banco local e no Neon staging. O B06 usa agora V8/V9 e deve ser integrado depois do B05. O registro de execução contém o estado e a validação atuais.
+**Atualização da sequência de migrações (27/10/2026):** o domínio acadêmico usa V8/V9. O catálogo completo está em `apps/api/src/main/resources/Migrations/README.md`; as versões já aplicadas são append-only e permanecem no histórico do Flyway.
 
-**Data:** 23/10/2026. **Estado atual:** contrato/plano aprovados pelo usuário para implementação nesta sessão; núcleo implementado, revisão independente tratada e 218 testes aprovados; PR #16 aberto para revisão. Ativação integral continua condicionada ao B05 e às decisões institucionais.
+**Data:** 23/10/2026. **Estado atual:** contrato/plano aprovados pelo usuário para implementação nesta sessão; núcleo implementado, revisão independente tratada e 218 testes aprovados; PR #16 aberto para revisão. Ativação integral continua condicionada às decisões institucionais e à disponibilidade das evidências exigidas.
 **G0-A:** aprovado com o plano de execução. **G0-B:** ambientes conhecidos auditados e V6 acadêmica adotada. **G0:** encerrado nesse escopo; ver [evidências de execução](bloco-06-execution.md). O texto abaixo preserva o contrato inicialmente submetido; estados históricos de preparação não substituem o registro atual.
 **Branch:** `docs/bloco-06-contrato`. **Base:** `origin/main`, commit `d787916bbd581ee2ec4c9d2ee85fe5af02f97239`.
 
@@ -25,13 +25,13 @@ Classificação utilizada:
 | I | Decisão institucional ainda pendente | Não atribuir valor ou procedimento por suposição; bloquear a operação dependente |
 | E | Evidência observada no repositório ou ambiente | Limitada à referência e ao ambiente identificados |
 
-**Fora desta entrega:** código de produto, migrações, endpoints, OpenAPI executável, frontend, implantação, alteração de credenciais, editor ou armazenamento documental. Não implementar B05 nem antecipar painéis do B07. Não considerar este documento aprovação da implementação.
+**Fora desta entrega:** código de produto, migrações, endpoints, OpenAPI executável, frontend, implantação, alteração de credenciais, editor ou armazenamento documental. Não antecipar painéis do B07. Não considerar este documento aprovação da implementação.
 
 ### Abordagem selecionada e alternativas
 
-A direção aprovada é manter `academic` como domínio do monólito, lendo contratos explícitos dos módulos de origem e preservando referências e retratos mínimos dos dados utilizados. Isso permite avançar sem depender do editor do B05, mas exige definir os contratos e a reconciliação de versões.
+A direção aprovada é manter `academic` como domínio do monólito, lendo contratos explícitos dos módulos de origem e preservando referências e retratos mínimos dos dados utilizados. Isso mantém o domínio independente de um editor documental e exige definir os contratos e a reconciliação de versões.
 
-Consultas diretas do módulo acadêmico às tabelas internas de outros módulos reduziriam o trabalho inicial, mas contrariariam a fronteira arquitetural aprovada e duplicariam autorização. Uma solução documental paralela reduziria a dependência aparente do B05, mas criaria outro fluxo de documentos sem aprovação. Ambas são descartadas; não são alternativas em aberto.
+Consultas diretas do módulo acadêmico às tabelas internas de outros módulos reduziriam o trabalho inicial, mas contrariariam a fronteira arquitetural aprovada e duplicariam autorização. Um fluxo documental paralelo também duplicaria armazenamento e autorização sem aprovação. Ambas são descartadas; não são alternativas em aberto.
 
 ## 2. Base técnica auditada
 
@@ -39,14 +39,14 @@ Consultas diretas do módulo acadêmico às tabelas internas de outros módulos 
 |---|---|
 | Java 21, Spring Boot 4.1.1, Spring Security, JDBC, PostgreSQL e Flyway no backend | Preservar dependências e organização por domínio; não introduzir serviços externos |
 | V1–V5 no checkout, nas referências Git locais inspecionadas e na `main` remota consultada | Não há V6 nesses inventários; isso não prova ausência de V6 aplicada em bancos |
-| `main` remota sete commits à frente da antiga referência local `e643408`; comparação contendo apenas documentos | Worktree documental parte da referência remota atualizada, sem transportar a spike B05 |
+| `main` remota sete commits à frente da antiga referência local `e643408`; comparação contendo apenas documentos | Worktree documental parte da referência remota atualizada, sem transportar código experimental |
 | `AccessService.requireAdministrator()` aceita `COORDENADOR` e `GESTOR_GERAL` | Não usar esse método isoladamente para registrar notas, homologar ou reabrir homologação |
 | `MemberDirectory`, `ProjectDirectory` e `ActivityParticipation` são contratos já existentes | Reutilizar conceitos e verificações; eles não constituem leitores acadêmicos completos |
 | `ParticipationQueries` distingue períodos registrados, aprovados, pendentes, recusados e abertos | Preservar as distinções; resumo agregado não substitui proveniência de cada registro |
 | `SecurityConfiguration` usa allowlist de operações e `anyRequest().denyAll()` | Toda futura operação acadêmica exige proteção HTTP e autorização contextual no serviço |
 | Docker Engine indisponível na tentativa de consulta inicial | Histórico Flyway e execução PostgreSQL não foram verificados nesta auditoria |
 
-Os 185 testes registrados para o B04 são evidência histórica. Não foram reexecutados nem constituem validação do B06. Os planos do B05 e sua migração documental proposta pertencem às branches de investigação; não são transportados para esta branch.
+Os 185 testes registrados para o B04 são evidência histórica. Não foram reexecutados nem constituem validação do B06. O histórico dos demais blocos não substitui a validação do código acadêmico.
 
 ## 3. Rastreabilidade funcional
 
@@ -63,7 +63,7 @@ Os identificadores abaixo pertencem à versão consolidada v1.0. Não os combina
 
 RF-048/049 e CA-16 são transversais: autoria, motivo, instante, estado anterior/posterior, confirmação de operações críticas e acesso restrito ao histórico.
 
-O Plano Individual está no planejamento aprovado como capacidade do B06. O ciclo de versões será definido tecnicamente, mas sua obrigatoriedade como condição para pontuar ou submeter Diário de Bordo permanece **I**: não reintroduzir como norma a interpretação de PDF histórico. O bloqueio documental efetivo depende do B05.
+O Plano Individual está no planejamento aprovado como capacidade do B06. O ciclo de versões será definido tecnicamente, mas sua obrigatoriedade como condição para pontuar ou submeter Diário de Bordo permanece **I**: não reintroduzir como norma a interpretação de PDF histórico. Evidências documentais sem provedor validado continuam indisponíveis para homologação.
 
 ## 4. Matriz de autorização acadêmica
 
@@ -119,9 +119,9 @@ Não presumir contador de versão em toda origem. Para dados imutáveis, usar id
 | B02 `ProjectAcademicReader` | `ProjectDirectory`, `ProjectAccess` | Projeto e contribuição individual com vínculo/intervalo histórico e versão pertinente. Vínculo atual isolado não comprova participação no semestre passado |
 | B03 `ActivityEvidenceReader` | `ActivityPolicy`, `ActivityService`, `EvidenceService`, `ActivityParticipation` | Atividade, projeto opcional, atribuição, autor, evidência e correções/retirada, versões e disponibilidade. `ActivityParticipation` valida contexto próprio de declaração; não exporta captura acadêmica |
 | B04 `AttendanceAcademicReader` | `ParticipationQueries`, `Participation.Period`, histórico de participação | Referências de períodos, modalidade, início/fim, estado de revisão, revisor e versão; separar declaração, presença e duração validada. O resumo agregado atual não basta como trilha de cada insumo |
-| B05 `DocumentEvidenceReader` | Não há provedor documental de produto nessa base | Futuro documento, versão, titular/contexto e validação; integração indisponível até B05. Não simular documento válido nem criar armazenamento paralelo |
+| `DocumentEvidenceReader` | Não há provedor documental de produto nessa base | Documento, versão, titular/contexto e validação; integração indisponível. Não simular documento válido nem criar armazenamento paralelo |
 
-Atividade concluída não é entrega academicamente validada. Não presumir um módulo de ciclos/entregas existente a partir do fluxo conceitual do PDF: a integração usa apenas capacidades comprovadas, e registra a lacuna onde não houver entidade ou decisão operacional correspondente. Arquivo disponível no B03 não equivale a documento oficial do B05.
+Atividade concluída não é entrega academicamente validada. Não presumir um módulo de ciclos/entregas existente a partir do fluxo conceitual do PDF: a integração usa apenas capacidades comprovadas e registra a lacuna onde não houver entidade ou decisão operacional correspondente. Arquivo anexado a uma atividade não equivale a documento acadêmico oficial.
 
 ### 5.3 Alterações posteriores e consistência
 
@@ -166,7 +166,7 @@ Pedido sobre homologação não a reescreve nem a anula automaticamente; decisã
 
 Dimensão independente da nota: `NAO_ENCAMINHADA → ENCAMINHADA`; eventual `CONFIRMADA_EXTERNAMENTE` só será habilitada após definição do procedimento **I**. Cada encaminhamento referencia a homologação exata e registra responsável e instante. Nova revisão não retifica automaticamente um encaminhamento anterior: registrar pendência de novo encaminhamento conforme procedimento.
 
-Homologação interna não representa lançamento ou convalidação universitária. Não há professor cadastrado como novo perfil, escrita automática em plataforma externa ou confirmação por simples clique sem comprovação. Integração documental definitiva, assinatura e certificados dependem do B05 e das autoridades competentes.
+Homologação interna não representa lançamento ou convalidação universitária. Não há professor cadastrado como novo perfil, escrita automática em plataforma externa ou confirmação por simples clique sem comprovação. Integração documental definitiva, assinatura e certificados dependem de decisões técnicas e das autoridades competentes.
 
 ## 7. Política acadêmica e preservação histórica
 
@@ -178,7 +178,7 @@ Parâmetros **I** obrigatórios conforme operação: cursos/disciplinas elegíve
 
 Pilares previstos: documentação individual, apresentações e entregas reais. Os pesos **30/20/50 são exclusivamente exemplo**, sem seed, fallback ou padrão de produção. O motor genérico deve usar `BigDecimal`, validar pesos e escala conforme a convenção explícita da política e não produzir resultado homologável sem política válida. Simulações, se aprovadas futuramente, ficam separadas e inelegíveis para homologação.
 
-**T:** validar pesos não negativos e soma exata de 100% na representação decimal adotada; intervalos de notas e arredondamento vêm da política. Não renormalizar automaticamente pesos nem converter pilar não avaliado em zero. Pilar documental sem provedor B05 ou evidência aceita não está avaliado por presunção; nesse caso, a homologação permanece bloqueada. Não redistribuir seu peso para os demais.
+**T:** validar pesos não negativos e soma exata de 100% na representação decimal adotada; intervalos de notas e arredondamento vêm da política. Não renormalizar automaticamente pesos nem converter pilar não avaliado em zero. Pilar documental sem provedor ou evidência aceita não está avaliado por presunção; nesse caso, a homologação permanece bloqueada. Não redistribuir seu peso para os demais.
 
 Penalidades, tolerâncias, compensações, frequência mínima, certificados e desligamento não são deduzidos de dados operacionais. Permanecem inativos até definição institucional e aprovação de escopo. Desativar integrante restringe acesso sem excluir avaliações, autoria ou vínculos históricos.
 
@@ -186,7 +186,7 @@ Penalidades, tolerâncias, compensações, frequência mínima, certificados e d
 
 ### 8.1 G0-A — Contrato funcional e arquitetural
 
-Evidências para aprovação: revisão explícita deste arquivo, matriz RF/Q/CA, permissões por operação, contratos de leitura e suas lacunas, transições, preservação histórica e limites B05/B07. Escolhas **T** tornam-se o contrato técnico aprovado somente após esse aceite. Parâmetros **I** podem continuar pendentes se o bloqueio da funcionalidade dependente estiver explicitamente mantido.
+Evidências para aprovação: revisão explícita deste arquivo, matriz RF/Q/CA, permissões por operação, contratos de leitura e suas lacunas, transições, preservação histórica e limites de integração/B07. Escolhas **T** tornam-se o contrato técnico aprovado somente após esse aceite. Parâmetros **I** podem continuar pendentes se o bloqueio da funcionalidade dependente estiver explicitamente mantido.
 
 **Estado:** artefato formalizado para revisão. A aprovação da auditoria e dos refinamentos antecede este arquivo e não é registrada como aprovação automática do contrato.
 
@@ -198,7 +198,7 @@ Antes de nomear a primeira migração acadêmica:
 2. Com acesso autorizado e somente leitura, localizar o schema da tabela `flyway_schema_history`; consultar `installed_rank`, `version`, `description`, `type`, `script`, `checksum`, `installed_on` e `success`. Não presumir o schema da tabela de controle pela localização das tabelas de negócio.
 3. Confrontar histórico, arquivos e checksums do commit de cada ambiente. Consultar branches/PRs relevantes atualizados antes da decisão; referências locais isoladas podem estar desatualizadas.
 4. Registrar ambiente, momento, commit, versão aplicada e eventuais divergências. Um banco novo/Testcontainers comprova aplicação da cadeia escolhida, mas não substitui inventário dos bancos existentes.
-5. Se V6 não existir nem tiver sido aplicada nos ambientes relevantes, decidir formalmente se o B06 recebe V6 e o B05 recebe a próxima versão disponível quando implementado. Atualizar a referência futura do planejamento B05 em alteração própria revisável, sem editar migração aplicada ou incorporar implementação B05.
+5. Não renumerar nem editar migrações já aplicadas. Alterações futuras no esquema devem receber uma versão aditiva e revisão própria.
 6. Se V6 existir ou tiver sido aplicada em qualquer ambiente, não reutilizar ou renumerar sua identidade: preparar plano específico de reconciliação antes de avançar. Não habilitar `outOfOrder`, executar `repair`, limpar histórico ou apagar banco como atalho.
 
 **Estado:** pendente. A indisponibilidade observada do Docker é uma limitação local; não demonstra ausência de bancos externos. Ambientes inacessíveis permanecem pendentes, nunca classificados como vazios. G0 só encerra com G0-A aprovado e G0-B evidenciado e decidido.
@@ -214,7 +214,7 @@ Antes de nomear a primeira migração acadêmica:
 | Obrigatoriedade do Plano Individual; rito de cancelamento, revisão e divulgação | I | Manter capacidade planejada sem criar condicionantes normativos implícitos |
 | Encaminhamento e comprovação de lançamento externo | I | Operação externa desabilitada até procedimento aprovado |
 | Retenção, conteúdo sensível e comprovantes | I | Captura mínima; não copiar arquivos nem definir prazo de retenção arbitrário |
-| Evidência documental oficial e certificados | B05 + I | Contrato futuro, sem editor/storage paralelo ou provedor fictício |
+| Evidência documental oficial e certificados | I | Contrato futuro, sem editor/armazenamento paralelo ou provedor fictício |
 | Identidade da migração acadêmica | G0-B | Decidir somente após histórico real; V6 é candidata |
 
 ## 9. Critérios de validação da futura implementação
@@ -230,13 +230,13 @@ Não representam testes executados nesta entrega documental.
 | Histórico | Nova política não reescreve semestre anterior; correção/retirada na origem não altera homologação; revisão gera sucessora auditável |
 | Concorrência | Atualizações simultâneas, captura coerente no instante de corte, homologação repetida, revogação de papel e reabertura sem perda de histórico |
 | Persistência | PostgreSQL real: cadeia nova e upgrade a partir da base confirmada; constraints, índices, rollback transacional e histórico preservado |
-| Integração | Regressão dos contratos afetados B01–B04; ausência de B05 não produz evidência nem nota documental artificial |
+| Integração | Regressão dos contratos afetados B01–B04; ausência de provedor documental não produz evidência nem nota artificial |
 
 Comandos serão selecionados por teste/módulo na implementação, seguindo `apps/api/AGENTS.md`. Verificação completa aplicável antes do encerramento técnico e após mudanças em contratos compartilhados ou persistência. G0 aprovado não substitui os gates posteriores G1–G5 nem autoriza operação institucional.
 
 ## 10. Registro da entrega documental anterior à implementação
 
-- Único artefato novo: este contrato; nenhum código de produto, dependência, `.env`, migração, README ou experimento B05 alterado.
+- Único artefato novo: este contrato; nenhum código de produto, dependência, `.env`, migração, README ou experimento alterado.
 - Worktree isolado criado a partir da `main` remota atualizada; checkout `D:\nite-connect` mantido em sua branch de investigação com alterações locais preservadas.
 - Verificação documental executada: script Python confirmou presença de RF-042–047, Q24–29, CA-13/14, gates e perfis; referência local ao PDF resolvida. Leitura crítica conferiu permissões, transições e marcadores D/T/I/E; `git diff --no-index --check` não apontou whitespace inválido.
 - Revisão independente de planejamento: nenhuma questão importante remanescente identificada; pendências institucionais e G0-B continuam explícitos, sem aprovação por inferência.

@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans para execução nesta sessão, ou superpowers:subagent-driven-development se o usuário escolher delegação. Steps use checkbox (`- [x]`) syntax for tracking.
 
-**Goal:** Implementar o núcleo acadêmico definido no contrato B06.0, sem ativar regras institucionais não confirmadas nem substituir o B05.
+**Goal:** Implementar o núcleo acadêmico definido no contrato B06.0, sem ativar regras institucionais não confirmadas nem substituir módulos de origem.
 
-**Architecture:** Domínio `academic` no monólito JDBC. Leituras autorizadas fornecidas pelos módulos de origem, registros acadêmicos versionados, cálculo decimal e homologação restrita ao coordenador. Evidência documental oficial permanece indisponível até um provedor B05 real; o sistema deve representar esse impedimento sem nota artificial.
+**Architecture:** Domínio `academic` no monólito JDBC. Leituras autorizadas fornecidas pelos módulos de origem, registros acadêmicos versionados, cálculo decimal e homologação restrita ao coordenador. Evidência documental oficial permanece indisponível até a implementação de um provedor documental; o sistema deve representar esse impedimento sem nota artificial.
 
 **Tech Stack:** Java 21, Spring Boot 4.1.1, Spring Security, JDBC, PostgreSQL 17, Flyway, JUnit, MockMvc e Testcontainers; sem novas dependências de produto.
 
@@ -18,7 +18,7 @@
 - Pesos **30/20/50 são exclusivamente exemplo**, sem seed, fallback ou padrão de produção.
 - Política e insumos efetivamente utilizados permanecem associados à revisão; não recalcular histórico automaticamente.
 - B01–B04 preservados; `academic` não lê suas tabelas internas diretamente.
-- Nenhuma alteração em `.env`, credenciais, README, frontend, produção ou experimentos B05.
+- Nenhuma alteração em `.env`, credenciais, README, frontend, produção ou experimentos.
 - Preservar V1–V5; a numeração acadêmica depende do inventário registrado em B06.0.
 - Não usar `outOfOrder`, `repair`, limpeza de banco ou integração documental paralela.
 - Trabalho em worktree isolado; branch de implementação `feat/bloco-06-avaliacao-academica`, derivada do contrato sobre a `main` atualizada; sem merge automático.
@@ -28,7 +28,7 @@
 1. Papel revogado entre autorização e escrita: transação deve serializar com alterações administrativas existentes e revalidar vínculo/papel antes de gravar.
 2. Retirada/correção da evidência durante captura: avaliação deve guardar um retrato coerente no corte transacional, sem leituras independentes que misturem versões.
 3. Períodos com fuso, datas extremas e contribuição parcial: intervalo explícito e validado, sem overflow ou atribuição integral de horas fora do semestre.
-4. Origem ausente, upload pendente ou B05 indisponível: distinguir insuficiência de evidência de nota zero e impedir homologação incompleta.
+4. Origem ausente, upload pendente ou provedor documental indisponível: distinguir insuficiência de evidência de nota zero e impedir homologação incompleta.
 5. Revisão concorrente com homologação/encaminhamento: versão esperada, trilha imutável e sucessão inequívoca, sem alterar a decisão já enviada.
 
 ## Convenções e interfaces compartilhadas
@@ -45,13 +45,13 @@ Diretório Java base: `apps/api/src/main/java/br/edu/unijorge/niteconnect/`. Dir
 
 ## Tarefa 0 — Base, estratégia Flyway e baseline
 
-**Arquivos:** criar `docs/implementation/bloco-06-execution.md`; atualizar somente o estado factual do contrato e o planejamento futuro B05 se a versão documental precisar ser realocada. Não editar migração B05 inexistente.
+**Arquivos:** criar `docs/implementation/bloco-06-execution.md`; atualizar somente o estado factual do contrato e o planejamento futuro se a versão documental precisar ser realocada. Não editar migração ainda não definida.
 
 - [x] Registrar consulta somente leitura de `public.flyway_schema_history` do banco local `niteconnect`: V1–V3 aplicadas, checksums correspondentes; registrar instante e identidade do ambiente sem dados pessoais.
 - [x] Registrar consulta somente leitura do Neon `nite-connect-staging`, branch `main`, banco `niteconnect_staging`: ausência de tabelas de aplicação e de histórico.
 - [x] Registrar branches remotas inspecionadas e versões encontradas; V6 acadêmica somente se não houver conflito em nenhuma dessas evidências. Limitar a conclusão aos ambientes conhecidos, sem declarar auditoria de produção inexistente.
 - [x] Executar baseline `apps/api/mvnw.cmd --batch-mode verify` com Java 21 e Docker; registrar contagem real. Não reutilizar os 185 históricos como resultado atual.
-- [x] Abrir branch de implementação isolada, preservando o PR documental e o checkout B05. Commit do registro de base e plano após revisão do plano.
+- [x] Abrir branch de implementação isolada, preservando o PR documental e o checkout principal. Commit do registro de base e plano após revisão do plano.
 
 ## Tarefa 1 — Períodos, políticas e autorização específica (B06.1)
 
@@ -90,9 +90,9 @@ Diretório Java base: `apps/api/src/main/java/br/edu/unijorge/niteconnect/`. Dir
 
 **Arquivos:** criar `members/application/MemberAcademicReader.java`, `projects/application/ProjectAcademicReader.java`, `activities/application/ActivityEvidenceReader.java`, `attendance/application/AttendanceAcademicReader.java`, `academic/application/AcademicEvidenceService.java`, `academic/integration/DocumentEvidenceReader.java`, `academic/api/AcademicEvidenceController.java`; ampliar contratos próprios. Testes: `AcademicEvidenceTest`, `AcademicSnapshotConsistencyTest`.
 
-**Interfaces:** leitores operacionais expõem `read(UUID actor, UUID memberId, UUID sourceId, Instant from, Instant to): Snapshot` em records próprios, sem retorno de repositório estrangeiro. `AcademicEvidenceService.capture(UUID actor, UUID enrollmentId, CaptureEvidence command): EvidenceView`; `compare(UUID actor, UUID evidenceId): EvidenceComparison`; contrato documental retorna explicitamente indisponibilidade em ausência de bean B05 real, nunca snapshot fictício.
+**Interfaces:** leitores operacionais expõem `read(UUID actor, UUID memberId, UUID sourceId, Instant from, Instant to): Snapshot` em records próprios, sem retorno de repositório estrangeiro. `AcademicEvidenceService.capture(UUID actor, UUID enrollmentId, CaptureEvidence command): EvidenceView`; `compare(UUID actor, UUID evidenceId): EvidenceComparison`; contrato documental retorna explicitamente indisponibilidade em ausência de provedor real, nunca snapshot fictício.
 
-- [x] RED: ator sem leitura de origem é recusado; atribuição/autoria deve corresponder ao aluno; atividade sem projeto é válida; vínculo histórico não é confundido com vínculo atual; upload PENDING/FAILED/retirado não sustenta captura válida; falta de B05 é indisponibilidade explícita.
+- [x] RED: ator sem leitura de origem é recusado; atribuição/autoria deve corresponder ao aluno; atividade sem projeto é válida; vínculo histórico não é confundido com vínculo atual; upload PENDING/FAILED/retirado não sustenta captura válida; ausência do provedor documental é indisponibilidade explícita.
 - [x] Implementar envelope v1 do contrato: IDs, versões nativas ou token estável da projeção, autor, validação/revisor quando existente, intervalo, coleta e escopo autorizado; diferenciar versão de contrato e versão do dado. Origem sem decisão de validação retorna ausência, sem aprovador inventado.
 - [x] Implementar captura transacional coerente com corte explícito; preservar snapshot mínimo, referências e divergências detectadas em releitura. Não copiar binários, segredos ou links temporários, nem fazer polling externo. Testar corrida entre correção de origem e captura, e mudanças após homologação.
 - [x] Rotas `/academic/enrollments/{id}/evidence`, `/me/academic/enrollments/{id}/evidence` e comparação autorizada; consultas paginadas e filtros limitados.
@@ -106,7 +106,7 @@ Diretório Java base: `apps/api/src/main/java/br/edu/unijorge/niteconnect/`. Dir
 
 - [x] RED: zero é nota atribuída; ausência/incompletude não viram zero; `BigDecimal`, soma exata de pesos, extremos, arredondamento da política, reprodução após mudança de semestre; gestor geral não pontua, mas pode calcular com notas existentes sem modificá-las.
 - [x] Implementar notas humanas justificadas com referências por pilar e revisão imutável; captura de política/insumos/versões/algoritmo em cada cálculo. Referências operacionais não viram nota automaticamente. Apresentações exigem registro humano verificável no domínio, não inferência por presença.
-- [x] Recusar cálculo completo/homologável com pilar sem evidência aceita, política não confirmada ou insumos divergentes; com B05 indisponível, não fabricar documentação nem redistribuir pesos.
+- [x] Recusar cálculo completo/homologável com pilar sem evidência aceita, política não confirmada ou insumos divergentes; sem provedor documental, não fabricar documentação nem redistribuir pesos.
 - [x] Rotas `/academic/enrollments/{id}/assessments`, `/academic/enrollments/{id}/calculations`; consultas próprias não divulgam rascunhos/notas até rito de divulgação confirmado.
 - [x] GREEN: `mvnw.cmd --batch-mode -Dtest=AcademicCalculatorTest,AcademicAssessmentTest,AcademicAuthorizationTest test`; commit.
 
@@ -138,10 +138,10 @@ Diretório Java base: `apps/api/src/main/java/br/edu/unijorge/niteconnect/`. Dir
 **Arquivos:** criar `docs/implementation/bloco-06-api.json` (OpenAPI 3.1; ruling registrado no relatório), `bloco-06-api.md`; atualizar `bloco-06-execution.md` e estado do contrato conforme evidências reais. Testes: `AcademicBoundaryTest`, complementar testes das tarefas anteriores sem duplicar seus cenários.
 
 - [x] Escrever e executar testes RED para endpoints finais, campos obrigatórios/limites, paginação, versão obsoleta, método não permitido, rota desconhecida, acesso sem JWT/Entra desabilitado e dados próprios versus alheios. Preservar todos os campos dos contratos anteriores.
-- [x] Documentar todas as rotas/DTOs implementados, erros 400/401/403/404/409, autenticação bearer e autorização contextual, estados e indisponibilidade B05. Validar correspondência entre OpenAPI, controllers e testes; não prometer endpoints ausentes.
+- [x] Documentar todas as rotas/DTOs implementados, erros 400/401/403/404/409, autenticação bearer e autorização contextual, estados e indisponibilidade do provedor documental. Validar correspondência entre OpenAPI, controllers e testes; não prometer endpoints ausentes.
 - [x] Executar testes específicos finais; depois `mvnw.cmd --batch-mode verify` uma vez para regressão integral, PostgreSQL real e Flyway. Reexecutar amplos somente se correção posterior invalidar os resultados. `git diff --check` e confirmar V1–V5 inalteradas.
 - [x] Revisão independente da branch inteira conforme `superpowers:requesting-code-review`, corrigindo achados relevantes com regressão antes de publicar a entrega. Não considerar resultado institucional homologado a partir de testes sintéticos.
-- [x] Abrir PR próprio de implementação, com base explicitada se o contrato ainda não estiver integrado; acompanhar CI aplicável. Sem merge/deploy automático. Registrar gates técnicos atingidos e pendências B05/institucionais mantidas fora de ativação.
+- [x] Abrir PR próprio de implementação, com base explicitada se o contrato ainda não estiver integrado; acompanhar CI aplicável. Sem merge/deploy automático. Registrar gates técnicos atingidos e pendências do provedor documental e institucionais mantidas fora de ativação.
 
 ## Limite de conclusão
 

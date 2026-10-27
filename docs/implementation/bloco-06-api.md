@@ -42,7 +42,7 @@ Consultas e cálculo pelo gestor geral retornam projeções de preparação: ava
 
 - Pesos 30/20/50 aparecem apenas em testes sintéticos, nunca em seed, fallback ou configuração de produto.
 - Ausência de avaliação não significa zero. Pilar ausente ou fonte indisponível impede resultado completo/homologável.
-- Não existe implementação de `DocumentEvidenceReader` no produto enquanto B05 estiver bloqueado. Assim, não há evidência documental oficial disponível para completar o pilar documental; não há redução/redistribuição de peso como atalho.
+- Não existe implementação de `DocumentEvidenceReader` no produto. Assim, não há evidência documental oficial disponível para completar o pilar documental; não há redução/redistribuição de peso como atalho.
 - O teste positivo de homologação usa provedor documental exclusivamente no classpath de teste. Não comprova integração documental real, aceite institucional ou prontidão de produção.
 - Notas/cálculos próprios só são divulgados com homologação e `discloseResults=true` na política confirmada. A consulta retorna exclusivamente cálculos homologados e as revisões das avaliações efetivamente utilizadas; homologar uma versão não publica rascunhos descartados. O resultado agregado não inclui os insumos privados. A homologação anterior continua consultável enquanto outra revisão está em andamento.
 - `reviewWindowSeconds` ausente impede a solicitação de revisão que depende do prazo institucional. `forwardingProcedureReference` ausente impede marcar encaminhamento.

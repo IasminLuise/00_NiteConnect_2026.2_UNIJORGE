@@ -1,7 +1,0 @@
-<!doctype html>
-<html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Laboratório documental B05</title>
-<style>body{max-width:760px;margin:3rem auto;padding:1rem;font:16px/1.5 system-ui}label{display:block;margin:1rem 0}button,select{font:inherit;padding:.5rem}aside{border-left:4px solid #ad6500;padding:1rem;background:#fff4df}</style>
-<h1>Laboratório documental B05</h1><aside>Experimento local descartável. Somente documentos e pessoas sintéticos. Este acesso de laboratório permite administrar todas as fixtures e não representa as permissões do NITE Connect.</aside>
-<form method="post" action="/lab/editor" target="_blank"><label>Documento <select name="id" id="documents" required></select></label><label><input type="checkbox" name="writable" value="true" checked> Permitir edição nesta sessão</label><button>Abrir no editor</button></form><p id="status" role="status"></p>
-<script>fetch('/lab/documents').then(r=>{if(!r.ok)throw Error();return r.json()}).then(items=>{let select=document.getElementById('documents');for(let d of items){let o=document.createElement('option');o.value=d.id;o.textContent=d.name+' — '+d.versions.length+' versão(ões)';select.append(o)}document.getElementById('status').textContent=items.length?'Fixtures disponíveis.':'Gere as fixtures antes de iniciar o host.'}).catch(()=>document.getElementById('status').textContent='Falha ao consultar fixtures.');</script></html>

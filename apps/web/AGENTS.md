@@ -11,7 +11,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 ## Regras do projeto
 
 - Consulte a especificação funcional consolidada e contratos em `docs/implementation` antes de implementar fluxos reais. Decisões explícitas mais recentes prevalecem sobre hipóteses antigas.
-- A rota `/foundation` é neutra e não representa autenticação ou dashboard operacional. A rota `/` contém o Diário contínuo em integração; não invente dados, papéis, notas ou reuniões.
+- As rotas `/` e `/foundation` são neutras e não representam autenticação ou dashboard operacional; não invente dados, papéis, notas ou reuniões.
 - Use Next.js App Router, React e TypeScript estrito. Prefira Server Components; use componentes de cliente apenas quando houver interatividade.
 - O backend é autoridade de identidade, permissões e regras. Não implemente login demonstrativo, armazenamento local de access tokens ou segredos no cliente.
 - A integração Entra e a estratégia de sessão segura precisam estar definidas antes de conectar autenticação ao frontend.

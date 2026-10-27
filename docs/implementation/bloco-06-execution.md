@@ -4,7 +4,7 @@
 
 Pedido recebido: implementar o Bloco 06 conforme o contrato B06.0. O [plano detalhado](../superpowers/plans/2026-10-23-bloco-06-academico.md) foi aprovado explicitamente pelo usuário, com execução nesta sessão e revisão independente ao final. Núcleo acadêmico implementado, revisão independente tratada e validação local final aprovada; isso não representa ativação institucional.
 
-O checkout `D:\nite-connect` permanece na investigação B05. A implementação usa o worktree `C:\Users\breno\.codex\worktrees\b06-contrato\nite-connect`, branch `feat/bloco-06-avaliacao-academica`, derivada de `22415af` (contrato/plano), sobre a base `d787916bbd581ee2ec4c9d2ee85fe5af02f97239` da `main`.
+O checkout principal permaneceu separado da implementação. A implementação usa o worktree `C:\Users\breno\.codex\worktrees\b06-contrato\nite-connect`, branch `feat/bloco-06-avaliacao-academica`, derivada de `22415af` (contrato/plano), sobre a base `d787916bbd581ee2ec4c9d2ee85fe5af02f97239` da `main`.
 
 ## G0-B — Evidências dos ambientes conhecidos
 
@@ -36,11 +36,11 @@ Os três checksums coincidem com CRC32 dos arquivos correspondentes da base, com
 ### Repositório e migrações futuras
 
 - `origin/main` atualizado para `d787916bbd581ee2ec4c9d2ee85fe5af02f97239` na preparação do contrato.
-- Inventário remoto atualizado via GitHub API: 15 branches, incluindo as branches B05 e a documental B06; árvore de cada commit consultada recursivamente.
+- Inventário remoto atualizado via GitHub API: 15 branches, incluindo branches de implementação e a branch documental B06; árvore de cada commit consultada recursivamente.
 - Nenhuma dessas árvores contém arquivo de migração V6 ou superior em `apps/api/src/main/resources/db/migration`.
-- V6 documental é referência de planejamento do B05, não migração encontrada/aplicada nessas evidências.
+- V6 não foi encontrada nem aplicada no histórico consultado naquele momento.
 
-**Estratégia adotada após aprovação do plano:** `V6__academic_assessment.sql`; V1–V5 imutáveis. O B05 usará a próxima versão disponível quando sua implementação for autorizada, sem migração retroativa, sem `outOfOrder` ou `repair`. Os documentos B05 não existem na base `main` deste worktree: a referência futura das branches B05 deve ser reconciliada quando esse trabalho avançar, sem transportar implementação/experimentos nesta branch.
+**Estratégia adotada após aprovação do plano:** `V6__academic_assessment.sql`; V1–V5 imutáveis. A escolha foi posteriormente supersedida pelos históricos persistentes e pela numeração aditiva atual; nenhuma migração aplicada foi renumerada.
 
 Esse inventário cobre os ambientes conhecidos e identificados no projeto; não afirma ter auditado um ambiente de produção ou outros bancos não identificados. Se aparecer migração conflitante em outro ambiente/branch antes da implementação, interromper a escolha do número e reconciliar sem editar histórico aplicado.
 
@@ -60,7 +60,7 @@ Este resultado é baseline atual de B01–B04; não valida código B06 ainda ine
 ## Decisões registradas
 
 - Regra de produção ainda não homologada não será inventada: parâmetros ausentes bloqueiam as operações dependentes.
-- A ausência de evidência documental oficial do B05 não será mascarada por provedor de produto fictício, nota zero ou redistribuição de pesos.
+- A ausência de evidência documental oficial não será mascarada por provedor de produto fictício, nota zero ou redistribuição de pesos.
 - Fluxo positivo de homologação pode ser testado com provedor sintético exclusivo do classpath de teste, sem sugerir prontidão institucional ou liberar a integração no runtime.
 - Aprovação recebida antes de implementar: executar nesta sessão com revisão independente ao final. G0-A aprovado por esse aceite do contrato/plano; G0-B auditado e estratégia V6 adotada para os ambientes conhecidos. Não é homologação institucional ou auditoria de bancos não identificados.
 
@@ -97,31 +97,31 @@ As execuções anteriores de 185 testes (baseline), 209 testes (núcleo antes da
 
 Entrega: [PR #16](https://github.com/IasminLuise/00_NiteConnect_2026.2_UNIJORGE/pull/16), base `docs/bloco-06-contrato` ([PR #15](https://github.com/IasminLuise/00_NiteConnect_2026.2_UNIJORGE/pull/15)). Branch/worktree mantidos para revisão; sem merge/deploy. CI do commit final deve ser consultado no PR, sem usar os checks da versão anterior como prova das correções.
 
-Pendências reais: provedor documental B05 real e parâmetros/rito institucional confirmados; G5 e encerramento funcional integral não declarados. Encaminhamento é registro interno condicionado, sem envio ou confirmação de lançamento universitário.
+Pendências reais: provedor documental real e parâmetros/rito institucional confirmados; G5 e encerramento funcional integral não declarados. Encaminhamento é registro interno condicionado, sem envio ou confirmação de lançamento universitário.
 
-## Atualização posterior — sequência B05/B06 (26/10/2026)
+## Atualização posterior — sequência de migrações (26/10/2026)
 
-Após a auditoria persistente dos bancos, o pedido do usuário autorizou aplicar as migrações B05 V1–V7. Flyway aplicou V1–V7 em `niteconnect` local e `niteconnect_staging` no Neon; ambos registram sete migrações bem-sucedidas, sem falhas. A estratégia histórica de V6 acadêmica foi supersedida.
+Após a auditoria persistente dos bancos, houve autorização para aplicar as migrações V1–V7. Flyway aplicou V1–V7 em `niteconnect` local e `niteconnect_staging` no Neon; ambos registram sete migrações bem-sucedidas, sem falhas. A estratégia inicial de V6 acadêmica foi supersedida.
 
-Para preservar a identidade append-only já aplicada, as migrações acadêmicas desta branch passam a ser `V8__academic_assessment.sql` e `V9__academic_public_feedback.sql`. A ordem de integração é B05 primeiro, B06 depois. Esta branch ainda não contém os arquivos B05 V6/V7; portanto, a validação combinada V1–V9 depende da integração/rebase do B05 e não deve ser declarada a partir do teste isolado desta branch.
+Para preservar a identidade append-only já aplicada, as migrações acadêmicas são `V8__academic_assessment.sql` e `V9__academic_public_feedback.sql`. A validação combinada V1–V9 foi executada em banco efêmero separado; os testes isolados da branch não devem ser confundidos com essa verificação combinada.
 
 No PostgreSQL local, o papel de aplicação `niteconnect` foi criado após autorização do usuário, com a senha fornecida aplicada interativamente via `psql` (`\password`), sem gravá-la em arquivo ou `.env`. O papel é proprietário do schema `nite_connect`, das 34 tabelas de domínio e de `public.flyway_schema_history`. A conexão autenticada como `niteconnect` confirmou o histórico V1–V7 sem falhas e nenhuma linha em `nite_connect.members`. A API foi iniciada com `DB_PASSWORD` inserida por prompt seguro e variável de ambiente temporária: Flyway validou as sete migrações, Hibernate concluiu `ddl-auto: validate`, Spring Boot iniciou e `/actuator/health` respondeu `UP`. A variável foi removida no encerramento; não houve escrita em `.env`.
 
 Validação após a renumeração:
 
-- No worktree B05: `mvnw.cmd --batch-mode '-Dtest=Block02MigrationTest,Block03MigrationTest,Block04MigrationTest,DocumentMigrationTest' test` — **4 testes, 0 falhas, 0 erros; BUILD SUCCESS**. V1–V7 aplicadas e validadas em PostgreSQL 17/Testcontainers.
+- Na branch que continha as migrações V1–V7: `mvnw.cmd --batch-mode '-Dtest=Block02MigrationTest,Block03MigrationTest,Block04MigrationTest,DocumentMigrationTest' test` — **4 testes, 0 falhas, 0 erros; BUILD SUCCESS**. V1–V7 aplicadas e validadas em PostgreSQL 17/Testcontainers.
 - Neste worktree B06: `mvnw.cmd --batch-mode -Dtest=Block06MigrationTest test` — **1 teste, 0 falhas, 0 erros; BUILD SUCCESS**. V8/V9 aplicadas sobre V1–V5 no cenário isolado desta branch.
 - Neste worktree B06: `mvnw.cmd --batch-mode verify` — **218 testes, 0 falhas, 0 erros, 0 ignorados; BUILD SUCCESS**.
-- Checagem combinada descartável: os nove arquivos reais V1–V7 do B05 e V8/V9 do B06 foram carregados por Flyway em PostgreSQL 17/Testcontainers; **9 migrações aplicadas, validação concluída, versão final v9**. A checagem usou apenas arquivos temporários sob `apps/api/target`; o container encerrou ao final.
+- Checagem combinada descartável: os arquivos reais V1–V9 foram carregados por Flyway em PostgreSQL 17/Testcontainers; **9 migrações aplicadas, validação concluída, versão final v9**. A checagem usou apenas arquivos temporários sob `apps/api/target`; o container encerrou ao final.
 - PostgreSQL local persistente PostgreSQL 18.1: autenticação com o papel `niteconnect` e leitura do histórico V1–V7 aprovadas; inicialização real da API com Flyway e Hibernate `validate` aprovada; `/actuator/health` retornou `UP`. Senha fornecida via prompt seguro, não persistida em arquivo.
 
-A branch B06 continua sem os arquivos B05 V6/V7. Portanto, antes de integrar este código, rebaseá-lo sobre o B05 e executar a suíte combinada no checkout integrado. A checagem descartável confirma a sequência SQL atual, mas não substitui esse teste de regressão versionado.
+A checagem descartável confirma a sequência SQL naquele estado; ela não substitui os testes de migração aplicáveis à branch atual.
 
 ## Aplicação persistente de V8/V9 (26/10/2026)
 
 Após autorização explícita do usuário, V8 e V9 foram aplicadas nos bancos persistentes:
 
-- PostgreSQL local 18.1: a API foi iniciada com as localizações Flyway dos worktrees B05 (V1–V7) e B06 (V8/V9). Flyway validou nove migrações, aplicou V8/V9 e concluiu a inicialização com Hibernate `ddl-auto: validate`. Histórico final V9; checksums `1247765447` e `-1585058834`.
+- PostgreSQL local 18.1: a API foi iniciada com as localizações Flyway da cadeia V1–V9. Flyway validou nove migrações, aplicou V8/V9 e concluiu a inicialização com Hibernate `ddl-auto: validate`. Histórico final V9; checksums `1247765447` e `-1585058834`.
 - Neon, projeto `nite-connect`, branch `main`, banco `niteconnect_staging`: o SQL das fontes V8/V9 e os registros correspondentes do histórico Flyway foram executados em uma transação pela conexão Neon. Verificação posterior confirmou versão V9, ambas as migrações bem-sucedidas com os mesmos checksums, 12 tabelas acadêmicas, as duas colunas `feedback` e os dois índices de V9.
 
 A branch B06 continua isolada; a sequência V1–V9 precisa ser validada de novo no checkout integrado antes da integração do código. Nenhum dado acadêmico foi inserido.

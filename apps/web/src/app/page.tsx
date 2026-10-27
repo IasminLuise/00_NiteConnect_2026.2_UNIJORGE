@@ -1,5 +1,9 @@
-import { DiaryWorkspace } from "@/components/diary-workspace";
+import { FoundationNotice } from "@/components/foundation-notice";
 
 export default function Home() {
-  return <DiaryWorkspace accessToken={null} apiBaseUrl={process.env.NEXT_PUBLIC_NITE_API_URL ?? ""} />;
+  return (
+    <main className="flex min-h-screen items-center justify-center px-6 py-12">
+      <FoundationNotice />
+    </main>
+  );
 }
