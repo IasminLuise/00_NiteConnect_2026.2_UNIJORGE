@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0b1220" />
+    <title>Nite Connect</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <section id="loginScreen" class="login-screen">
+      <div class="login-art">
+        <div class="brand brand-large">
+          <span class="brand-mark">N</span><span>NITE <b>CONNECT</b></span>
+        </div>
+        <div class="login-copy">
+          <span class="eyebrow">NÚCLEO DE INOVAÇÃO E TECNOLOGIA</span>
+          <h1>Ideias conectadas.<br /><span>Resultados acompanhados.</span></h1>
+          <p>
+            Uma plataforma para centralizar projetos, atividades, frequência e
+            desenvolvimento acadêmico do NITE.
+          </p>
+        </div>
+        <div class="login-orbit orbit-one"></div>
+        <div class="login-orbit orbit-two"></div>
+        <div class="login-bottom">
+          Gestão integrada · Transparência · Inovação
+        </div>
+      </div>
+      <div class="login-panel">
+        <div class="login-card">
+          <div class="mobile-brand brand">
+            <span class="brand-mark">N</span><span>NITE <b>CONNECT</b></span>
+          </div>
+          <span class="eyebrow">BEM-VINDO(A) DE VOLTA</span>
+          <h2>Acesse sua conta</h2>
+          <p class="muted">Entre com sua conta institucional para continuar.</p>
+          <label for="demoRole">Perfil para demonstração</label
+          ><select id="demoRole">
+            <option value="Integrante">Integrante</option>
+            <option value="Gestor do Projeto">Gestor do Projeto</option>
+            <option value="Gestor Geral">Gestor Geral</option>
+            <option value="Coordenador">Coordenador</option>
+          </select>
+          <label for="loginEmail">E-mail institucional</label
+          ><input
+            id="loginEmail"
+            type="email"
+            placeholder="nome@unijorge.edu.br"
+            value="iasmin@unijorge.edu.br"
+          />
+          <button id="loginButton" class="btn btn-primary btn-wide">
+            <span class="microsoft-mark"><i></i><i></i><i></i><i></i></span>
+            Entrar com Microsoft
+          </button>
+          <p class="login-note">
+            <span class="lock-icon">▣</span> Acesso institucional protegido por
+            autenticação federada.
+          </p>
+          <div class="demo-note">
+            <b>Modo de protótipo</b><br />O login simula a entrada para
+            demonstração. A integração real com Microsoft Entra ID exige
+            configuração de backend e credenciais institucionais.
+          </div>
+        </div>
+        <div class="login-footer">NITE CONNECT · Sistema de Gestão 2026.2</div>
+      </div>
+    </section>
+
+    <div id="appShell" class="app-shell hidden">
+      <aside id="sidebar" class="sidebar">
+        <div class="brand sidebar-brand">
+          <span class="brand-mark">N</span
+          ><span>NITE <b>CONNECT</b><small>SISTEMA DE GESTÃO</small></span>
+        </div>
+        <div class="workspace-label">ESPAÇO DE TRABALHO</div>
+        <nav id="mainNav" class="main-nav">
+          <button class="nav-link active" data-page="dashboard">
+            <span class="nav-icon">◫</span>Visão geral
+          </button>
+          <div class="nav-section">GESTÃO OPERACIONAL</div>
+          <button class="nav-link" data-page="projects">
+            <span class="nav-icon">▦</span>Projetos
+          </button>
+          <button class="nav-link" data-page="activities">
+            <span class="nav-icon">☷</span>Atividades
+          </button>
+          <button class="nav-link" data-page="diary">
+            <span class="nav-icon">▤</span>Diário de Bordo
+          </button>
+          <button class="nav-link" data-page="attendance">
+            <span class="nav-icon">◷</span>Frequência
+          </button>
+          <button class="nav-link" data-page="members">
+            <span class="nav-icon">♙</span>Integrantes
+          </button>
+          <div class="nav-section">ACOMPANHAMENTO</div>
+          <button class="nav-link" data-page="evaluations">
+            <span class="nav-icon">▤</span>Avaliações e AV3
+          </button>
+          <button class="nav-link" data-page="reports">
+            <span class="nav-icon">▥</span>Relatórios
+          </button>
+          <button class="nav-link" data-page="notifications">
+            <span class="nav-icon">♧</span>Notificações
+            <span id="notificationBadge" class="nav-badge">3</span>
+          </button>
+          <button class="nav-link restricted" data-page="audit">
+            <span class="nav-icon">◈</span>Auditoria
+          </button>
+        </nav>
+        <div class="sidebar-bottom">
+          <div class="help-card">
+            <div class="help-icon">?</div>
+            <div>
+              <b>Precisa de ajuda?</b
+              ><small>Consulte as orientações do sistema.</small>
+            </div>
+            <button id="helpButton" aria-label="Ajuda">↗</button>
+          </div>
+          <button id="logoutButton" class="logout-button">
+            <span>⇥</span> Sair da plataforma
+          </button>
+        </div>
+      </aside>
+
+      <main class="main-area">
+        <header class="topbar">
+          <button
+            id="mobileMenu"
+            class="icon-button mobile-only"
+            aria-label="Abrir menu"
+          >
+            ☰
+          </button>
+          <div class="breadcrumbs">
+            <span>NITE CONNECT</span><span class="crumb-sep">/</span
+            ><b id="breadcrumbCurrent">Visão geral</b>
+          </div>
+          <div class="topbar-actions">
+            <div class="semester-chip">
+              <span class="status-dot"></span> Semestre 2026.2
+            </div>
+            <button
+              id="topNotifications"
+              class="icon-button notification-button"
+              aria-label="Notificações"
+            >
+              ♧<i></i></button
+            ><button id="profileButton" class="profile-trigger">
+              <span id="topAvatar" class="avatar avatar-blue">IS</span
+              ><span class="profile-meta"
+                ><b id="topName">Iasmin Santos</b
+                ><small id="topRole">Integrante</small></span
+              ><span class="chevron">⌄</span>
+            </button>
+          </div>
+        </header>
+        <div id="pageContent" class="page-content"></div>
+        <footer class="app-footer">
+          <span>© 2026 NITE CONNECT · Núcleo de Inovação e Tecnologia</span
+          ><span><i class="status-dot"></i> Sistema de demonstração</span>
+        </footer>
+      </main>
+    </div>
+    <div id="modalRoot"></div>
+    <div id="toastRoot" class="toast-root" aria-live="polite"></div>
+    <script src="app.js"></script>
+  </body>
+</html>
