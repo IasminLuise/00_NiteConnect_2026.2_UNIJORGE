@@ -1,11 +1,15 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import {
+  AlertDialog,
   Badge,
   Button,
   Checkbox,
+  Dialog,
   Field,
+  InlineFeedback,
   Select,
+  Surface,
   Textarea,
   TextField,
 } from "./index";
@@ -203,5 +207,91 @@ describe("componentes fundamentais da interface", () => {
     expect(html).not.toContain('role="button"');
     expect(html).not.toContain('tabindex=');
     expect(html).toContain("Concluído");
+  });
+
+  it("expõe variantes de InlineFeedback sem live region para mensagens persistentes", () => {
+    const persistent = renderToStaticMarkup(
+      <InlineFeedback variant="warning" title="Atenção" description="Revise o prazo." />,
+    );
+    const dynamic = renderToStaticMarkup(
+      <InlineFeedback
+        variant="error"
+        description="A operação falhou."
+        announcement="assertive"
+      />,
+    );
+
+    expect(persistent).toContain('data-slot="inline-feedback"');
+    expect(persistent).toContain('data-variant="warning"');
+    expect(persistent).toContain("Atenção");
+    expect(persistent).not.toContain('aria-live=');
+    expect(dynamic).toContain('role="alert"');
+    expect(dynamic).toContain('aria-live="assertive"');
+    expect(dynamic).toContain('aria-atomic="true"');
+  });
+
+  it("oferece Surface neutra sem sombra e elevação contextual explícita", () => {
+    const html = renderToStaticMarkup(
+      <>
+        <Surface data-testid="ordinary">Painel</Surface>
+        <Surface variant="elevated" padding="compact">Menu contextual</Surface>
+      </>,
+    );
+
+    expect(html).toContain('data-slot="surface"');
+    expect(html).toContain('data-variant="default"');
+    expect(html).toContain('data-padding="comfortable"');
+    expect(html).toContain('data-variant="elevated"');
+    expect(html).toContain('data-padding="compact"');
+    expect(html).toContain("shadow-nite-floating");
+    expect(html).not.toContain('role="button"');
+  });
+
+  it("renderiza Dialog nativo com título, descrição e conteúdo sem abrir na SSR", () => {
+    const html = renderToStaticMarkup(
+      <Dialog
+        open
+        onOpenChange={() => {}}
+        title="Editar projeto"
+        description="Atualize os dados demonstrativos."
+        footer={<Button type="button">Cancelar</Button>}
+      >
+        <Field id="dialog-project-name" label="Nome" required>
+          <TextField />
+        </Field>
+      </Dialog>,
+    );
+
+    expect(html).toContain('<dialog');
+    expect(html).toContain('data-slot="dialog"');
+    expect(html).toContain('aria-modal="true"');
+    expect(html).toContain('aria-labelledby=');
+    expect(html).toContain('aria-describedby=');
+    expect(html).toContain('tabindex="-1"');
+    expect(html).toContain("Editar projeto");
+    expect(html).toContain("Atualize os dados demonstrativos.");
+    expect(html).not.toMatch(/<dialog[^>]*\sopen(?:=|\s|>)/);
+  });
+
+  it("distingue AlertDialog com confirmação explícita, cancelamento e bloqueio pendente", () => {
+    const html = renderToStaticMarkup(
+      <AlertDialog
+        open
+        onOpenChange={() => {}}
+        title="Excluir registro?"
+        description="Essa ação é demonstrativa e não será executada."
+        pending
+        confirmLabel="Excluir"
+        onConfirm={() => {}}
+      />,
+    );
+
+    expect(html).toContain("Excluir registro?");
+    expect(html).toContain("Essa ação é demonstrativa e não será executada.");
+    expect(html).toContain("Cancelar");
+    expect(html).toContain("Executando…");
+    expect(html).toContain('data-variant="destructive"');
+    expect(html).toContain('aria-busy="true"');
+    expect(html).toContain('disabled=""');
   });
 });

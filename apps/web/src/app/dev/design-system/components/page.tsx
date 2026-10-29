@@ -15,7 +15,7 @@ export default function DesignSystemComponentsPage() {
             <p className="lab-eyebrow">NITE CONNECT · BIBLIOTECA DE COMPONENTES</p>
             <h1 className="font-display text-type-page-title">Componentes fundamentais</h1>
             <p className="mt-3 max-w-prose text-type-body text-nite-text-secondary">
-              Button, TextField, Textarea, Field, Select, Checkbox e Badge demonstrados com as fundações visuais ativas. As interações e os dados desta página são apenas de validação.
+              Primitivos, diálogos e padrões de consulta demonstrados com as fundações visuais ativas. As interações e os dados desta página são apenas de validação.
             </p>
           </div>
           <div className="lab-header-controls w-full sm:w-auto">

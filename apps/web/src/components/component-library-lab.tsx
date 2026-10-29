@@ -1,7 +1,20 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { Badge, Button, Checkbox, Field, Select, Textarea, TextField } from "./ui";
+import {
+  AlertDialog,
+  Badge,
+  Button,
+  Checkbox,
+  Dialog,
+  Field,
+  InlineFeedback,
+  Select,
+  Surface,
+  Textarea,
+  TextField,
+} from "./ui";
+import { AdminDataQueryLab } from "./admin-data-query-lab";
 
 export function ComponentLibraryLab() {
   const [showError, setShowError] = useState(false);
@@ -10,6 +23,14 @@ export function ComponentLibraryLab() {
   const [selectionState, setSelectionState] = useState<"mixed" | "checked" | "unchecked">("mixed");
   const [formMessage, setFormMessage] = useState("A validação do formulário ainda não foi executada.");
   const [compositionMessage, setCompositionMessage] = useState("Preencha os campos e envie para testar o formulário nativo.");
+  const [feedbackMessage, setFeedbackMessage] = useState("Nenhuma atualização foi simulada.");
+  const [feedbackCount, setFeedbackCount] = useState(0);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogMessage, setDialogMessage] = useState("O diálogo está fechado.");
+  const [alertDialogOpen, setAlertDialogOpen] = useState(false);
+  const [alertPending, setAlertPending] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("Nenhuma confirmação demonstrativa executada.");
+  const [alertCount, setAlertCount] = useState(0);
 
   function submitForm(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -19,6 +40,25 @@ export function ComponentLibraryLab() {
   function submitComposition(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setCompositionMessage("Formulário demonstrativo validado; nenhum dado foi armazenado.");
+  }
+
+  function submitDialogForm(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setDialogMessage("O formulário do diálogo foi validado; nenhum dado foi salvo.");
+    setDialogOpen(false);
+  }
+
+  function simulateAlertConfirmation() {
+    if (alertPending) return;
+
+    const nextCount = alertCount + 1;
+    setAlertCount(nextCount);
+    setAlertPending(true);
+    window.setTimeout(() => {
+      setAlertPending(false);
+      setAlertDialogOpen(false);
+      setAlertMessage(`Confirmação demonstrativa ${nextCount} concluída; nenhuma operação real foi executada.`);
+    }, 900);
   }
 
   return (
@@ -266,6 +306,148 @@ export function ComponentLibraryLab() {
           </div>
         </form>
       </section>
+
+      <section className="space-y-4" aria-labelledby="component-feedback-heading">
+        <div>
+          <p className="lab-eyebrow">08 · FEEDBACK CONTEXTUAL</p>
+          <h2 id="component-feedback-heading" className="font-display text-type-section-title">InlineFeedback</h2>
+          <p className="mt-2 max-w-prose text-type-body-compact text-nite-text-secondary">Mensagens persistentes não recebem live region por padrão. Para uma mudança dinâmica, habilite o anúncio apropriado na instância.</p>
+        </div>
+        <div className="grid min-w-0 gap-3">
+          <InlineFeedback variant="info" title="Informação" description="A consulta inclui registros atualizados até hoje." />
+          <InlineFeedback variant="success" title="Sucesso" description="As alterações demonstrativas foram validadas." />
+          <InlineFeedback variant="warning" title="Atenção" description="Revise os campos sinalizados antes de continuar." />
+          <InlineFeedback variant="error" title="Erro" description="Não foi possível concluir a ação demonstrativa. Tente novamente." />
+          <Surface variant="subtle" padding="compact" className="flex flex-wrap items-center justify-between gap-3">
+            <InlineFeedback
+              className="min-w-0 flex-1"
+              variant="info"
+              title="Atualização dinâmica"
+              description={feedbackMessage}
+              announcement="polite"
+            />
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => {
+                const nextCount = feedbackCount + 1;
+                setFeedbackCount(nextCount);
+                setFeedbackMessage(`Atualização demonstrativa ${nextCount} recebida.`);
+              }}
+            >
+              Simular atualização
+            </Button>
+          </Surface>
+          <InlineFeedback
+            variant="warning"
+            description="Ação contextual opcional; o botão mantém sua semântica de controle independente."
+            action={<Button type="button" variant="secondary">Revisar</Button>}
+          />
+        </div>
+      </section>
+
+      <section className="space-y-4" aria-labelledby="component-surface-heading">
+        <div>
+          <p className="lab-eyebrow">09 · AGRUPAMENTO</p>
+          <h2 id="component-surface-heading" className="font-display text-type-section-title">Surface</h2>
+          <p className="mt-2 max-w-prose text-type-body-compact text-nite-text-secondary">Painéis comuns mantêm contorno e superfície, sem sombra permanente. Elevação fica reservada a agrupamentos que precisam de destaque.</p>
+        </div>
+        <div className="grid min-w-0 gap-4 lg:grid-cols-3">
+          <Surface>
+            <h3 className="font-sans text-type-component-title">Padrão confortável</h3>
+            <p className="mt-2 text-type-body-compact text-nite-text-secondary">Agrupamento primário com superfície, borda suave e padding confortável.</p>
+          </Surface>
+          <Surface variant="subtle" padding="compact">
+            <h3 className="font-sans text-type-component-title">Ênfase discreta</h3>
+            <p className="mt-2 text-type-body-compact text-nite-text-secondary">Tratamento compacto para conteúdo auxiliar sem criar elevação.</p>
+          </Surface>
+          <Surface variant="elevated">
+            <h3 className="font-sans text-type-component-title">Elevação contextual</h3>
+            <p className="mt-2 text-type-body-compact text-nite-text-secondary">Sombra flutuante usada apenas quando a hierarquia exige separação.</p>
+          </Surface>
+        </div>
+        <Surface padding="comfortable">
+          <form className="grid min-w-0 gap-4 sm:grid-cols-2" onSubmit={(event) => event.preventDefault()}>
+            <Field id="surface-project" label="Projeto" description="Formulário agrupado por Surface." required>
+              <TextField placeholder="Nome do projeto demonstrativo" />
+            </Field>
+            <Field id="surface-period" label="Período" description="Controle nativo dentro da superfície." required>
+              <Select defaultValue="current">
+                <option value="current">Atual</option>
+                <option value="previous">Anterior</option>
+              </Select>
+            </Field>
+            <div className="flex flex-wrap gap-3 sm:col-span-2">
+              <Button type="submit">Aplicar filtro demonstrativo</Button>
+              <Badge variant="institutional">Somente demonstração</Badge>
+            </div>
+          </form>
+        </Surface>
+      </section>
+
+      <section className="space-y-4" aria-labelledby="component-dialog-heading">
+        <div>
+          <p className="lab-eyebrow">10 · MODAIS</p>
+          <h2 id="component-dialog-heading" className="font-display text-type-section-title">Dialog e AlertDialog</h2>
+          <p className="mt-2 max-w-prose text-type-body-compact text-nite-text-secondary">Dialog permite cancelar por Escape ou clique no backdrop. AlertDialog exige uma ação explícita, começa com foco em Cancelar e ignora o backdrop para proteger a decisão.</p>
+        </div>
+        <Surface variant="subtle" className="flex flex-wrap items-center gap-3">
+          <Button type="button" onClick={() => setDialogOpen(true)}>Abrir diálogo de edição</Button>
+          <Button type="button" variant="destructive" onClick={() => setAlertDialogOpen(true)}>Abrir confirmação sensível</Button>
+          <p className="w-full text-type-metadata text-nite-text-secondary" role="status" aria-live="polite">{dialogMessage} {alertMessage}</p>
+        </Surface>
+        <Dialog
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          title="Editar item demonstrativo"
+          description="Formulário contextual fictício para validar conteúdo, foco, rolagem e fechamento."
+          footer={
+            <>
+              <Button type="button" variant="secondary" onClick={() => setDialogOpen(false)}>Cancelar</Button>
+              <Button type="submit" form="lab-dialog-form">Salvar demonstração</Button>
+            </>
+          }
+        >
+          <form id="lab-dialog-form" className="grid min-w-0 gap-4 sm:grid-cols-2" onSubmit={submitDialogForm}>
+            <Field id="dialog-name" label="Nome" description="Obrigatório para a validação nativa." required>
+              <TextField name="name" placeholder="Ex.: Planejamento de extensão" />
+            </Field>
+            <Field id="dialog-status" label="Situação" description="Selecione um valor demonstrativo." required>
+              <Select name="status" placeholder="Selecione uma situação" defaultValue="">
+                <option value="draft">Em elaboração</option>
+                <option value="review">Em revisão</option>
+                <option value="done">Concluído</option>
+              </Select>
+            </Field>
+            <div className="sm:col-span-2">
+              <Field id="dialog-notes" label="Observações" description="Textarea expansível sem altura máxima fixa." optional>
+                <Textarea name="notes" rows={5} placeholder="Adicione informações fictícias para testar a rolagem." />
+              </Field>
+            </div>
+          </form>
+          <div className="mt-5 space-y-3 text-type-body-compact text-nite-text-secondary" aria-label="Conteúdo longo demonstrativo">
+            <p>Este conteúdo adicional existe para exercitar a rolagem interna do modal em telas menores e preservar o acesso ao cabeçalho e às ações.</p>
+            <p>O texto pode crescer, quebrar em múltiplas linhas e permanecer dentro da região rolável, sem ampliar a página de fundo nem causar overflow horizontal.</p>
+            <p>Em aplicações reais, o corpo do diálogo deve apresentar somente as informações necessárias à tarefa contextual, com ações claras no rodapé.</p>
+            <p>A demonstração não persiste os valores e não representa uma regra administrativa ou um fluxo definitivo do Connect.</p>
+          </div>
+        </Dialog>
+        <AlertDialog
+          open={alertDialogOpen}
+          onOpenChange={setAlertDialogOpen}
+          title="Confirmar ação demonstrativa?"
+          description="Esta simulação representa uma operação sensível. Confirmar apenas altera o estado visual da demonstração; nenhum registro será excluído ou modificado."
+          pending={alertPending}
+          confirmLabel="Simular confirmação"
+          onConfirm={simulateAlertConfirmation}
+        >
+          <InlineFeedback
+            variant="warning"
+            description="Você pode cancelar com o botão ou pressionar Escape. O clique no backdrop não confirma nem fecha esta confirmação."
+          />
+        </AlertDialog>
+      </section>
+      <AdminDataQueryLab />
     </div>
   );
 }
