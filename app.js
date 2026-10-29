@@ -2,6 +2,7 @@ const $ = (s, root = document) => root.querySelector(s);
 const $$ = (s, root = document) => [...root.querySelectorAll(s)];
 const storeKey = "niteConnectDemoV1";
 const initialData = {
+  
   projects: [
     {
       id: 1,
