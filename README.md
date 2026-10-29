@@ -4,7 +4,9 @@ Repositório para desenvolvimento do Sistema de Gerenciamento do Núcleo de Inov
 ## Implementação atual — backend
 
 A base atual usa Java 21, Spring Boot 4.1.1, Maven e PostgreSQL 17 em
-`apps/api`, como monólito modular. `apps/web` contém uma página neutra em Next.js, ainda pendente da composição com a autenticação Entra.
+`apps/api`, como monólito modular. `apps/web` usa Next.js e implementa o login
+Microsoft Entra por um BFF no servidor; a ativação depende dos registros do
+tenant e dos secrets de ambiente descritos em [`apps/web/README.md`](apps/web/README.md).
 As propostas de tecnologias e autenticação nas seções iniciais abaixo são
 anteriores à especificação funcional consolidada e não orientam a implementação.
 

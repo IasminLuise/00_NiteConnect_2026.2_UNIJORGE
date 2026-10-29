@@ -11,9 +11,12 @@ está no plano Gratuito; Containers exige o plano Workers Pago, cuja contrataç�
 e cobrança por uso não foram autorizadas. O aceite institucional e a migração
 de produção continuam pendentes.
 
-Este repositório contém o backend; `apps/web` ainda não é um frontend integrado.
-A homologação funcional usa cliente HTTP/Postman com access token institucional
-e contas de teste autorizadas. Login Microsoft não concede autorização por si só.
+`apps/web` implementa o login Microsoft Entra por BFF e valida a identidade na
+API com `GET /api/v1/me`; o registro do cliente Web e secrets de runtime ainda
+precisam ser configurados para o tenant e o domínio de cada ambiente. O frontend
+não está implantado neste staging. A homologação funcional da API usa cliente
+HTTP/Postman com access token institucional e contas de teste autorizadas.
+Login Microsoft não concede autorização por si só.
 
 ## Topologia
 
