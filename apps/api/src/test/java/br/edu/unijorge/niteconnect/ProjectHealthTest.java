@@ -153,4 +153,37 @@ class ProjectHealthTest extends ProjectTestSupport {
                 .andExpect(jsonPath("$.daysSinceRelevantUpdate").value(20))
                 .andExpect(jsonPath("$.latestUpdatedActivityId").value(activityId.toString()));
     }
+
+    @Test
+    @org.springframework.transaction.annotation.Transactional
+    void recentlyCompletedActivityWithAuditedDeliveryIsARelevantProjectUpdate() throws Exception {
+        var projectId = project();
+        mvc.perform(patch("/api/v1/projects/" + projectId + "/status").with(token(ADMIN))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"status":"ATIVO","expectedVersion":0,"reason":"Início autorizado"}
+                                """))
+                .andExpect(status().isOk());
+        join(projectId, MEMBER);
+
+        var activityId = java.util.UUID.randomUUID();
+        jdbc.update("""
+                insert into nite_connect.activities(id,title,description,project_id,status,due_on,created_by,created_at,updated_at,completed_at)
+                values (?,?,?,?,'CONCLUIDA',null,?,clock_timestamp()-interval '1 day',clock_timestamp(),clock_timestamp())
+                """, activityId, "Entrega concluída", "Entrega recente", projectId, ADMIN);
+        jdbc.update("""
+                insert into nite_connect.activity_assignments(id,activity_id,member_id,role,started_by,start_reason)
+                values (?,?,?,'EXECUTOR',?,'Fixture de teste')
+                """, java.util.UUID.randomUUID(), activityId, MEMBER, ADMIN);
+        jdbc.update("""
+                insert into nite_connect.activity_events(id,activity_id,actor_id,action,reason,occurred_at,activity_version)
+                values (?,?,?,'STATUS_CHANGED','Entrega concluída',clock_timestamp(),1)
+                """, java.util.UUID.randomUUID(), activityId, ADMIN);
+
+        mvc.perform(get("/api/v1/projects/" + projectId + "/health").with(token(ADMIN)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("REGULAR"))
+                .andExpect(jsonPath("$.daysSinceRelevantUpdate").value(0))
+                .andExpect(jsonPath("$.latestUpdatedActivityId").value(activityId.toString()));
+    }
 }

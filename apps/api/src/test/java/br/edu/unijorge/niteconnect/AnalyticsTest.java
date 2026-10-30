@@ -3,10 +3,72 @@ package br.edu.unijorge.niteconnect;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import java.time.LocalDate;
+import java.util.UUID;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 class AnalyticsTest extends ProjectTestSupport {
+    @Test
+    void projectReportsIncludeOlderProjectsWhileActivityCreationKeepsItsDateWindow() throws Exception {
+        var projectId=project();
+        jdbc.update("update nite_connect.projects set created_at=clock_timestamp()-interval '2 years' where id=?", projectId);
+
+        mvc.perform(get("/api/v1/analytics/reports/GERENCIAL_CONSOLIDADO")
+                        .queryParam("from",LocalDate.now().minusDays(2).toString())
+                        .queryParam("to",LocalDate.now().plusDays(2).toString()).with(token(ADMIN)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.total").value(1))
+                .andExpect(jsonPath("$.rows[0][0]").value(projectId.toString()));
+
+        mvc.perform(get("/api/v1/analytics/reports/ATIVIDADES_ENTREGAS")
+                        .queryParam("from",LocalDate.now().minusDays(2).toString())
+                        .queryParam("to",LocalDate.now().plusDays(2).toString()).with(token(ADMIN)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.total").value(0));
+    }
+
+    @Test
+    void administrativeDashboardParticipationIndicatorsIncludeRecordsBeyondReportRowLimit() throws Exception {
+        jdbc.update("""
+                insert into nite_connect.participation_periods
+                    (id,member_id,kind,modality,starts_at,ends_at,description,origin,review_status)
+                select gen_random_uuid(), (array[?,?,?,?]::uuid[])[((n-1)%4)+1], 'WORK_LOG','REMOTA',
+                       clock_timestamp()-interval '30 days'+n*interval '15 minutes',
+                       clock_timestamp()-interval '30 days'+n*interval '15 minutes'+interval '5 minutes',
+                       'Registro de teste','DECLARATION','PENDENTE'
+                from generate_series(1,2001) n
+                """, ADMIN, LEADER, MEMBER, OTHER);
+        for(UUID memberId:java.util.List.of(LEADER,OTHER)) {
+            jdbc.update("""
+                    insert into nite_connect.participation_periods
+                        (id,member_id,kind,modality,starts_at,ends_at,description,origin,review_status)
+                    select gen_random_uuid(),?,'WORK_LOG','REMOTA',span.starts_at,span.starts_at+interval '0.4 seconds',
+                           'Registro fracionário de teste','DECLARATION','PENDENTE'
+                    from (select clock_timestamp()-interval '30 days' starts_at) span
+                    """, memberId);
+        }
+
+        mvc.perform(get("/api/v1/analytics/dashboard").queryParam("from",LocalDate.now().minusDays(31).toString())
+                        .queryParam("to",LocalDate.now().toString()).with(token(ADMIN)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$['indicators']['participation.pendente']").value(2003))
+                .andExpect(jsonPath("$['indicators']['participation.remota.seconds']").value(600300));
+    }
+
+    @Test
+    void administrativeDashboardProjectCountIsNotTheLimitedProjectRowsCount() throws Exception {
+        jdbc.update("""
+                insert into nite_connect.projects(id,title,description,status,created_by)
+                select gen_random_uuid(),'Projeto de teste '||n,'Projeto sintético para limite de consulta','PLANEJAMENTO',?
+                from generate_series(1,201) n
+                """, ADMIN);
+
+        mvc.perform(get("/api/v1/analytics/dashboard").queryParam("from",LocalDate.now().minusDays(2).toString())
+                        .queryParam("to",LocalDate.now().plusDays(2).toString()).with(token(ADMIN)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.indicators.projects").value(201))
+                .andExpect(jsonPath("$.rows.length()").value(200))
+                .andExpect(jsonPath("$.unavailableMetrics",org.hamcrest.Matchers.hasItem(org.hamcrest.Matchers.containsString("resultado está truncado"))));
+    }
+
     @Test
     void projectLeaderGetsScopedReportsAndExportsButOtherProjectMembersDoNot() throws Exception {
         var projectId=project(); join(projectId,LEADER); join(projectId,MEMBER); transfer(projectId,LEADER);

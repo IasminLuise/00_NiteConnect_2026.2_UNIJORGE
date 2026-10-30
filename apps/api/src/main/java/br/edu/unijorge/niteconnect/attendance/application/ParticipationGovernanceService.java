@@ -195,6 +195,10 @@ public class ParticipationGovernanceService {
             if (affected.status() != EventStatus.CANCELADO || affected.modality() != Modality.PRESENCIAL) {
                 throw ApiException.conflict("O encontro afetado precisa estar cancelado e ser presencial");
             }
+            LocalDate affectedDate = affected.startsAt().atZone(clock.getZone()).toLocalDate();
+            if (affectedDate.isBefore(change.weekStart()) || affectedDate.isAfter(change.weekEnd())) {
+                throw ApiException.invalid("O encontro afetado precisa ocorrer na semana institucional da exceção");
+            }
             if (type == CalendarExceptionType.REMARCACAO) {
                 Event replacement = attendance.event(change.replacementEventId());
                 if (replacement.status() == EventStatus.CANCELADO || replacement.modality() != Modality.PRESENCIAL
