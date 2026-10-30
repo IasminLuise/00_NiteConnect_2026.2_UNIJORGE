@@ -29,4 +29,11 @@ class AnalyticsExporterTest {
             assertThat(text).contains("2026-10-01 a 2026-10-31","Período e fuso definidos","source-id","B05 indisponível");
         }
     }
+    @Test void pdfReplacesControlCharactersBeforeEncoding() throws Exception {
+        var tabbedReport=new Report(report.type(),report.from(),report.to(),report.generatedAt(),report.criteria(),report.columns(),
+                List.of(List.of("source-id","line\tbreak")),report.page(),report.size(),report.total(),report.unavailableMetrics());
+        try(var document=Loader.loadPDF(exporter.pdf(tabbedReport))) {
+            assertThat(new PDFTextStripper().getText(document)).contains("line break");
+        }
+    }
 }

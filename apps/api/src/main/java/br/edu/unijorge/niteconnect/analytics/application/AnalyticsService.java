@@ -81,6 +81,7 @@ public class AnalyticsService {
 
     @Transactional(readOnly=true)
     public Dashboard ownDashboard(UUID actor, LocalDate from, LocalDate to) {
+        access.requireActive(actor);
         Report report=build(actor,ReportType.FREQUENCIA_PARTICIPACAO,from,to,null,actor,null,0,200,true);
         Report activities=build(actor,ReportType.ATIVIDADES_ENTREGAS,from,to,null,actor,null,0,200,true);
         var result=dashboard(from,to,"integrante",report);

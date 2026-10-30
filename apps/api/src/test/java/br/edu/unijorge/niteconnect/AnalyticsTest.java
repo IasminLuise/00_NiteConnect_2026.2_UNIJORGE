@@ -59,6 +59,14 @@ class AnalyticsTest extends ProjectTestSupport {
     }
 
     @Test
+    void inactiveMemberCannotReadPersonalDashboard() throws Exception {
+        jdbc.update("update nite_connect.members set status='AFASTADO' where id=?", MEMBER);
+        mvc.perform(get("/api/v1/me/dashboard").queryParam("from",LocalDate.now().minusDays(2).toString())
+                        .queryParam("to",LocalDate.now().plusDays(2).toString()).with(token(MEMBER)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     void allFourAdministrativeReportModelsShareFiltersAndAuthorization() throws Exception {
         project();
         for(String model:java.util.List.of("FREQUENCIA_PARTICIPACAO","ATIVIDADES_ENTREGAS","ACOMPANHAMENTO_PROJETOS","GERENCIAL_CONSOLIDADO")) {

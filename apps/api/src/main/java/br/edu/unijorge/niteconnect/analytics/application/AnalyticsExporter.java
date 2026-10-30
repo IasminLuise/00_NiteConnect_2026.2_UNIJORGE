@@ -69,7 +69,7 @@ public class AnalyticsExporter {
         return "\""+safe.replace("\"","\"\"").replace("\r"," ").replace("\n"," ")+"\"";
     }
     private String pdfText(String value) {
-        String cleaned=value.replaceAll("[\\p{Cntrl}&&[^\\t]]"," ");
+        String cleaned=value.replaceAll("\\p{Cntrl}"," ");
         // Helvetica/WinAnsi handles Latin-1; replace unsupported glyphs so one bad source value cannot abort a report.
         return cleaned.codePoints().mapToObj(cp->cp<=255?new String(Character.toChars(cp)):"?").reduce("",String::concat);
     }
