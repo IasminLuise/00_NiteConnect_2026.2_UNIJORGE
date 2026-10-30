@@ -74,5 +74,15 @@ public class AttendanceRepository {
             order by p.starts_at,p.id
             """,PERIOD,member,ts(to),ts(from));
     }
+    public List<Period> overlappingForWeeklySummary(UUID member,Instant from,Instant to) {
+        return jdbc.query("""
+            select p.* from nite_connect.participation_periods p
+            where p.member_id=? and p.starts_at<? and (p.ends_at is null or p.ends_at>?)
+            and (p.attendance_id is null or exists(select 1 from nite_connect.attendance_records a
+             join nite_connect.calendar_events e on e.id=a.event_id where a.id=p.attendance_id and e.status<>'CANCELADO'))
+            and not exists(select 1 from nite_connect.participation_replacement_allocations r where r.period_id=p.id)
+            order by p.starts_at,p.id
+            """,PERIOD,member,ts(to),ts(from));
+    }
     public long count(String sql,Object... args) { return jdbc.queryForObject(sql,Long.class,args); }
 }

@@ -34,6 +34,10 @@ public class ParticipationController {
     @GetMapping("/api/v1/me/participation-summary") ParticipationQueries.Summary summary(@AuthenticationPrincipal Jwt jwt,@RequestParam LocalDate from,@RequestParam LocalDate to) {
         return queries.summary(identities.member(jwt),null,false,from,to);
     }
+    @GetMapping("/api/v1/me/participation-weekly-summary") ParticipationQueries.WeeklySummary weeklySummary(
+            @AuthenticationPrincipal Jwt jwt,@RequestParam LocalDate from,@RequestParam LocalDate to) {
+        return queries.weeklySummary(identities.member(jwt),from,to);
+    }
     @GetMapping("/api/v1/attendance/summary") ParticipationQueries.Summary adminSummary(@AuthenticationPrincipal Jwt jwt,@RequestParam UUID memberId,@RequestParam LocalDate from,@RequestParam LocalDate to) {
         return queries.summary(identities.member(jwt),memberId,true,from,to);
     }

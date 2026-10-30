@@ -34,6 +34,12 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/academic/enrollments/*/homologation", "/api/v1/academic/enrollments/*/reviews", "/api/v1/me/academic/enrollments/*/reviews", "/api/v1/academic/enrollments/*/history", "/api/v1/academic/homologations/*/forwardings").access(authenticatedJwt)
+                        .requestMatchers(HttpMethod.GET, "/api/v1/me/dashboard", "/api/v1/projects/*/dashboard", "/api/v1/analytics/dashboard",
+                                "/api/v1/me/reports/*", "/api/v1/me/reports/*/export",
+                                "/api/v1/projects/*/reports/*", "/api/v1/projects/*/reports/*/export",
+                                "/api/v1/analytics/reports/*", "/api/v1/analytics/reports/*/export",
+                                "/api/v1/analytics/history", "/api/v1/projects/*/analytics/history",
+                                "/api/v1/me/analytics/comparison", "/api/v1/projects/*/analytics/comparison", "/api/v1/analytics/comparison").access(authenticatedJwt)
                         .requestMatchers(HttpMethod.POST, "/api/v1/me/academic/enrollments/*/reviews", "/api/v1/academic/enrollments/*/reviews", "/api/v1/academic/reviews/*/decisions", "/api/v1/academic/calculations/*/homologations", "/api/v1/academic/homologations/*/reopen", "/api/v1/academic/homologations/*/forwardings").access(authenticatedJwt)
                         .requestMatchers(HttpMethod.GET, "/api/v1/academic/enrollments/*/assessments", "/api/v1/academic/enrollments/*/calculations", "/api/v1/me/academic/enrollments/*/assessments", "/api/v1/me/academic/enrollments/*/calculations").access(authenticatedJwt)
                         .requestMatchers(HttpMethod.POST, "/api/v1/academic/enrollments/*/assessments", "/api/v1/academic/enrollments/*/calculations").access(authenticatedJwt)
@@ -49,10 +55,17 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.GET, "/api/v1/agenda/events", "/api/v1/agenda/events/*", "/api/v1/agenda/events/*/participants",
                                 "/api/v1/me/attendance", "/api/v1/me/work-logs", "/api/v1/me/absence-justifications", "/api/v1/me/attendance/corrections",
                                 "/api/v1/me/participation-summary", "/api/v1/me/participation-history", "/api/v1/attendance/records",
+                                "/api/v1/me/participation-weekly-summary",
+                                "/api/v1/me/work-logs/review-requests", "/api/v1/me/participation-adjustments",
+                                "/api/v1/attendance/calendar-exceptions", "/api/v1/attendance/participation-adjustments",
                                 "/api/v1/attendance/summary", "/api/v1/attendance/history", "/api/v1/attendance/justifications", "/api/v1/attendance/corrections").access(authenticatedJwt)
                         .requestMatchers(HttpMethod.POST, "/api/v1/agenda/events", "/api/v1/agenda/events/*/session", "/api/v1/agenda/events/*/close", "/api/v1/agenda/events/*/cancel",
                                 "/api/v1/me/attendance/check-in", "/api/v1/me/attendance/check-out", "/api/v1/me/attendance/*/return", "/api/v1/me/work-logs",
                                 "/api/v1/me/absence-justifications", "/api/v1/me/absence-justifications/*/complements", "/api/v1/me/attendance/corrections",
+                                "/api/v1/attendance/calendar-exceptions", "/api/v1/attendance/work-log-review-batches",
+                                "/api/v1/me/participation-replacements", "/api/v1/attendance/participation-dispensations",
+                                "/api/v1/attendance/participation-replacements/*/decisions",
+                                "/api/v1/attendance/participation-replacements/*/periods/*",
                                 "/api/v1/attendance/records/*/reviews", "/api/v1/attendance/records/*/corrections",
                                 "/api/v1/attendance/justifications/*/decisions", "/api/v1/attendance/corrections/*/decisions").access(authenticatedJwt)
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/agenda/events/*").access(authenticatedJwt)
@@ -73,10 +86,12 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.GET, "/api/v1/projects", "/api/v1/projects/*", "/api/v1/me/projects",
                                 "/api/v1/me/projects/history", "/api/v1/me/projects/leadership/history", "/api/v1/projects/*/history", "/api/v1/projects/*/members",
                                 "/api/v1/projects/*/members/history", "/api/v1/projects/*/leadership", "/api/v1/projects/*/leadership/history",
+                                "/api/v1/projects/*/health", "/api/v1/projects/*/health-history", "/api/v1/projects/*/health-policy/history",
                                 "/api/v1/projects/*/member-candidates",
                                 "/api/v1/proposals", "/api/v1/proposals/*").access(authenticatedJwt)
                         .requestMatchers(HttpMethod.POST, "/api/v1/projects", "/api/v1/projects/*/members",
                                 "/api/v1/projects/*/leadership-transfers", "/api/v1/proposals",
+                                "/api/v1/projects/*/health-policy", "/api/v1/projects/*/health-evaluations",
                                 "/api/v1/proposals/*/decisions", "/api/v1/proposals/*/convert").access(authenticatedJwt)
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/projects/*", "/api/v1/projects/*/status",
                                 "/api/v1/proposals/*").access(authenticatedJwt)
