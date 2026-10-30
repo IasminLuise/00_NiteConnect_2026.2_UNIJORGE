@@ -4,21 +4,31 @@ import br.edu.unijorge.niteconnect.access.application.AccessService;
 import br.edu.unijorge.niteconnect.attendance.domain.Participation.*;
 import br.edu.unijorge.niteconnect.attendance.domain.Participation.Period;
 import br.edu.unijorge.niteconnect.attendance.infrastructure.AttendanceRepository;
+import br.edu.unijorge.niteconnect.attendance.infrastructure.ParticipationGovernanceRepository;
+import br.edu.unijorge.niteconnect.attendance.api.ParticipationGovernanceContracts.AdjustmentView;
+import br.edu.unijorge.niteconnect.attendance.api.ParticipationGovernanceContracts.CalendarVersion;
 import br.edu.unijorge.niteconnect.shared.api.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.*;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import static br.edu.unijorge.niteconnect.attendance.infrastructure.AttendanceRepository.ts;
 
 @Service
 @Transactional(readOnly=true)
 public class ParticipationQueries {
-    private final AttendanceRepository repo; private final AccessService access; private final ParticipationService participation; private final Clock clock;
-    public ParticipationQueries(AttendanceRepository repo,AccessService access,ParticipationService participation,Clock clock) { this.repo=repo;this.access=access;this.participation=participation;this.clock=clock; }
+    private final AttendanceRepository repo; private final ParticipationGovernanceRepository governance;
+    private final AccessService access; private final ParticipationService participation; private final Clock clock;
+    public ParticipationQueries(AttendanceRepository repo,ParticipationGovernanceRepository governance,AccessService access,ParticipationService participation,Clock clock) {
+        this.repo=repo;this.governance=governance;this.access=access;this.participation=participation;this.clock=clock;
+    }
     public record Range(Instant from,Instant to) {}
     public record Summary(String zone,Instant from,Instant to,long registeredSeconds,long validatedSeconds,long pendingSeconds,
                           long refusedSeconds,long openPeriods,long pendingRecords,long expectedMeetings,long attendedMeetings,long absentMeetings) {}
+    public record WeeklySummary(String zone,LocalDate weekStart,LocalDate weekEnd,
+                                WeeklyParticipationRules.Summary modalities,CalendarVersion calendarException,
+                                List<AdjustmentView> adjustments) {}
     public Range range(LocalDate from,LocalDate to) {
         if(from==null || to==null || from.isAfter(to) || to.equals(LocalDate.MAX)) throw ApiException.invalid("Informe from/to em ordem válida");
         return new Range(from.atStartOfDay(clock.getZone()).toInstant(),to.plusDays(1).atStartOfDay(clock.getZone()).toInstant());
@@ -74,6 +84,31 @@ public class ParticipationQueries {
         long expected=repo.count("select count(*)"+meetings,member,ts(r.from()),ts(r.to()));
         long attended=repo.count("select count(*)"+meetings+" and exists(select 1 from nite_connect.attendance_records a where a.event_id=e.id and a.member_id=ep.member_id)",member,ts(r.from()),ts(r.to()));
         return new Summary(clock.getZone().getId(),r.from(),r.to(),registered,validated,pending,refused,open,pendingRecords,expected,attended,expected-attended);
+    }
+    public WeeklySummary weeklySummary(UUID actor,LocalDate from,LocalDate to) {
+        access.requireActive(actor);
+        if (from == null || to == null || from.isAfter(to) || from.equals(LocalDate.MAX)
+                || to.equals(LocalDate.MAX) || ChronoUnit.DAYS.between(from, to) != 6) {
+            throw ApiException.invalid("Informe um intervalo explícito de sete dias consecutivos");
+        }
+        Range interval = range(from, to);
+        var periods = repo.overlappingForWeeklySummary(actor, interval.from(), interval.to());
+        CalendarVersion calendar = governance.currentCalendar(from, to).orElse(null);
+        List<AdjustmentView> adjustments = governance.adjustmentsForWeek(actor, from, to);
+        long calendarPresential = calendar == null ? 0 : seconds(calendar.presentialHoursRelieved());
+        long calendarRemote = calendar == null ? 0 : seconds(calendar.remoteHoursRelieved());
+        long individualPresential = seconds(governance.dispensationHours(actor, from, to, Modality.PRESENCIAL));
+        long individualRemote = seconds(governance.dispensationHours(actor, from, to, Modality.REMOTA));
+        long requiredPresential = 5 * 3600L;
+        long requiredRemote = 4 * 3600L;
+        long releasedPresential = Math.min(requiredPresential, Math.addExact(calendarPresential, individualPresential));
+        long releasedRemote = Math.min(requiredRemote, Math.addExact(calendarRemote, individualRemote));
+        var modalities = WeeklyParticipationRules.calculate(periods, interval.from(), interval.to(),
+                requiredPresential, requiredRemote, releasedPresential, releasedRemote);
+        return new WeeklySummary(clock.getZone().getId(), from, to, modalities, calendar, adjustments);
+    }
+    private static long seconds(java.math.BigDecimal hours) {
+        return hours.multiply(java.math.BigDecimal.valueOf(3600)).longValueExact();
     }
     private long seconds(String eligible,String duration,UUID member,Range r,String status) {
         return repo.count("select "+duration+eligible+" and p.ends_at is not null and p.review_status=?",ts(r.to()),ts(r.from()),member,ts(r.to()),ts(r.from()),status);
