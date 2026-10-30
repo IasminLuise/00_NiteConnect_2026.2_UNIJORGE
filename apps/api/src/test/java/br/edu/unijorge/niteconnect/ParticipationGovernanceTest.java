@@ -81,6 +81,32 @@ class ParticipationGovernanceTest extends ProjectTestSupport {
     }
 
     @Test
+    void calendarExceptionCannotUseCanceledMeetingFromAnotherWeek() throws Exception {
+        String canceled=calendarEvent("2026-11-09T18:00:00Z","Encontro da semana anterior");
+        UUID canceledId=UUID.fromString(com.jayway.jsonpath.JsonPath.read(canceled,"$.id"));
+        mvc.perform(post("/api/v1/agenda/events/"+canceledId+"/cancel").with(token(ADMIN)).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"expectedVersion\":0,\"reason\":\"Cancelamento institucional\",\"confirmed\":true}"))
+                .andExpect(status().isOk());
+
+        mvc.perform(post("/api/v1/attendance/calendar-exceptions").with(token(ADMIN)).contentType(MediaType.APPLICATION_JSON)
+                        .content(("{\"expectedVersion\":0,\"weekStart\":\"2026-11-16\",\"weekEnd\":\"2026-11-22\",\"type\":\"CANCELAMENTO_PRESENCIAL\",\"presentialHoursRelieved\":5,\"remoteHoursRelieved\":0,\"affectedEventId\":\"%s\",\"reason\":\"Encontro cancelado\"}").formatted(canceledId)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void calendarExceptionAcceptsMeetingOnTheLastDayOfItsInstitutionalWeek() throws Exception {
+        String canceled=calendarEvent("2026-11-22T15:00:00Z","Encontro no limite da semana");
+        UUID canceledId=UUID.fromString(com.jayway.jsonpath.JsonPath.read(canceled,"$.id"));
+        mvc.perform(post("/api/v1/agenda/events/"+canceledId+"/cancel").with(token(ADMIN)).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"expectedVersion\":0,\"reason\":\"Cancelamento institucional\",\"confirmed\":true}"))
+                .andExpect(status().isOk());
+
+        mvc.perform(post("/api/v1/attendance/calendar-exceptions").with(token(ADMIN)).contentType(MediaType.APPLICATION_JSON)
+                        .content(("{\"expectedVersion\":0,\"weekStart\":\"2026-11-16\",\"weekEnd\":\"2026-11-22\",\"type\":\"CANCELAMENTO_PRESENCIAL\",\"presentialHoursRelieved\":5,\"remoteHoursRelieved\":0,\"affectedEventId\":\"%s\",\"reason\":\"Encontro cancelado\"}").formatted(canceledId)))
+                .andExpect(status().isCreated());
+    }
+
+    @Test
     void dispensationDoesNotCreateWorkHoursAndMemberCannotReadOthersAdjustments() throws Exception {
         mvc.perform(post("/api/v1/attendance/participation-dispensations").with(token(ADMIN))
                         .contentType(MediaType.APPLICATION_JSON).content("""

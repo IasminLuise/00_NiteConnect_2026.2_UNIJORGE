@@ -12,12 +12,20 @@
 
 ## Verificações executadas após a alteração final
 
-No worktree isolado `D:\nite-connect-worktrees\bloco-07-backend`, com Java 21 e Docker/Testcontainers disponíveis:
+Na worktree isolada `D:\nite-connect-worktrees\bloco-07-corrections`, com Java 21 e Docker/Testcontainers disponíveis:
 
-- `\.\mvnw.cmd --batch-mode verify` (executado a partir de `apps/api`): **BUILD SUCCESS**, 244 testes, 0 falhas, 0 erros e 0 ignorados. Incluiu testes de integração com PostgreSQL 17 e aplicou/validou todas as 12 migrações, incluindo V11 e V12.
-- `git diff --check`: sem apontamentos, executado após documentação final.
+- `mvnw.cmd --batch-mode -Dtest=AnalyticsTest test` (em `apps/api`): **BUILD SUCCESS**, 8 testes, 0 falhas, 0 erros e 0 ignorados.
+- `mvnw.cmd --batch-mode verify` (em `apps/api`): **BUILD SUCCESS**, 252 testes, 0 falhas, 0 erros e 0 ignorados. Incluiu PostgreSQL 17/Testcontainers e validou/aplicou as 12 migrações.
+- `git diff --check`: sem apontamentos, após a revisão documental e do código.
 
-Verificações direcionadas de saúde de projeto, participação, governança e relatórios já haviam passado durante o desenvolvimento. A suíte completa acima as substitui como validação final de código.
+Antes da correção, quatro testes direcionados reproduziram os defeitos de projeto antigo, participação truncada, encontro associado à semana errada e entrega concluída ignorada. Após os ajustes, os testes direcionados dos três módulos somaram 9 casos, todos aprovados; a suíte completa acima foi executada novamente após corrigir também uma regressão temporária encontrada durante a primeira execução integral.
+
+### Reconciliação das contagens do PR #25
+
+- O número **242** consta em um registro preliminar de execução anterior; não foi localizado como relatório de teste nos artefatos versionados atuais.
+- A descrição do PR #25 registrou **244 testes locais** e indicou que o CI ainda precisava ficar verde.
+- O run [Backend CI do PR #25](https://github.com/IasminLuise/00_NiteConnect_2026.2_UNIJORGE/actions/runs/41023759700) concluiu com sucesso no commit integrado `599a69f` e registrou **246 testes**, sem falhas, erros ou testes ignorados.
+- Esta revisão acrescentou seis testes de regressão. O resultado local atual é **252 testes**; ele não altera nem substitui a contagem histórica de 246 do CI do PR #25.
 
 ## Definições e integrações pendentes
 
@@ -29,4 +37,4 @@ Verificações direcionadas de saúde de projeto, participação, governança e 
 
 ## Avaliação
 
-O backend está implementado e validado para o escopo tecnicamente determinável, em worktree e branch isolados, sem commit ou push. Permanecem as limitações de integração e validação de ambiente listadas acima.
+O backend foi corrigido e validado localmente para o escopo desta revisão, em worktree e branch isolados, sem commit ou push. Permanecem as limitações de integração e validação de ambiente listadas acima; o CI da branch corretiva ainda não foi executado.

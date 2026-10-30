@@ -84,12 +84,10 @@ public class AnalyticsService {
         access.requireActive(actor);
         Report report=build(actor,ReportType.FREQUENCIA_PARTICIPACAO,from,to,null,actor,null,0,200,true);
         Report activities=build(actor,ReportType.ATIVIDADES_ENTREGAS,from,to,null,actor,null,0,200,true);
-        var result=dashboard(from,to,"integrante",report);
+        var result=dashboard(from,to,"integrante",report,null,actor);
         var indicators=new LinkedHashMap<>(result.indicators());
         indicators.put("activities",activities.total());
-        for(String status:List.of("PLANEJADA","EM_EXECUCAO","CONCLUIDA","CANCELADA"))
-            indicators.put("activities."+status.toLowerCase(),activities.rows().stream().filter(row->row.get(4).equals(status)).count());
-        indicators.put("overdueActivitiesNow",activities.rows().stream().filter(row->row.get(8).equals("true")).count());
+        indicators.putAll(repository.activityDashboardMetrics(null,actor,startOf(from),endOf(to)));
         var unavailable=new ArrayList<>(result.unavailableMetrics());
         activities.unavailableMetrics().stream().filter(value->!unavailable.contains(value)).forEach(unavailable::add);
         return new Dashboard(from,to,result.generatedAt(),result.scope(),Map.copyOf(indicators),activities.columns(),activities.rows(),List.copyOf(unavailable));
@@ -99,25 +97,18 @@ public class AnalyticsService {
     public Dashboard projectDashboard(UUID actor, UUID projectId, LocalDate from, LocalDate to) {
         projectAccess.requireManage(actor,projectId);
         Report report=build(actor,ReportType.GERENCIAL_CONSOLIDADO,from,to,projectId,null,null,0,200,true);
-        Report participation=build(actor,ReportType.FREQUENCIA_PARTICIPACAO,from,to,projectId,null,null,0,200,true);
-        var result=dashboard(from,to,"liderança do projeto",report);
-        var indicators=new LinkedHashMap<>(result.indicators());
-        addParticipationIndicators(indicators,participation);
+        var result=dashboard(from,to,"liderança do projeto",report,projectId,null);
         var unavailable=new ArrayList<>(result.unavailableMetrics());
-        participation.unavailableMetrics().stream().filter(value->!unavailable.contains(value)).forEach(unavailable::add);
         unavailable.add("Presenças em eventos sem vínculo de projeto não são atribuídas a este painel");
-        return new Dashboard(from,to,result.generatedAt(),result.scope(),Map.copyOf(indicators),report.columns(),report.rows(),List.copyOf(unavailable));
+        return new Dashboard(from,to,result.generatedAt(),result.scope(),result.indicators(),report.columns(),report.rows(),List.copyOf(unavailable));
     }
 
     @Transactional(readOnly=true)
     public Dashboard administrativeDashboard(UUID actor, LocalDate from, LocalDate to) {
         access.requireAdministrator(actor);
         Report report=build(actor,ReportType.GERENCIAL_CONSOLIDADO,from,to,null,null,null,0,200,true);
-        Report participation=build(actor,ReportType.FREQUENCIA_PARTICIPACAO,from,to,null,null,null,0,200,true);
-        var result=dashboard(from,to,"Gestão Geral/Coordenação",report);
-        var indicators=new LinkedHashMap<>(result.indicators());
-        addParticipationIndicators(indicators,participation);
-        return new Dashboard(from,to,result.generatedAt(),result.scope(),Map.copyOf(indicators),report.columns(),report.rows(),result.unavailableMetrics());
+        var result=dashboard(from,to,"Gestão Geral/Coordenação",report,null,null);
+        return new Dashboard(from,to,result.generatedAt(),result.scope(),result.indicators(),report.columns(),report.rows(),result.unavailableMetrics());
     }
 
     @Transactional(readOnly=true)
@@ -192,29 +183,31 @@ public class AnalyticsService {
                 List.copyOf(all.subList(first,last)),page,size,repository.countHistoricalEvents(projectId,start,end));
     }
 
-    private Dashboard dashboard(LocalDate from,LocalDate to,String scope,Report report) {
+    private Dashboard dashboard(LocalDate from,LocalDate to,String scope,Report report,UUID projectId,UUID memberId) {
         var indicators=new LinkedHashMap<String,Long>();
         indicators.put("recordsInPeriod",report.total());
         if(report.type()!=ReportType.FREQUENCIA_PARTICIPACAO) {
-            indicators.put("projects",(long)report.rows().size());
-            indicators.put("activities",report.rows().stream().mapToLong(row->parse(row,3)).sum());
-            indicators.put("completedActivities",report.rows().stream().mapToLong(row->parse(row,5)).sum());
-            indicators.put("openActivities",report.rows().stream().mapToLong(row->parse(row,7)).sum());
-            indicators.put("overdueActivitiesNow",report.rows().stream().mapToLong(row->parse(row,4)).sum());
+            indicators.putAll(repository.projectDashboardMetrics(projectId,memberId,startOf(from),endOf(to),null));
         }
-        if (report.type()==ReportType.FREQUENCIA_PARTICIPACAO) {
-            addParticipationIndicators(indicators,report);
-        }
-        return new Dashboard(from,to,report.generatedAt(),scope,Map.copyOf(indicators),report.columns(),report.rows(),report.unavailableMetrics());
+        indicators.putAll(repository.participationDashboardMetrics(projectId,memberId,startOf(from),endOf(to)));
+        List<String> unavailable=report.type()==ReportType.FREQUENCIA_PARTICIPACAO
+                ?report.unavailableMetrics().stream().filter(value->!value.startsWith("A consulta retornou as primeiras ")).toList()
+                :report.unavailableMetrics();
+        return new Dashboard(from,to,report.generatedAt(),scope,Map.copyOf(indicators),report.columns(),report.rows(),unavailable);
     }
 
-    private void addParticipationIndicators(Map<String,Long> indicators,Report report) {
-        for(String status:List.of("PENDENTE","APROVADA","RECUSADA"))
-            indicators.put("participation."+status.toLowerCase(),report.rows().stream().filter(row->row.get(4).equals(status)).count());
-        for(String modality:List.of("PRESENCIAL","REMOTA"))
-            indicators.put("participation."+modality.toLowerCase()+".seconds",report.rows().stream().filter(row->row.get(2).equals(modality)).mapToLong(row->Long.parseLong(row.get(7))).sum());
-        long validated=report.rows().stream().filter(row->row.get(4).equals("APROVADA")).mapToLong(row->Long.parseLong(row.get(7))).sum();
-        indicators.put("validatedSeconds",validated);
+    private Instant startOf(LocalDate date) { return date.atStartOfDay(clock.getZone()).toInstant(); }
+    private Instant endOf(LocalDate date) { return date.plusDays(1).atStartOfDay(clock.getZone()).toInstant(); }
+
+    private String criteria(ReportType type,LocalDate from,LocalDate to,ZoneId zone,String situation,Instant generated) {
+        String periodSemantics=switch(type) {
+            case FREQUENCIA_PARTICIPACAO -> "períodos que se sobrepõem ao intervalo";
+            case ATIVIDADES_ENTREGAS -> "atividades criadas no intervalo";
+            case ACOMPANHAMENTO_PROJETOS -> "projetos no escopo autorizado, sem filtro pela criação; estado e saúde atuais na geração";
+            case GERENCIAL_CONSOLIDADO -> "projetos no escopo autorizado, sem filtro pela criação; estado, equipe e atividades atuais na geração";
+        };
+        return "Período inclusivo "+from+" a "+to+"; fuso "+zone+"; "+periodSemantics+
+                "; situação="+(situation==null?"todas":situation)+"; valores operacionais avaliados na geração "+generated+".";
     }
 
     private Report build(UUID actor,ReportType type,LocalDate from,LocalDate to,UUID projectId,UUID memberId,String situation,
@@ -260,7 +253,7 @@ public class AnalyticsService {
         int first=export?0:Math.min(page*size,all.size());
         int last=export?all.size():Math.min(first+size,all.size());
         List<List<String>> rows=List.copyOf(all.subList(first,last));
-        String criteria="Período inclusivo "+from+" a "+to+"; fuso "+zone+"; registros criados/iniciados dentro do período; situação="+(situation==null?"todas":situation)+"; valores de estado operacional avaliados na geração "+generated+".";
+        String criteria=criteria(type,from,to,zone,situation,generated);
         return new Report(type,from,to,generated,criteria,List.copyOf(columns),rows,page,size,total,List.copyOf(unavailable));
     }
 
@@ -277,5 +270,4 @@ public class AnalyticsService {
         };
         if(!allowed.contains(situation)) throw ApiException.invalid("Situação não permitida para este modelo de relatório");
     }
-    private long parse(List<String> row,int index) { return Long.parseLong(row.get(index)); }
 }

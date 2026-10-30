@@ -105,22 +105,23 @@ public class ActivityRepository {
     public record PersonalPeriod(UUID assignmentId,UUID activityId,String activityTitle,UUID projectId,String role,Instant startedAt,Instant endedAt) {}
     public record Event(UUID id,UUID activityId,UUID actorId,String action,String reason,Instant occurredAt,long activityVersion,String before,String after) {}
 
-    /** Read contract for project health: operational activities and their latest meaningful B03 event. */
+    /** Read contract for project health: project activities and their latest meaningful B03 event. */
     public ProjectHealthSignals projectHealth(UUID projectId, LocalDate today, Instant now) {
         List<HealthActivity> activities = jdbc.query("""
-                select a.id,a.due_on,max(e.occurred_at) as latest_relevant_at
+                select a.id,a.due_on,a.status,max(e.occurred_at) as latest_relevant_at
                 from nite_connect.activities a
                 left join nite_connect.activity_events e on e.activity_id=a.id and e.action in
                     ('CREATED','UPDATED','STATUS_CHANGED','EXECUTOR_CHANGED','COLLABORATOR_ADDED',
                      'COLLABORATOR_REMOVED','EVIDENCE_CREATED','EVIDENCE_WITHDRAWN')
-                where a.project_id=? and a.status in ('PLANEJADA','EM_EXECUCAO')
-                group by a.id,a.due_on order by a.id
+                where a.project_id=? and a.status<>'CANCELADA'
+                group by a.id,a.due_on,a.status order by a.id
                 """, (rs, row) -> new HealthActivity(rs.getObject("id", UUID.class),
-                rs.getObject("due_on", LocalDate.class), instant(rs.getTimestamp("latest_relevant_at"))), projectId);
+                rs.getObject("due_on", LocalDate.class), rs.getString("status"),
+                instant(rs.getTimestamp("latest_relevant_at"))), projectId);
         int maxOverdueDays = 0;
         var overdueIds = new ArrayList<UUID>();
         for (HealthActivity activity : activities) {
-            if (activity.dueOn() != null && activity.dueOn().isBefore(today)) {
+            if (isOpen(activity.status()) && activity.dueOn() != null && activity.dueOn().isBefore(today)) {
                 int overdueDays = Math.toIntExact(ChronoUnit.DAYS.between(activity.dueOn(), today));
                 if (overdueDays > maxOverdueDays) {
                     maxOverdueDays = overdueDays;
@@ -137,7 +138,9 @@ public class ActivityRepository {
                 overdueIds, latest == null ? null : latest.id());
     }
 
-    private record HealthActivity(UUID id, LocalDate dueOn, Instant relevantAt) {}
+    private boolean isOpen(String status) { return status.equals("PLANEJADA") || status.equals("EM_EXECUCAO"); }
+
+    private record HealthActivity(UUID id, LocalDate dueOn, String status, Instant relevantAt) {}
     public record ProjectHealthSignals(int maxOverdueDays, Integer daysSinceRelevantUpdate, int activityCount,
                                        List<UUID> overdueActivityIds, UUID latestUpdatedActivityId) {}
 }

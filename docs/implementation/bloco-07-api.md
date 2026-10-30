@@ -12,6 +12,8 @@ Todos os endpoints exigem token Entra Bearer validado pela API. Datas usam `YYYY
 
 As respostas incluem período, instante de geração, indicadores, registros de apoio e `unavailableMetrics`. Participação é separada por modalidade e situação de revisão. `validatedSeconds` contabiliza somente registros aprovados; dispensas reduzem a obrigação em `/me/participation-weekly-summary` e nunca são horas trabalhadas. Atrasos são calculados com base no estado atual na geração. O painel de projeto não atribui presenças sem vínculo de projeto.
 
+Os indicadores agregados são calculados integralmente na origem e não a partir das linhas de apoio limitadas. O limite de linhas pode truncar a tabela de apoio; nesse caso, `unavailableMetrics` informa a limitação sem alterar os totais agregados. `recordsInPeriod` significa períodos sobrepostos ao intervalo nos painéis de participação e projetos no escopo nos painéis gerenciais. No painel do integrante, `activities` e seus estados contam atividades atribuídas criadas no intervalo; atrasos refletem a situação atual dessas atividades. No painel gerencial, projetos, atividades, membros ativos e classificação de saúde são fotografias do momento da consulta.
+
 ## Relatórios
 
 Modelos (`{type}`):
@@ -28,6 +30,8 @@ Consultas JSON:
 - `GET /api/v1/analytics/reports/{type}?from=&to=&projectId=&memberId=&situation=&page=0&size=50`
 
 Os dois primeiros são limitados ao próprio integrante ou à liderança do projeto. Filtros `projectId`/`memberId` são administrativos no endpoint gerencial. `situation` aceita os estados individuais do modelo solicitado (`PENDENTE/APROVADA/RECUSADA`, estados B03 de atividade ou estados oficiais B02 de projeto). `page` começa em zero; `size` aceita 1–200. A resposta informa `total`, critérios, colunas, linhas e limitações da fonte. As projeções de projeto/atividade exibem estado atual, não reconstroem um estado histórico sem snapshot.
+
+Semântica temporal: `FREQUENCIA_PARTICIPACAO` inclui períodos que se sobrepõem ao intervalo e recorta a duração dentro dele; `ATIVIDADES_ENTREGAS` inclui atividades criadas no intervalo, embora prazo, conclusão e atraso sejam valores atuais; `ACOMPANHAMENTO_PROJETOS` e `GERENCIAL_CONSOLIDADO` incluem projetos do escopo autorizado, sem restringi-los pela data de criação. Estado do projeto, equipe, atividades e criticidade desses dois relatórios são valores atuais na geração. Se houver filtro de integrante, o vínculo ao projeto deve se sobrepor ao intervalo. A situação opcional filtra o estado corrente da entidade correspondente.
 
 Exportações usam os mesmos escopos e filtros:
 
@@ -51,6 +55,8 @@ O histórico pagina eventos de mudança de estado de projeto e eventos de ativid
 
 - `GET /api/v1/me/participation-weekly-summary?from=&to=` recebe exatamente sete dias consecutivos explícitos. Apresenta carga-base 5h presencial/4h remota, obrigação líquida por modalidade, registrado, pendente, aprovado, recusado, períodos abertos e saldo após validação.
 - `POST /api/v1/attendance/calendar-exceptions` e `GET /api/v1/attendance/calendar-exceptions?from=&to=&page=0&size=50` administram exceções versionadas e auditadas. O intervalo deve conter sete dias; valores de dispensa não viram horas realizadas.
+
+Para cancelamento e remarcação, o encontro presencial cancelado que justifica a exceção deve ocorrer dentro da semana declarada, interpretado no fuso configurado da aplicação. O novo encontro de uma remarcação deve continuar presencial, não cancelado e posterior ao original.
 - `POST /api/v1/attendance/work-log-review-batches` recebe de 1 a 100 decisões por período pendente fechado na semana explícita: `APROVAR`, `REJEITAR` ou `CORRECAO_SOLICITADA`. Aprovação/recusa atualiza cada registro pelo fluxo individual existente; pedido de correção preserva o lançamento pendente e registra o item do lote.
 - `GET /api/v1/me/work-logs/review-requests` lista pedidos de correção dirigidos ao próprio integrante.
 - `POST /api/v1/me/participation-replacements` abre solicitação de reposição por modalidade e horas. `POST /api/v1/attendance/participation-replacements/{id}/decisions` registra decisão administrativa com modalidade, quantidade e prazo somente quando autorizada.
@@ -69,7 +75,7 @@ Justificativas simples continuam no fluxo B04 existente e não reduzem carga nem
 - `POST /api/v1/projects/{projectId}/health-evaluations`: liderança contextual ou administração; persiste avaliação e fontes imutáveis.
 - `GET /api/v1/projects/{projectId}/health-history?page=0&size=50`: participante autorizado ou administração.
 
-Os limites de atraso contam dias de calendário desde o dia seguinte ao prazo; os de inatividade contam períodos completos de 24 horas. “Atualização relevante” é o evento auditável mais recente de criação/alteração da atividade, mudança de status ou executor/colaborador, ou inclusão/retirada de evidência. A consulta usa `activity_events`, nunca apenas `activities.updated_at`. Se faltar evento B03, o tempo é `null` e, sem outro sinal de atraso suficiente, a classificação é `DADOS_INSUFICIENTES`. A política é configurável individualmente pela Gestão Geral/Coordenação, sem alterar estados oficiais do projeto.
+Os limites de atraso contam dias de calendário desde o dia seguinte ao prazo apenas para atividades abertas; os de inatividade contam períodos completos de 24 horas. “Atualização relevante” é o evento auditável mais recente de criação/alteração da atividade, mudança de status ou executor/colaborador, ou inclusão/retirada de evidência, em atividades do projeto não canceladas, incluindo entregas concluídas. A consulta usa `activity_events`, nunca apenas `activities.updated_at`. Atividades concluídas contribuem para a atualização recente, mas não para o cálculo de atraso. Se faltar evento B03, o tempo é `null` e, sem outro sinal de atraso suficiente, a classificação é `DADOS_INSUFICIENTES`. A política é configurável individualmente pela Gestão Geral/Coordenação, sem alterar estados oficiais do projeto.
 
 ## Limites das integrações
 

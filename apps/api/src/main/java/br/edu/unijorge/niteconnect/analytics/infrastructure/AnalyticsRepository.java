@@ -74,8 +74,8 @@ public class AnalyticsRepository {
     }
 
     public List<List<String>> projects(UUID projectId, UUID memberId, Instant from, Instant to,String status) {
-        StringBuilder where = new StringBuilder(" where p.created_at < ? and p.created_at >= ?");
-        var args = new ArrayList<Object>(List.of(Timestamp.from(to),Timestamp.from(from)));
+        StringBuilder where = new StringBuilder(" where true");
+        var args = new ArrayList<Object>();
         if (projectId != null) { where.append(" and p.id=?"); args.add(projectId); }
         if (memberId != null) {
             where.append(" and exists(select 1 from nite_connect.project_memberships pm where pm.project_id=p.id and pm.member_id=? and pm.started_at<? and (pm.ended_at is null or pm.ended_at>=?))");
@@ -95,13 +95,86 @@ public class AnalyticsRepository {
     }
 
     public long countProjects(UUID projectId,UUID memberId,Instant from,Instant to,String status) {
-        StringBuilder where=new StringBuilder(" where p.created_at>=? and p.created_at<?");
-        var args=new ArrayList<Object>(List.of(Timestamp.from(from),Timestamp.from(to)));
+        StringBuilder where=new StringBuilder(" where true");
+        var args=new ArrayList<Object>();
         if(projectId!=null){where.append(" and p.id=?");args.add(projectId);}
         if(memberId!=null){where.append(" and exists(select 1 from nite_connect.project_memberships pm where pm.project_id=p.id and pm.member_id=? and pm.started_at<? and (pm.ended_at is null or pm.ended_at>=?))");args.add(memberId);args.add(Timestamp.from(to));args.add(Timestamp.from(from));}
         if(status!=null){where.append(" and p.status=?");args.add(status);}
         return jdbc.queryForObject("select count(*) from nite_connect.projects p"+where,Long.class,args.toArray());
     }
+
+    public Map<String,Long> participationDashboardMetrics(UUID projectId,UUID memberId,Instant from,Instant to) {
+        StringBuilder where=new StringBuilder(" where p.starts_at<? and coalesce(p.ends_at,p.starts_at)>?");
+        var args=new ArrayList<Object>(List.of(Timestamp.from(to),Timestamp.from(from)));
+        if(projectId!=null){where.append(" and a.project_id=?");args.add(projectId);}
+        if(memberId!=null){where.append(" and p.member_id=?");args.add(memberId);}
+        var sqlArgs=new ArrayList<Object>();
+        for(int i=0;i<4;i++){
+            sqlArgs.add(Timestamp.from(to));sqlArgs.add(Timestamp.from(to));sqlArgs.add(Timestamp.from(from));
+        }
+        sqlArgs.addAll(args);
+        return jdbc.queryForObject("""
+                select count(*) filter(where p.review_status='PENDENTE')::bigint pending,
+                       count(*) filter(where p.review_status='APROVADA')::bigint approved,
+                       count(*) filter(where p.review_status='RECUSADA')::bigint rejected,
+                       coalesce(sum(greatest(0,extract(epoch from (least(coalesce(p.ends_at,?),?)-greatest(p.starts_at,?))))::bigint)
+                           filter(where p.modality='PRESENCIAL'),0)::bigint presential_seconds,
+                       coalesce(sum(greatest(0,extract(epoch from (least(coalesce(p.ends_at,?),?)-greatest(p.starts_at,?))))::bigint)
+                           filter(where p.modality='REMOTA'),0)::bigint remote_seconds,
+                       coalesce(sum(greatest(0,extract(epoch from (least(coalesce(p.ends_at,?),?)-greatest(p.starts_at,?))))::bigint)
+                           filter(where p.modality='PRESENCIAL' and p.review_status='APROVADA'),0)::bigint validated_presential_seconds,
+                       coalesce(sum(greatest(0,extract(epoch from (least(coalesce(p.ends_at,?),?)-greatest(p.starts_at,?))))::bigint)
+                           filter(where p.modality='REMOTA' and p.review_status='APROVADA'),0)::bigint validated_remote_seconds
+                from nite_connect.participation_periods p
+                left join nite_connect.activities a on a.id=p.activity_id
+                """+where, (rs,row)->Map.of(
+                "participation.pendente",rs.getLong("pending"),
+                "participation.aprovada",rs.getLong("approved"),
+                "participation.recusada",rs.getLong("rejected"),
+                "participation.presencial.seconds",rs.getLong("presential_seconds"),
+                "participation.remota.seconds",rs.getLong("remote_seconds"),
+                "validatedSeconds",Math.addExact(rs.getLong("validated_presential_seconds"),rs.getLong("validated_remote_seconds"))),
+                sqlArgs.toArray());
+    }
+
+    public Map<String,Long> activityDashboardMetrics(UUID projectId,UUID memberId,Instant from,Instant to) {
+        StringBuilder where=new StringBuilder(" where a.created_at>=? and a.created_at<?");
+        var args=new ArrayList<Object>(List.of(Timestamp.from(from),Timestamp.from(to)));
+        if(projectId!=null){where.append(" and a.project_id=?");args.add(projectId);}
+        if(memberId!=null){where.append(" and x.member_id=?");args.add(memberId);}
+        return jdbc.queryForObject("""
+                select count(*) filter(where a.status='PLANEJADA')::bigint planned,
+                       count(*) filter(where a.status='EM_EXECUCAO')::bigint in_progress,
+                       count(*) filter(where a.status='CONCLUIDA')::bigint completed,
+                       count(*) filter(where a.status='CANCELADA')::bigint cancelled,
+                       count(*) filter(where a.due_on<current_date and a.status in ('PLANEJADA','EM_EXECUCAO'))::bigint overdue
+                from nite_connect.activities a
+                join nite_connect.activity_assignments x on x.activity_id=a.id and x.role='EXECUTOR' and x.ended_at is null
+                """+where, (rs,row)->Map.of(
+                "activities.planejada",rs.getLong("planned"),"activities.em_execucao",rs.getLong("in_progress"),
+                "activities.concluida",rs.getLong("completed"),"activities.cancelada",rs.getLong("cancelled"),
+                "overdueActivitiesNow",rs.getLong("overdue")),args.toArray());
+    }
+
+    public Map<String,Long> projectDashboardMetrics(UUID projectId,UUID memberId,Instant from,Instant to,String status) {
+        StringBuilder where=new StringBuilder(" where true");
+        var args=new ArrayList<Object>();
+        if(projectId!=null){where.append(" and p.id=?");args.add(projectId);}
+        if(memberId!=null){
+            where.append(" and exists(select 1 from nite_connect.project_memberships pm where pm.project_id=p.id and pm.member_id=? and pm.started_at<? and (pm.ended_at is null or pm.ended_at>=?))");
+            args.add(memberId);args.add(Timestamp.from(to));args.add(Timestamp.from(from));
+        }
+        if(status!=null){where.append(" and p.status=?");args.add(status);}
+        return jdbc.queryForObject("""
+                select count(distinct p.id)::bigint projects,count(a.id)::bigint activities,
+                       count(a.id) filter(where a.due_on<current_date and a.status in ('PLANEJADA','EM_EXECUCAO'))::bigint overdue,
+                       count(a.id) filter(where a.status='CONCLUIDA')::bigint completed,
+                       count(a.id) filter(where a.status in ('PLANEJADA','EM_EXECUCAO'))::bigint open
+                from nite_connect.projects p left join nite_connect.activities a on a.project_id=p.id
+                """+where, (rs,row)->Map.of("projects",rs.getLong("projects"),"activities",rs.getLong("activities"),
+                "overdueActivitiesNow",rs.getLong("overdue"),"completedActivities",rs.getLong("completed"),"openActivities",rs.getLong("open")),args.toArray());
+    }
+
 
     public List<List<String>> historicalEvents(UUID projectId, Instant from, Instant to) {
         String projectFilter=projectId==null?"":" and p.id=?";
