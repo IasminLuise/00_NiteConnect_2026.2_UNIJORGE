@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { DashboardShell } from "../../../components/dashboard/dashboard-shell";
+import { AuthenticatedShell } from "../../../components/shell/authenticated-shell";
 import { DashboardView } from "../../../components/dashboard/dashboard-view";
 import type { DashboardHistory, DashboardResponse, ParticipationWeeklySummary } from "../../../lib/dashboard/contracts";
 
@@ -106,23 +106,23 @@ export default async function DashboardScenariosPage({ searchParams }: Props) {
   if (process.env.NODE_ENV !== "development") notFound();
   const params = await searchParams;
   const scenario = ["empty", "participation", "activities", "projects", "pending", "partial", "error"].includes(params.scenario ?? "") ? params.scenario! : "empty";
-  const scope = params.scope === "institutional" || params.scope === "project" ? params.scope : "personal";
+  const scope = params.scope === "institutional" ? "institutional" : params.scope === `project:${projectId}` ? "project" : "personal";
   const contextValue = scope === "project" ? `project:${projectId}` : scope;
   const contextLabel = scope === "personal" ? "Meu espaço" : scope === "project" ? "Projeto Aurora" : "Visão geral do NITE";
   const response = dashboard(scenario, scope);
-  return <DashboardShell
+  const nextContextValue = scope === "personal" ? "institutional" : scope === "institutional" ? `project:${projectId}` : "personal";
+  return <AuthenticatedShell
     member={{ id: "fixture", name: "Pessoa de demonstração", institutionalEmail: "demo@example.invalid", status: "ATIVO" }}
     roles={scope === "personal" ? ["INTEGRANTE"] : ["GESTOR_GERAL"]}
-    contextLabel={contextLabel} contextValue={contextValue}
-    projects={scope === "project" ? [{ projectId, title: "Projeto Aurora" }] : []}
-    canAdminister={scope === "institutional"} from={from} to={to} search=""
+    projects={scope === "personal" ? [] : [{ projectId, title: "Projeto Aurora" }]}
+    leadershipProjectsUnavailable={false}
   >
     <div role="note" className="mb-4 rounded-control border border-status-warning-border bg-status-warning-soft px-3 py-2 text-type-metadata text-status-warning">
       Prévia local com dados sintéticos. Nenhuma consulta à API ou ao banco institucional.
     </div>
     <nav aria-label="Cenários de validação" className="mb-4 flex flex-wrap gap-2 text-type-metadata">
-      {["empty", "participation", "activities", "projects", "pending", "partial", "error"].map((item) => <a key={item} href={`/dev/dashboard-scenarios?scenario=${item}&scope=${scope}`} aria-current={scenario === item ? "page" : undefined} className="rounded-control border border-nite-border-soft px-2 py-1 text-nite-text-secondary focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-nite-focus">{item}</a>)}
-      <a href={`/dev/dashboard-scenarios?scenario=${scenario}&scope=${scope === "personal" ? "institutional" : scope === "institutional" ? "project" : "personal"}`} className="rounded-control border border-nite-border-soft px-2 py-1 text-nite-text-secondary focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-nite-focus">Trocar contexto de prévia</a>
+      {["empty", "participation", "activities", "projects", "pending", "partial", "error"].map((item) => <a key={item} href={`/dev/dashboard-scenarios?scenario=${item}&scope=${encodeURIComponent(contextValue)}`} aria-current={scenario === item ? "page" : undefined} className="rounded-control border border-nite-border-soft px-2 py-1 text-nite-text-secondary focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-nite-focus">{item}</a>)}
+      <a href={`/dev/dashboard-scenarios?scenario=${scenario}&scope=${encodeURIComponent(nextContextValue)}`} className="rounded-control border border-nite-border-soft px-2 py-1 text-nite-text-secondary focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-nite-focus">Trocar contexto de prévia</a>
     </nav>
     <DashboardView
       result={scenario === "error" ? { data: null, issue: "unavailable" } : { data: response, issue: null }}
@@ -130,5 +130,5 @@ export default async function DashboardScenariosPage({ searchParams }: Props) {
       weeklyResult={scope === "personal" && scenario !== "error" ? { data: scenario === "participation" || scenario === "pending" ? weekly : emptyWeekly, issue: null } : null}
       scope={scope} scopeLabel={contextLabel} contextValue={contextValue} from={from} to={to} search=""
     />
-  </DashboardShell>;
+  </AuthenticatedShell>;
 }

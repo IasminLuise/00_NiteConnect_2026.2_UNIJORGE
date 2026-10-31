@@ -30,10 +30,27 @@ Set-Location apps/api
 .\mvnw.cmd --batch-mode verify
 ```
 
-Para subir o PostgreSQL local, configure `DB_PASSWORD` fora do controle de versão
-e use `docker compose -f infra/compose.yaml up -d db` na raiz. Para iniciar a API,
-execute `.\mvnw.cmd spring-boot:run` em `apps/api`. Não há senha própria nem
-credenciais institucionais versionadas; a homologação Microsoft é uma etapa externa.
+Para iniciar o PostgreSQL e a API Java em containers separados, configure o `.env`
+local a partir de `.env.example` (fora do controle de versão). Preencha também os
+valores Microsoft Entra exigidos pela API para habilitar a autenticação. Execute na raiz:
+
+```powershell
+docker compose --env-file .env -f infra/compose.yaml up -d --build
+```
+
+O primeiro build compila a API no Docker. O serviço espera o PostgreSQL ficar
+saudável, conecta-se a ele pela rede interna do Compose e publica a API em
+`http://localhost:8080`. O volume `postgres_data` preserva o banco entre reinícios.
+Os dois containers usam a política `unless-stopped`, então o Docker pode reativá-los
+quando o Engine iniciar novamente.
+Para conferir os containers, use `docker compose --env-file .env -f infra/compose.yaml ps`.
+Antes de acessar o front-end, aguarde a API iniciar e responder em
+`http://localhost:8080/actuator/health`.
+
+O front-end continua separado: em `apps/web`, execute `npm run dev`; o
+`API_BASE_URL` local deve apontar para `http://localhost:8080`. Não há senha própria
+nem credenciais institucionais versionadas; a homologação Microsoft continua sendo
+uma etapa externa.
 
 # NITE CONNECT
 ### Sistema Integrado de Gestão de Participação, Projetos e Atividades do NITE

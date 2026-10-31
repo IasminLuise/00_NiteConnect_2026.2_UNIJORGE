@@ -33,3 +33,15 @@ Validação local: `npm run lint`, `npm run typecheck`, `npm run test` e `npm ru
 - `API_BASE_URL` é usado exclusivamente pelo servidor Next.js. A aplicação não
   grava tokens em `localStorage` ou `sessionStorage` e não solicita permissões do
   Microsoft Graph.
+
+## Rotas autenticadas e shell
+
+- As páginas operacionais ficam em `src/app/(authenticated)/`. O route group não
+  altera os caminhos públicos e aplica a validação de sessão no layout compartilhado.
+- O shell de `src/components/shell/` recebe apenas dados de apresentação, papéis e
+  contextos de liderança autorizados; ele não depende dos componentes do dashboard.
+- O seletor troca o contexto na rota atual. A navegação lateral só liga para páginas
+  existentes; módulos ainda sem tela permanecem desabilitados e identificados como
+  “Em desenvolvimento”.
+- Login, `/`, `/foundation` e ferramentas de prévia em desenvolvimento ficam fora do
+  route group autenticado.

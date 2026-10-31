@@ -14,6 +14,9 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - As rotas `/` e `/foundation` são neutras e não representam autenticação ou dashboard operacional; não invente dados, papéis, notas ou reuniões.
 - Use Next.js App Router, React e TypeScript estrito. Prefira Server Components; use componentes de cliente apenas quando houver interatividade.
 - O backend é autoridade de identidade, permissões e regras. Não implemente login demonstrativo, armazenamento local de access tokens ou segredos no cliente.
-- A integração Entra e a estratégia de sessão segura precisam estar definidas antes de conectar autenticação ao frontend.
+- A integração Microsoft Entra/Auth.js já está ativa. `src/lib/auth/server-session.ts` lê o bearer exclusivamente no servidor a partir do JWE; não amplie a sessão pública nem passe o bearer a componentes de cliente.
+- Páginas autenticadas ficam em `src/app/(authenticated)/` e são protegidas pelo layout compartilhado. Login, páginas neutras e ferramentas de desenvolvimento permanecem fora desse grupo.
+- O shell autenticado é independente dos módulos de negócio. Navegação só recebe links para rotas existentes; módulos sem rota ficam visivelmente desabilitados, sem páginas vazias.
+- O seletor de espaço de trabalho usa somente projetos atuais retornados pelo endpoint de liderança e a permissão institucional derivada dos papéis da sessão. A API continua validando cada acesso.
 - Execute `npm run lint`, `npm run typecheck`, `npm run test` e `npm run build` antes de afirmar conclusão.
 - Versione `package-lock.json` e use `npm ci` na CI. Não altere contratos, migrações, infraestrutura ou documentação histórica sem necessidade explícita.
