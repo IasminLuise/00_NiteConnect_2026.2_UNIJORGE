@@ -71,8 +71,8 @@ describe("shell autenticado", () => {
     expect(markup).toContain('aria-disabled="true" aria-label="Minhas atividades, em desenvolvimento"');
     expect(markup).toContain('aria-disabled="true" aria-label="Projetos, em desenvolvimento"');
     expect(markup).not.toMatch(/<a[^>]+(?:Minhas atividades|Minha participação|Projetos|Frequência e revisões|Relatórios|Administração)/);
-    expect(markup).toContain('value="project:project-1"');
-    expect(markup).toContain('value="institutional"');
+    expect(markup).toContain("Projeto autorizado");
+    expect(markup).toContain("Visão geral do NITE");
   });
 
   it("expõe o seletor de contexto como uma lista acessível com opções autorizadas", () => {
