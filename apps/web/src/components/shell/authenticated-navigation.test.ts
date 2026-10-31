@@ -1,0 +1,49 @@
+import { describe, expect, it } from "vitest";
+import { buildAuthenticatedNavigationGroups } from "./authenticated-navigation";
+
+const base = {
+  projects: [],
+  canAdminister: false,
+  canCoordinate: false,
+};
+
+describe("navegação autenticada", () => {
+  it("liga somente para a rota existente e sinaliza módulos sem página", () => {
+    const groups = buildAuthenticatedNavigationGroups(base);
+    const items = groups.flatMap(({ items: groupItems }) => groupItems);
+
+    expect(groups.map(({ label }) => label)).toEqual(["Início", "Meu espaço"]);
+    expect(items.filter(({ href }) => href).map(({ href }) => href)).toEqual(["/dashboard"]);
+    expect(items.every(({ href, status }) => href || status === "development")).toBe(true);
+    expect(items.some(({ href }) => href?.includes("#") || href?.includes("scope="))).toBe(false);
+  });
+
+  it("mostra a área de projetos apenas quando há contextos de liderança autorizados", () => {
+    const groups = buildAuthenticatedNavigationGroups({
+      ...base,
+      projects: [{ projectId: "project-1", title: "Projeto de teste" }],
+    });
+    const projects = groups.find(({ label }) => label === "Projetos que lidero");
+
+    expect(projects?.note).toContain("seletor de espaço de trabalho");
+    expect(projects?.items.every(({ href, status }) => !href && status === "development")).toBe(true);
+    expect(groups.flatMap(({ items: groupItems }) => groupItems).some(({ label }) => label === "Prioridades")).toBe(false);
+  });
+
+  it("exibe áreas institucionais e acadêmicas conforme os papéis recebidos", () => {
+    const groups = buildAuthenticatedNavigationGroups({
+      ...base,
+      canAdminister: true,
+      canCoordinate: true,
+    });
+
+    expect(groups.map(({ label }) => label)).toEqual([
+      "Início",
+      "Meu espaço",
+      "Acompanhamento do NITE",
+      "Administração",
+      "Acompanhamento acadêmico",
+    ]);
+    expect(groups.flatMap(({ items: groupItems }) => groupItems).filter(({ href }) => href).map(({ href }) => href)).toEqual(["/dashboard"]);
+  });
+});

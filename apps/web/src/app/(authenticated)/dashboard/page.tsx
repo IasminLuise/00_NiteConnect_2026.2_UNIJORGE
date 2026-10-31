@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
-import { DashboardShell } from "../../components/dashboard/dashboard-shell";
-import { DashboardView } from "../../components/dashboard/dashboard-view";
-import { getDashboard, getDashboardHistory, getDashboardSession, getLeadershipProjects, getParticipationWeeklySummary } from "../../lib/dashboard/data";
+import { DashboardView } from "../../../components/dashboard/dashboard-view";
+import { requireAuthenticatedNiteSession } from "../../../lib/auth/server-session";
+import { getDashboard, getDashboardHistory, getParticipationWeeklySummary } from "../../../lib/dashboard/data";
+import { getLeadershipProjects } from "../../../lib/projects/data";
 
 export const metadata: Metadata = { title: "Painel" };
 export const dynamic = "force-dynamic";
@@ -34,11 +34,10 @@ function dateWindow(fromValue?: string, toValue?: string): { from: string; to: s
 
 export default async function DashboardPage({ searchParams }: DashboardPageProps) {
   const params = await searchParams;
-  const identity = await getDashboardSession();
-  if (identity.issue || !identity.session) redirect("/login");
+  const identity = await requireAuthenticatedNiteSession();
 
-  const canAdminister = identity.session.roles.some((role) => role === "GESTOR_GERAL" || role === "COORDENADOR");
-  const leadershipResult = await getLeadershipProjects(identity.session.bearer);
+  const canAdminister = identity.roles.some((role) => role === "GESTOR_GERAL" || role === "COORDENADOR");
+  const leadershipResult = await getLeadershipProjects(identity.bearer);
   const leadershipProjects = leadershipResult.data ?? [];
   const scopeValue = one(params.scope) ?? "personal";
   const projectId = scopeValue.startsWith("project:") ? scopeValue.slice("project:".length) : undefined;
@@ -49,8 +48,8 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   const range = dateWindow(one(params.from), one(params.to));
   const search = one(params.q)?.slice(0, 120) ?? "";
   const query = allowedScope
-    ? await getDashboard(
-        identity.session.bearer,
+      ? await getDashboard(
+        identity.bearer,
         isPersonal ? "personal" : isInstitutional ? "institutional" : "project",
         range.from,
         range.to,
@@ -60,10 +59,10 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   const isSevenDayWindow = Date.parse(`${range.to}T00:00:00Z`) - Date.parse(`${range.from}T00:00:00Z`) === 6 * 86_400_000;
   const [historyResult, weeklyResult] = await Promise.all([
     !isPersonal && allowedScope
-      ? getDashboardHistory(identity.session.bearer, isInstitutional ? "institutional" : "project", range.from, range.to, selectedProject?.projectId)
+      ? getDashboardHistory(identity.bearer, isInstitutional ? "institutional" : "project", range.from, range.to, selectedProject?.projectId)
       : Promise.resolve(null),
     isPersonal && isSevenDayWindow
-      ? getParticipationWeeklySummary(identity.session.bearer, range.from, range.to)
+      ? getParticipationWeeklySummary(identity.bearer, range.from, range.to)
       : Promise.resolve(null),
   ]);
   const scope = isPersonal ? "personal" : isInstitutional ? "institutional" : selectedProject ? "project" : "personal";
@@ -71,33 +70,16 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   const contextValue = isPersonal ? "personal" : isInstitutional ? "institutional" : selectedProject ? `project:${selectedProject.projectId}` : "personal";
 
   return (
-    <DashboardShell
-      member={identity.session.member}
-      roles={identity.session.roles}
-      contextLabel={contextLabel}
-      contextValue={contextValue}
-      projects={leadershipProjects}
-      canAdminister={canAdminister}
+    <DashboardView
+      result={query}
+      scope={scope}
+      scopeLabel={contextLabel}
       from={range.from}
       to={range.to}
       search={search}
-    >
-      {leadershipResult.issue ? (
-        <p className="mb-4 rounded-control border border-status-warning-border bg-status-warning-soft px-4 py-3 text-type-body-compact text-status-warning" role="status">
-          Não foi possível consultar seus projetos sob liderança; os contextos disponíveis podem estar incompletos.
-        </p>
-      ) : null}
-      <DashboardView
-        result={query}
-        scope={scope}
-        scopeLabel={contextLabel}
-        from={range.from}
-        to={range.to}
-        search={search}
-        contextValue={contextValue}
-        historyResult={historyResult}
-        weeklyResult={weeklyResult}
-      />
-    </DashboardShell>
+      contextValue={contextValue}
+      historyResult={historyResult}
+      weeklyResult={weeklyResult}
+    />
   );
 }

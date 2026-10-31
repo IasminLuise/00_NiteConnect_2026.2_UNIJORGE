@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatDuration, parseDashboard, parseDashboardHistory, parseLeadershipProjects, parseParticipationWeeklySummary } from "./contracts";
+import { formatDuration, parseDashboard, parseDashboardHistory, parseParticipationWeeklySummary } from "./contracts";
 
 describe("dashboard contracts", () => {
   it("accepts API metrics and preserves explicit zero values", () => {
@@ -19,13 +19,6 @@ describe("dashboard contracts", () => {
   it("rejects malformed dashboard payloads", () => {
     expect(parseDashboard({ indicators: { projects: "0" } })).toBeNull();
     expect(parseDashboard({ from: "2026-10-24", to: "2026-10-30", generatedAt: "2026-10-30T10:00:00Z", scope: "integrante", indicators: { projects: -1 }, columns: [], rows: [], unavailableMetrics: [] })).toBeNull();
-  });
-
-  it("keeps only current leadership projects", () => {
-    expect(parseLeadershipProjects({ items: [
-      { projectId: "current", title: "Projeto atual", endedAt: null },
-      { projectId: "past", title: "Projeto anterior", endedAt: "2026-01-01T00:00:00Z" },
-    ] })).toEqual([{ projectId: "current", title: "Projeto atual" }]);
   });
 
   it("formats seconds without treating missing metrics as zero", () => {

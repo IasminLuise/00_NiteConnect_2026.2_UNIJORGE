@@ -7,7 +7,7 @@
 - Não trate o login Microsoft como autorização automática ao NITE Connect.
 
 ## Arquitetura
-- Monorepo leve: `apps/api` (Java + Spring Boot) e `apps/web` (Next.js quando a equipe iniciar o frontend).
+- Monorepo leve: `apps/api` (Java + Spring Boot) e `apps/web` (frontend Next.js ativo).
 - Backend: monólito modular, organizado por domínio e não por diretórios globais `controllers/services/repositories`.
 - PostgreSQL é o banco principal. Dados e alterações de esquema devem passar por Flyway; não usar `ddl-auto=update`.
 - Não adicione microsserviços, filas, caching distribuído, plataformas de orquestração ou abstrações genéricas sem necessidade aprovada.
