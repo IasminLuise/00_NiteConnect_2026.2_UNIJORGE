@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ViewSelector } from "../../../components/dashboard/view-selector";
 import { DashboardView } from "../../../components/dashboard/dashboard-view";
 import { requireAuthenticatedNiteSession } from "../../../lib/auth/server-session";
 import { getDashboard, getDashboardHistory, getParticipationWeeklySummary } from "../../../lib/dashboard/data";
@@ -71,6 +72,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
 
   return (
     <DashboardView
+      viewSelector={<ViewSelector id="dashboard-view" projects={leadershipProjects} canAdminister={canAdminister} />}
       result={query}
       scope={scope}
       scopeLabel={contextLabel}

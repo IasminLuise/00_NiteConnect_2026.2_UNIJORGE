@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { Button, Surface } from "../ui";
 import type { ApiResult } from "../../lib/api/contracts";
 import { formatDuration, type DashboardHistory, type DashboardResponse, type ParticipationWeeklySummary } from "../../lib/dashboard/contracts";
@@ -7,6 +8,7 @@ type Scope = "personal" | "project" | "institutional";
 type Tone = "neutral" | "brand" | "done" | "warning" | "error";
 type Metric = { key: string; label: string; detail: string; href: string; tone: Tone; format?: "duration" };
 type DashboardViewProps = {
+  viewSelector?: ReactNode;
   result: ApiResult<DashboardResponse>;
   historyResult: ApiResult<DashboardHistory> | null;
   weeklyResult: ApiResult<ParticipationWeeklySummary> | null;
@@ -358,12 +360,12 @@ function RecentEvents({ result }: { result: ApiResult<DashboardHistory> | null }
   </section>;
 }
 
-export function DashboardView({ result, historyResult, weeklyResult, scope, scopeLabel, contextValue, from, to, search }: DashboardViewProps) {
+export function DashboardView({ viewSelector, result, historyResult, weeklyResult, scope, scopeLabel, contextValue, from, to, search }: DashboardViewProps) {
   if (result.issue) {
     const accessDenied = result.issue === "access";
     const title = accessDenied ? "Este espaço não está disponível" : result.issue === "invalid" ? "Não foi possível validar os dados" : "Não foi possível carregar o painel";
     const description = accessDenied
-      ? "Seu acesso pode ter mudado. Escolha um espaço de trabalho disponível ou entre novamente."
+      ? "Seu acesso pode ter mudado. Escolha uma visão disponível ou entre novamente."
       : result.issue === "invalid"
         ? "A consulta foi interrompida porque alguns dados não passaram pela validação."
         : "Os dados não puderam ser consultados agora. Tente novamente.";
@@ -372,6 +374,7 @@ export function DashboardView({ result, historyResult, weeklyResult, scope, scop
         <span className={`mb-4 grid size-9 place-items-center rounded-full ${accessDenied ? "bg-status-warning-soft text-status-warning" : "bg-status-error-soft text-status-error"}`} aria-hidden="true">!</span>
         <h1 className="font-display text-type-page-title text-nite-text-primary">{title}</h1>
         <p className="mt-2 text-type-body-compact text-nite-text-secondary">{description}</p>
+        <div className="mt-4">{viewSelector}</div>
         {!accessDenied ? <form action="/dashboard" method="get" className="mt-5">
           <input type="hidden" name="scope" value={contextValue} />
           <input type="hidden" name="from" value={from} />
@@ -392,7 +395,7 @@ export function DashboardView({ result, historyResult, weeklyResult, scope, scop
   const title = scope === "project" ? "Acompanhamento do projeto" : scopeLabel;
   return <div className="grid min-w-0 gap-6">
     <section id="overview" aria-labelledby="dashboard-heading" className="min-w-0 scroll-mt-24 border-b border-nite-border-soft pb-5">
-      <h1 id="dashboard-heading" className="font-display text-type-page-title text-nite-text-primary">{title}</h1>
+      <div className="flex flex-wrap items-end justify-between gap-3"><h1 id="dashboard-heading" className="font-display text-type-page-title text-nite-text-primary">{title}</h1>{viewSelector}</div>
       {scope === "project" ? <p className="mt-1 text-type-body-compact text-nite-text-secondary">{scopeLabel}</p> : null}
       <form action="/dashboard" method="get" aria-label="Filtros do painel" className="mt-4 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-end">
         <input type="hidden" name="scope" value={contextValue} />

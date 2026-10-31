@@ -35,6 +35,26 @@ vi.mock("../../lib/auth/actions", () => ({ signOutOfNite: async () => undefined 
 import { AuthenticatedShell } from "./authenticated-shell";
 
 describe("shell autenticado", () => {
+  it("usa a sidebar desktop a partir do breakpoint de 768 px e reserva o drawer para telas menores", () => {
+    const markup = renderToStaticMarkup(
+      <AuthenticatedShell
+        member={{ id: "member-1", name: "Pessoa de teste", institutionalEmail: "person@example.invalid", status: "ATIVO" }}
+        roles={["INTEGRANTE"]}
+        projects={[]}
+        leadershipProjectsUnavailable={false}
+      >
+        <p>Conteúdo da rota.</p>
+      </AuthenticatedShell>,
+    );
+
+    expect(markup).toContain("w-[250px]");
+    expect(markup).toContain("md:flex");
+    expect(markup).toContain("md:pl-[250px]");
+    expect(markup).toContain('aria-label="Abrir navegação"');
+    expect(markup).toContain("md:hidden");
+    expect(markup.match(/aria-label="Fechar navegação"/g)).toHaveLength(2);
+  });
+
   it("renderiza conteúdo composto sem carregar estrutura do dashboard", () => {
     const markup = renderToStaticMarkup(
       <AuthenticatedShell
@@ -67,33 +87,18 @@ describe("shell autenticado", () => {
     );
 
     expect(markup).toContain('aria-current="page"');
+    expect(markup).toContain('data-icon="metrics"');
+    expect(markup).toContain('data-icon="logs"');
+    expect(markup).toContain('data-icon="workflow"');
+    expect(markup).toContain('data-icon="broadcasts"');
+    expect(markup).toContain('data-icon="audience"');
+    expect(markup).toContain('data-icon="templates"');
+    expect(markup).toContain('data-icon="settings"');
     expect(markup).toContain('href="/dashboard"');
     expect(markup).toContain('aria-disabled="true" aria-label="Minhas atividades, em desenvolvimento"');
     expect(markup).toContain('aria-disabled="true" aria-label="Projetos, em desenvolvimento"');
     expect(markup).not.toMatch(/<a[^>]+(?:Minhas atividades|Minha participação|Projetos|Frequência e revisões|Relatórios|Administração)/);
-    expect(markup).toContain("Projeto autorizado");
-    expect(markup).toContain("Visão geral do NITE");
+    expect(markup).not.toContain("Espaço de trabalho");
   });
 
-  it("expõe o seletor de contexto como uma lista acessível com opções autorizadas", () => {
-    const markup = renderToStaticMarkup(
-      <AuthenticatedShell
-        member={{ id: "member-1", name: "Pessoa de teste", institutionalEmail: "person@example.invalid", status: "ATIVO" }}
-        roles={["GESTOR_GERAL"]}
-        projects={[{ projectId: "project-1", title: "Projeto autorizado" }]}
-        leadershipProjectsUnavailable={false}
-      >
-        <p>Conteúdo da rota.</p>
-      </AuthenticatedShell>,
-    );
-
-    expect(markup).toContain('aria-haspopup="listbox"');
-    expect(markup).toContain('aria-expanded="false"');
-    expect(markup).toContain('role="listbox" aria-label="Espaço de trabalho"');
-    expect(markup).toContain('role="option" aria-selected="true"');
-    expect(markup).toContain('role="option" aria-selected="false"');
-    expect(markup).toContain("Projeto autorizado");
-    expect(markup).toContain("Visão geral do NITE");
-    expect(markup).not.toContain('<select id="workspace-context-desktop"');
-  });
 });

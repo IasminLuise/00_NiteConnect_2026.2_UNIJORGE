@@ -25,7 +25,7 @@ describe("navegação autenticada", () => {
     });
     const projects = groups.find(({ label }) => label === "Projetos que lidero");
 
-    expect(projects?.note).toContain("seletor de espaço de trabalho");
+    expect(projects?.note).toContain("visão no painel");
     expect(projects?.items.every(({ href, status }) => !href && status === "development")).toBe(true);
     expect(groups.flatMap(({ items: groupItems }) => groupItems).some(({ label }) => label === "Prioridades")).toBe(false);
   });

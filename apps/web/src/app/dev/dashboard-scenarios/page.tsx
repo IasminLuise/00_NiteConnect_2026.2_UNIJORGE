@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { AuthenticatedShell } from "../../../components/shell/authenticated-shell";
+import { ViewSelector } from "../../../components/dashboard/view-selector";
 import { DashboardView } from "../../../components/dashboard/dashboard-view";
 import type { DashboardHistory, DashboardResponse, ParticipationWeeklySummary } from "../../../lib/dashboard/contracts";
 
@@ -125,6 +126,7 @@ export default async function DashboardScenariosPage({ searchParams }: Props) {
       <a href={`/dev/dashboard-scenarios?scenario=${scenario}&scope=${encodeURIComponent(nextContextValue)}`} className="rounded-control border border-nite-border-soft px-2 py-1 text-nite-text-secondary focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-nite-focus">Trocar contexto de prévia</a>
     </nav>
     <DashboardView
+      viewSelector={<ViewSelector id="dashboard-view" projects={scope === "personal" ? [] : [{ projectId, title: "Projeto Aurora" }]} canAdminister={scope !== "personal"} />}
       result={scenario === "error" ? { data: null, issue: "unavailable" } : { data: response, issue: null }}
       historyResult={scope === "personal" ? null : { data: scenario === "empty" ? { ...history, rows: [], total: 0 } : history, issue: null }}
       weeklyResult={scope === "personal" && scenario !== "error" ? { data: scenario === "participation" || scenario === "pending" ? weekly : emptyWeekly, issue: null } : null}
