@@ -74,4 +74,26 @@ describe("shell autenticado", () => {
     expect(markup).toContain('value="project:project-1"');
     expect(markup).toContain('value="institutional"');
   });
+
+  it("expõe o seletor de contexto como uma lista acessível com opções autorizadas", () => {
+    const markup = renderToStaticMarkup(
+      <AuthenticatedShell
+        member={{ id: "member-1", name: "Pessoa de teste", institutionalEmail: "person@example.invalid", status: "ATIVO" }}
+        roles={["GESTOR_GERAL"]}
+        projects={[{ projectId: "project-1", title: "Projeto autorizado" }]}
+        leadershipProjectsUnavailable={false}
+      >
+        <p>Conteúdo da rota.</p>
+      </AuthenticatedShell>,
+    );
+
+    expect(markup).toContain('aria-haspopup="listbox"');
+    expect(markup).toContain('aria-expanded="false"');
+    expect(markup).toContain('role="listbox" aria-label="Espaço de trabalho"');
+    expect(markup).toContain('role="option" aria-selected="true"');
+    expect(markup).toContain('role="option" aria-selected="false"');
+    expect(markup).toContain("Projeto autorizado");
+    expect(markup).toContain("Visão geral do NITE");
+    expect(markup).not.toContain('<select id="workspace-context-desktop"');
+  });
 });
