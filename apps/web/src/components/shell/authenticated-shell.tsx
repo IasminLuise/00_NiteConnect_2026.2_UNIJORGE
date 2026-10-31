@@ -1,14 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useRef, useState, type FocusEvent as ReactFocusEvent, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type FocusEvent as ReactFocusEvent, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import { ThemeControl } from "../theme-control";
 import { signOutOfNite } from "../../lib/auth/actions";
 import type { NiteMember } from "../../lib/auth/identity";
 import type { LeadershipProject } from "../../lib/projects/contracts";
 import { AuthenticatedNavigation, buildAuthenticatedNavigationGroups } from "./authenticated-navigation";
-import { resolveWorkspaceContext, workspaceContextHref } from "./workspace-context";
 
 type AuthenticatedShellProps = {
   children: ReactNode;
@@ -27,148 +25,6 @@ function accountRole(roles: string[]): string {
   if (roles.includes("COORDENADOR")) return "Coordenação";
   if (roles.includes("GESTOR_GERAL")) return "Gestão Geral";
   return "Integrante";
-}
-
-function WorkspaceSelector({ id, projects, canAdminister, onContextChange }: {
-  id: string;
-  projects: LeadershipProject[];
-  canAdminister: boolean;
-  onContextChange?: () => void;
-}) {
-  const pathname = usePathname();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const requestedContext = searchParams.get("scope");
-  const contextValue = resolveWorkspaceContext(requestedContext, projects, canAdminister);
-  const value = requestedContext === null || requestedContext === contextValue ? contextValue : "";
-  const [open, setOpen] = useState(false);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const options: { value: string; label: string }[] = [
-    { value: "personal", label: "Meu espaço" },
-    ...projects.map((project) => ({ value: `project:${project.projectId}`, label: project.title })),
-    ...(canAdminister ? [{ value: "institutional", label: "Visão geral do NITE" }] : []),
-  ];
-  const selectedIndex = options.findIndex((option) => option.value === value);
-  const activeOptionIndex = Math.min(activeIndex, options.length - 1);
-
-  const changeContext = (nextValue: string) => {
-    if (!nextValue) return;
-    const allowedContext = resolveWorkspaceContext(nextValue, projects, canAdminister);
-    if (allowedContext !== nextValue) return;
-    onContextChange?.();
-    router.push(workspaceContextHref(pathname, searchParams.toString(), allowedContext));
-  };
-
-  const openAt = (index: number) => {
-    setActiveIndex(index);
-    setOpen(true);
-  };
-
-  const selectOption = (index: number) => {
-    const option = options[index];
-    if (!option) return;
-    changeContext(option.value);
-    setOpen(false);
-  };
-
-  const handleKeyDown = (event: ReactKeyboardEvent<HTMLButtonElement>) => {
-    if (event.key === "ArrowDown") {
-      event.preventDefault();
-      if (!open) openAt(selectedIndex >= 0 ? selectedIndex : 0);
-      else setActiveIndex((current) => (current + 1) % options.length);
-    } else if (event.key === "ArrowUp") {
-      event.preventDefault();
-      if (!open) openAt(selectedIndex >= 0 ? selectedIndex : options.length - 1);
-      else setActiveIndex((current) => (current - 1 + options.length) % options.length);
-    } else if (event.key === "Home") {
-      event.preventDefault();
-      openAt(0);
-    } else if (event.key === "End") {
-      event.preventDefault();
-      openAt(options.length - 1);
-    } else if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      if (open) selectOption(activeOptionIndex);
-      else openAt(selectedIndex >= 0 ? selectedIndex : 0);
-    } else if (event.key === "Escape" && open) {
-      event.preventDefault();
-      setOpen(false);
-    } else if (event.key === "Tab") {
-      setOpen(false);
-    }
-  };
-
-  const handleBlur = (event: ReactFocusEvent<HTMLDivElement>) => {
-    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setOpen(false);
-  };
-
-  return (
-    <div className="relative grid gap-1.5" onBlur={handleBlur}>
-      <label htmlFor={id} className="text-type-metadata font-medium text-nite-text-muted">Espaço de trabalho</label>
-      <button
-        type="button"
-        id={id}
-        role="combobox"
-        aria-label="Espaço de trabalho"
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        aria-controls={`${id}-listbox`}
-        aria-activedescendant={open ? `${id}-option-${activeOptionIndex}` : undefined}
-        className="flex min-h-10 w-full min-w-0 items-center justify-between gap-2 rounded-control border border-nite-border-soft bg-nite-surface px-3 text-left text-type-body-compact font-medium text-nite-text-primary focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-nite-focus"
-        onClick={() => (open ? setOpen(false) : openAt(selectedIndex >= 0 ? selectedIndex : 0))}
-        onKeyDown={handleKeyDown}
-      >
-        <span className="min-w-0 truncate">{selectedIndex < 0 ? "Contexto indisponível" : options[selectedIndex]?.label}</span>
-        <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className={`size-4 shrink-0 transition-transform ${open ? "rotate-180" : ""}`}>
-          <path d="m5 7.5 5 5 5-5" />
-        </svg>
-      </button>
-      <ul
-        id={`${id}-listbox`}
-        role="listbox"
-        aria-label="Espaço de trabalho"
-        hidden={!open}
-        className="absolute inset-x-0 top-full z-50 mt-1 max-h-64 overflow-y-auto rounded-control border border-nite-border-soft bg-nite-surface p-1 shadow-lg"
-      >
-        {options.map((option, index) => {
-          const selected = option.value === value;
-          const active = index === activeOptionIndex;
-          return (
-            <li
-              key={option.value}
-              id={`${id}-option-${index}`}
-              role="option"
-              aria-selected={selected}
-              className={`flex min-h-10 cursor-pointer items-center justify-between gap-2 rounded-control px-3 py-2 text-type-body-compact focus-visible:outline-2 focus-visible:outline-nite-focus ${active ? "bg-nite-surface-subtle" : ""} ${selected ? "font-semibold text-nite-brand-primary" : "text-nite-text-primary"}`}
-              onMouseDown={(event) => event.preventDefault()}
-              onMouseEnter={() => setActiveIndex(index)}
-              onClick={() => selectOption(index)}
-            >
-              <span className="min-w-0 truncate">{option.label}</span>
-              {selected ? <span aria-hidden="true">✓</span> : null}
-            </li>
-          );
-        })}
-      </ul>
-    </div>
-  );
-}
-
-function WorkspaceSelectorFallback({ id }: {
-  id: string;
-}) {
-  return (
-    <div className="grid gap-1.5" aria-busy="true">
-      <label htmlFor={id} className="text-type-metadata font-medium text-nite-text-muted">Espaço de trabalho</label>
-      <button id={id} type="button" role="combobox" aria-label="Espaço de trabalho" aria-haspopup="listbox" aria-expanded="false" aria-controls={`${id}-listbox`} disabled className="flex min-h-10 w-full min-w-0 items-center justify-between gap-2 rounded-control border border-nite-border-soft bg-nite-surface px-3 text-left text-type-body-compact font-medium text-nite-text-primary">
-        <span className="truncate">Meu espaço</span>
-        <span aria-hidden="true">⌄</span>
-      </button>
-      <ul id={`${id}-listbox`} role="listbox" aria-label="Espaço de trabalho" hidden>
-        <li role="option" aria-selected="true">Meu espaço</li>
-      </ul>
-    </div>
-  );
 }
 
 export function AuthenticatedShell({ children, member, roles, projects, leadershipProjectsUnavailable }: AuthenticatedShellProps) {
@@ -268,26 +124,19 @@ export function AuthenticatedShell({ children, member, roles, projects, leadersh
     setMobileNavigationOpen(true);
   };
   const renderSidebar = (mobile: boolean) => {
-    const selectorId = mobile ? "workspace-context-mobile" : "workspace-context-desktop";
     return (
       <>
-        <div className="flex h-16 shrink-0 items-center border-b border-nite-border-soft px-5">
+        <div className="flex h-16 shrink-0 items-center border-b border-nite-border-soft px-4">
           <Link href="/dashboard" className="flex min-w-0 items-center gap-3 rounded-control focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-nite-focus" onClick={closeMobileNavigation}>
             <span className="grid size-8 shrink-0 place-items-center rounded-control bg-nite-brand-primary font-display text-type-label font-semibold text-nite-action-text">N</span>
             <span className="truncate font-display text-type-label font-semibold leading-tight text-nite-text-primary">NITE Connect</span>
           </Link>
-          <button type="button" className="ml-auto grid size-9 place-items-center rounded-control border border-nite-border-soft text-nite-text-muted hover:bg-nite-surface-subtle focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-nite-focus lg:hidden" aria-label="Fechar navegação" onClick={closeMobileNavigation}>
-            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" className="size-4"><path d="m6 6 12 12M18 6 6 18" /></svg>
-          </button>
+          {mobile ? <button type="button" className="ml-auto grid size-11 place-items-center rounded-control border border-nite-border-soft text-nite-text-muted transition-colors hover:bg-nite-surface-subtle motion-reduce:transition-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-nite-focus md:hidden" aria-label="Fechar navegação" onClick={closeMobileNavigation}>
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-[18px]"><path d="m6 6 12 12M18 6 6 18" /></svg>
+          </button> : null}
         </div>
 
-        <div className="shrink-0 border-b border-nite-border-soft px-4 py-3">
-          <Suspense fallback={<WorkspaceSelectorFallback id={selectorId} />}>
-            <WorkspaceSelector id={selectorId} projects={projects} canAdminister={canAdminister} onContextChange={mobile ? closeMobileNavigation : undefined} />
-          </Suspense>
-        </div>
-
-        <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3">
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
           <AuthenticatedNavigation groups={navigationGroups} onNavigate={closeMobileNavigation} />
         </div>
       </>
@@ -297,21 +146,21 @@ export function AuthenticatedShell({ children, member, roles, projects, leadersh
   return (
     <div className="min-h-svh bg-nite-background text-nite-text-primary">
       <a href="#authenticated-content" className="sr-only z-50 rounded-control bg-nite-surface px-3 py-2 text-nite-text-primary focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:outline-3 focus:outline-nite-focus">Ir para o conteúdo principal</a>
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[256px] flex-col border-r border-nite-border-soft bg-nite-surface lg:flex" aria-label="NITE Connect">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[250px] flex-col border-r border-nite-border-soft bg-nite-background md:flex" aria-label="NITE Connect">
         {renderSidebar(false)}
       </aside>
 
-      <div className="fixed inset-0 z-50 lg:hidden" hidden={!mobileNavigationOpen}>
+      <div className="fixed inset-0 z-50 md:hidden" hidden={!mobileNavigationOpen}>
         <button type="button" aria-label="Fechar navegação" className="absolute inset-0 bg-black/45" onClick={closeMobileNavigation} />
         <aside ref={mobileNavigationRef} id="authenticated-mobile-sidebar" role="dialog" aria-modal="true" className="relative flex h-full w-[min(19rem,calc(100vw-2.75rem))] flex-col border-r border-nite-border-soft bg-nite-background shadow-nite-modal" aria-label="Navegação principal">
           {renderSidebar(true)}
         </aside>
       </div>
 
-      <div className="min-w-0 lg:pl-[256px]">
-        <header className="sticky top-0 z-20 flex min-h-16 items-center gap-3 border-b border-nite-border-soft bg-nite-background/95 px-3 backdrop-blur sm:px-5 lg:px-7">
-          <button type="button" aria-label="Abrir navegação" aria-expanded={mobileNavigationOpen} aria-controls="authenticated-mobile-sidebar" className="grid size-9 shrink-0 place-items-center rounded-control border border-nite-border-soft text-nite-text-secondary hover:bg-nite-surface-subtle focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-nite-focus lg:hidden" onClick={openMobileNavigation}>
-            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" className="size-4"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
+      <div className="min-w-0 md:pl-[250px]">
+        <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-nite-border-soft bg-nite-background/95 px-3 backdrop-blur sm:px-5 lg:px-7">
+          <button type="button" aria-label="Abrir navegação" aria-expanded={mobileNavigationOpen} aria-controls="authenticated-mobile-sidebar" className="grid size-11 shrink-0 place-items-center rounded-control border border-nite-border-soft text-nite-text-secondary transition-colors hover:bg-nite-surface-subtle motion-reduce:transition-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-nite-focus md:hidden" onClick={openMobileNavigation}>
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-[18px]"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
           </button>
           <div className="min-w-0 flex-1" aria-hidden="true" />
           <details ref={accountMenuRef} onToggle={handleAccountMenuToggle} onKeyDown={handleAccountMenuKeyDown} onBlurCapture={handleAccountMenuBlur} className="relative ml-auto shrink-0">

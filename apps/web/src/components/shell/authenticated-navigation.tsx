@@ -14,7 +14,8 @@ export type AuthenticatedNavigationIcon =
   | "attendance"
   | "settings"
   | "academic"
-  | "review";
+  | "review"
+  | "access";
 
 export type AuthenticatedNavigationItem = {
   label: string;
@@ -65,7 +66,7 @@ export function buildAuthenticatedNavigationGroups(options: NavigationOptions): 
     groups.push({
       label: "Projetos que lidero",
       defaultOpen: false,
-      note: "Selecione um projeto no seletor de espaço de trabalho para atualizar o painel.",
+      note: "Selecione uma visão no painel para acompanhar um projeto.",
       items: [
         planned("Atividades do projeto", "activity"),
         planned("Equipe e responsabilidades", "team"),
@@ -91,7 +92,7 @@ export function buildAuthenticatedNavigationGroups(options: NavigationOptions): 
         defaultOpen: false,
         items: [
           planned("Integrantes", "team"),
-          planned("Acessos e convites", "review"),
+          planned("Acessos e convites", "access"),
           planned("Regras e parâmetros", "settings"),
         ],
       },
@@ -109,22 +110,36 @@ export function buildAuthenticatedNavigationGroups(options: NavigationOptions): 
   return groups;
 }
 
-const iconPaths: Record<AuthenticatedNavigationIcon, ReactNode> = {
-  home: <><path d="m3 10 9-7 9 7" /><path d="M5 9v11h14V9M9 20v-7h6v7" /></>,
-  activity: <><path d="M3 12h4l3-8 4 16 3-8h4" /></>,
-  clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
-  projects: <><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 9h18M8 4v5" /></>,
-  calendar: <><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M16 3v4M8 3v4M3 10h18" /></>,
-  team: <><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="10" cy="7" r="4" /><path d="M20 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></>,
-  report: <><path d="M4 19V5M4 19h17" /><path d="m7 15 4-4 3 2 5-6" /></>,
-  attendance: <><rect x="4" y="5" width="16" height="16" rx="2" /><path d="M8 3v4m8-4v4M4 10h16M8 14h2m4 0h2m-8 3h2m4 0h2" /></>,
+type ResendNavigationGlyph = "audience" | "broadcasts" | "logs" | "metrics" | "settings" | "templates" | "workflow";
+
+const resendGlyphForNiteNavigation: Record<AuthenticatedNavigationIcon, ResendNavigationGlyph> = {
+  home: "metrics",
+  activity: "logs",
+  clock: "metrics",
+  projects: "workflow",
+  calendar: "broadcasts",
+  team: "audience",
+  report: "metrics",
+  attendance: "logs",
+  settings: "settings",
+  academic: "templates",
+  review: "logs",
+  access: "audience",
+};
+
+const resendNavigationGlyphs: Record<ResendNavigationGlyph, ReactNode> = {
+  audience: <><path d="M18 21a8 8 0 0 0-16 0" /><circle cx="10" cy="8" r="5" /><path d="M22 20c0-3.37-2-6.5-4-7.5" /><path d="M16 3.13a5 5 0 0 1 0 9.75" /></>,
+  broadcasts: <><path d="M16.2 7a6 6 0 0 1 0 10" /><path d="M19.5 4.6a10 10 0 0 1 0 14.8" /><path d="M7.8 7a6 6 0 0 0 0 10" /><path d="M4.5 4.6a10 10 0 0 0 0 14.8" /><circle cx="12" cy="12" r="2" /><path d="M12 14v8" /></>,
+  logs: <><path d="M3 5h.01" /><path d="M3 12h.01" /><path d="M3 19h.01" /><path d="M8 5h13" /><path d="M8 12h13" /><path d="M8 19h13" /></>,
+  metrics: <><path d="M4 20V5" /><path d="M4 20h17" /><path d="M8 16v-4" /><path d="M13 16V8" /><path d="M18 16V4" /></>,
   settings: <><circle cx="12" cy="12" r="3" /><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.6a8.1 8.1 0 0 1-1.8 1l-.3 1.8h-2.8l-.3-1.8a8.1 8.1 0 0 1-1.8-1l-1.7.6-1.4-2.4 1.4-1.1a7.7 7.7 0 0 1 0-2.1l-1.4-1.1 1.4-2.4 1.7.6a8.1 8.1 0 0 1 1.8-1l.3-1.8h2.8l.3 1.8a8.1 8.1 0 0 1 1.8 1l1.7-.6 1.4 2.4-1.4 1.1a7.7 7.7 0 0 1 0 2.1Z" /></>,
-  academic: <><path d="m2 9 10-5 10 5-10 5-10-5Z" /><path d="M6 11v5c3 3 9 3 12 0v-5M22 9v6" /></>,
-  review: <><path d="M7 3h8l4 4v14H7z" /><path d="M15 3v5h5m-9 5 2 2 4-4" /></>,
+  templates: <><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M9 4v16" /></>,
+  workflow: <><rect x="3" y="3" width="6" height="6" rx="1.5" /><rect x="15" y="15" width="6" height="6" rx="1.5" /><path d="M21 8V7a4 4 0 0 0-4-4h-1" /><path d="M3 9v1a5 5 0 0 0 5 5h6a5 5 0 0 1 5 5v1" /></>,
 };
 
 function Icon({ name }: { name: AuthenticatedNavigationIcon }) {
-  return <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="size-4 shrink-0">{iconPaths[name]}</svg>;
+  const glyph = resendGlyphForNiteNavigation[name];
+  return <svg aria-hidden="true" data-icon={glyph} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-[18px] shrink-0">{resendNavigationGlyphs[glyph]}</svg>;
 }
 
 function NavigationLink({ item, currentPath, onNavigate }: {
@@ -133,14 +148,14 @@ function NavigationLink({ item, currentPath, onNavigate }: {
   onNavigate?: () => void;
 }) {
   if (!item.href) {
-    return <span aria-disabled="true" aria-label={`${item.label}, em desenvolvimento`} title="Em desenvolvimento" className="flex min-h-9 items-center gap-2.5 rounded-control px-3 py-1.5 text-type-body-compact text-nite-text-muted">
+    return <span aria-disabled="true" aria-label={`${item.label}, em desenvolvimento`} title="Em desenvolvimento" className="flex min-h-8 items-center gap-2 rounded-control px-3 py-1 text-type-body-compact text-nite-text-muted">
       <Icon name={item.icon} />
       <span className="min-w-0 flex-1 truncate">{item.label}</span>
       {item.status === "development" ? <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-nite-border-strong" /> : null}
     </span>;
   }
   const isCurrent = item.href === currentPath;
-  return <Link href={item.href} onClick={onNavigate} aria-current={isCurrent ? "page" : undefined} className={`flex min-h-9 items-center gap-2.5 rounded-control px-3 py-1.5 text-type-body-compact transition-colors focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-nite-focus ${isCurrent ? "bg-nite-brand-soft font-medium text-nite-brand-primary" : "text-nite-text-secondary hover:bg-nite-surface-subtle hover:text-nite-text-primary"}`}>
+  return <Link href={item.href} onClick={onNavigate} aria-current={isCurrent ? "page" : undefined} className={`flex min-h-8 items-center gap-2 rounded-control px-3 py-1 text-type-body-compact transition-colors motion-reduce:transition-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-nite-focus ${isCurrent ? "bg-nite-brand-soft font-medium text-nite-brand-primary" : "text-nite-text-secondary hover:bg-nite-surface-subtle hover:text-nite-text-primary"}`}>
     <Icon name={item.icon} />
     <span className="min-w-0 truncate">{item.label}</span>
   </Link>;
@@ -166,7 +181,7 @@ function NavigationGroup({ group, currentPath, onNavigate }: {
   }, [group.label, group.defaultOpen]);
   const rows = <>
     {group.note ? <p className="px-3 pb-1 text-type-metadata leading-relaxed text-nite-text-muted">{group.note}</p> : null}
-    <ul className="grid gap-0.5">
+    <ul className="grid gap-2">
       {group.items.map((item) => <li key={item.label}><NavigationLink item={item} currentPath={currentPath} onNavigate={onNavigate} /></li>)}
     </ul>
   </>;
@@ -177,10 +192,10 @@ function NavigationGroup({ group, currentPath, onNavigate }: {
     if (!ready.current) return;
     const next = event.currentTarget.open;
     try { window.sessionStorage.setItem(`nite-navigation-group:${group.label}`, next ? "open" : "closed"); } catch { /* A expansão continua funcional sem storage. */ }
-  }} className="group/nav-group">
-    <summary className="flex min-h-9 cursor-pointer list-none items-center justify-between gap-3 rounded-control px-3 py-1 text-type-metadata font-medium text-nite-text-muted hover:bg-nite-surface-subtle focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-nite-focus [&::-webkit-details-marker]:hidden">
+  }} className="group/nav-group grid gap-1">
+    <summary className="flex min-h-8 cursor-pointer list-none items-center justify-between gap-3 rounded-control px-3 py-1 text-type-metadata font-medium text-nite-text-muted transition-colors hover:bg-nite-surface-subtle hover:text-nite-text-primary motion-reduce:transition-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-nite-focus [&::-webkit-details-marker]:hidden">
       <span>{group.label}</span>
-      <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="size-4 transition-transform group-open/nav-group:rotate-180"><path d="m5 7.5 5 5 5-5" /></svg>
+      <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="size-4 transition-transform group-open/nav-group:rotate-180 motion-reduce:transition-none"><path d="m5 7.5 5 5 5-5" /></svg>
     </summary>
     <div className="pt-1">{rows}</div>
   </details>;
@@ -191,7 +206,7 @@ export function AuthenticatedNavigation({ groups, onNavigate }: {
   onNavigate?: () => void;
 }) {
   const currentPath = usePathname();
-  return <nav aria-label="Navegação principal" className="grid gap-1.5">
+  return <nav aria-label="Navegação principal" className="grid gap-3">
     {groups.map((group) => <NavigationGroup key={group.label} group={group} currentPath={currentPath} onNavigate={onNavigate} />)}
   </nav>;
 }
