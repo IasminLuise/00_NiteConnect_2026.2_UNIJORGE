@@ -9,8 +9,8 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("rota raiz", () => {
-  it("redireciona para o login institucional", () => {
-    expect(() => Home()).toThrow("redirect:/login");
-    expect(redirect).toHaveBeenCalledWith("/login");
+  it("redireciona para o painel, que protege o acesso e encaminha ao login", () => {
+    expect(() => Home()).toThrow("redirect:/dashboard");
+    expect(redirect).toHaveBeenCalledWith("/dashboard");
   });
 });

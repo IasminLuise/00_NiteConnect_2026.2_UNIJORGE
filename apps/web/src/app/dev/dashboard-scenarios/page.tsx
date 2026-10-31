@@ -1,0 +1,134 @@
+import { notFound } from "next/navigation";
+import { DashboardShell } from "../../../components/dashboard/dashboard-shell";
+import { DashboardView } from "../../../components/dashboard/dashboard-view";
+import type { DashboardHistory, DashboardResponse, ParticipationWeeklySummary } from "../../../lib/dashboard/contracts";
+
+export const dynamic = "force-dynamic";
+
+const from = "2026-10-25";
+const to = "2026-10-31";
+const generatedAt = "2026-10-31T12:00:00Z";
+const projectId = "11111111-1111-4111-8111-111111111111";
+const activityColumns = ["activityId", "project", "activity", "executor", "status", "createdAt", "dueOn", "completedAt", "overdueNow"];
+const projectColumns = ["projectId", "project", "officialStatus", "activities", "overdueActivitiesNow", "completedActivities", "activeMembers", "openActivities", "healthClassification", "healthReasons"];
+
+const activityRows = [
+  ["a1", "Projeto Aurora", "Revisar proposta", "Integrante A", "PLANEJADA", "2026-10-25", "2026-10-28", "", "true"],
+  ["a2", "Projeto Aurora", "Preparar oficina", "Integrante B", "EM_EXECUCAO", "2026-10-26", "2026-11-03", "", "false"],
+  ["a3", "Projeto Aurora", "Publicar resultado", "Integrante A", "CONCLUIDA", "2026-10-27", "2026-10-30", "2026-10-29", "false"],
+  ["a4", "Projeto Aurora", "Reunir equipe", "Integrante C", "CANCELADA", "2026-10-28", "", "", "false"],
+];
+const projectRows = [
+  [projectId, "Projeto Aurora", "ATIVO", "5", "1", "2", "4", "2", "ATENCAO", "Há atividade atrasada"],
+  ["22222222-2222-4222-8222-222222222222", "Projeto Horizonte", "PLANEJAMENTO", "2", "0", "0", "2", "2", "DADOS_INSUFICIENTES", ""],
+  ["33333333-3333-4333-8333-333333333333", "Projeto Viver", "CONCLUIDO", "3", "0", "3", "3", "0", "NORMAL", ""],
+];
+const baseIndicators = {
+  recordsInPeriod: 0,
+  "activities.planejada": 0,
+  "activities.em_execucao": 0,
+  "activities.concluida": 0,
+  "activities.cancelada": 0,
+  overdueActivitiesNow: 0,
+  "participation.pendente": 0,
+  "participation.aprovada": 0,
+  "participation.recusada": 0,
+  "participation.presencial.seconds": 0,
+  "participation.remota.seconds": 0,
+  validatedSeconds: 0,
+};
+
+function dashboard(scenario: string, scope: "personal" | "project" | "institutional"): DashboardResponse {
+  const projects = scope !== "personal";
+  const activeRows = scenario === "empty" || scenario === "participation" ? [] : projects ? projectRows : activityRows;
+  const activityIndicators: Record<string, number> = ["activities", "partial", "pending", "projects"].includes(scenario) && !projects ? {
+    "activities.planejada": 1, "activities.em_execucao": 1, "activities.concluida": 1, "activities.cancelada": 1,
+    overdueActivitiesNow: 1, recordsInPeriod: 4,
+  } : {};
+  const projectIndicators: Record<string, number> = projects && activeRows.length > 0 ? scope === "project" ? {
+    projects: 1, activities: 5, openActivities: 2, completedActivities: 2,
+    overdueActivitiesNow: 1, recordsInPeriod: 1,
+  } : {
+    projects: activeRows.length, activities: 10, openActivities: 4, completedActivities: 5,
+    overdueActivitiesNow: 1, recordsInPeriod: activeRows.length,
+  } : projects ? { projects: 0, activities: 0, openActivities: 0, completedActivities: 0, overdueActivitiesNow: 0 } : {};
+  const participationIndicators: Record<string, number> = scenario === "participation" || scenario === "pending" ? {
+    "participation.pendente": 2, "participation.aprovada": 1, "participation.recusada": 1,
+    "participation.presencial.seconds": 10_800, "participation.remota.seconds": 7_200, validatedSeconds: 7_200,
+  } : {};
+  const indicators: Record<string, number> = {
+    ...baseIndicators, ...activityIndicators, ...projectIndicators, ...participationIndicators,
+  };
+  if (projects) {
+    delete indicators["activities.planejada"];
+    delete indicators["activities.em_execucao"];
+    delete indicators["activities.concluida"];
+    delete indicators["activities.cancelada"];
+  }
+  if (scenario === "partial") {
+    delete indicators["participation.pendente"];
+    delete indicators["activities.cancelada"];
+  }
+  return {
+    from, to, generatedAt, scope, indicators,
+    columns: projects ? projectColumns : activityColumns,
+    rows: scope === "project" ? activeRows.slice(0, 1) : activeRows,
+    unavailableMetrics: scenario === "partial" ? ["Registros aguardando revisão indisponíveis nesta consulta.", "Situação cancelada indisponível nesta consulta."] : [],
+  };
+}
+
+const weekly: ParticipationWeeklySummary = {
+  zone: "America/Bahia", weekStart: from, weekEnd: to,
+  modalities: {
+    presential: { requiredSeconds: 18_000, registeredSeconds: 10_800, pendingSeconds: 3_600, validatedSeconds: 3_600, refusedSeconds: 3_600, openPeriods: 0, remainingSeconds: 14_400 },
+    remote: { requiredSeconds: 14_400, registeredSeconds: 7_200, pendingSeconds: 0, validatedSeconds: 3_600, refusedSeconds: 3_600, openPeriods: 0, remainingSeconds: 10_800 },
+  },
+};
+const emptyWeekly: ParticipationWeeklySummary = {
+  ...weekly,
+  modalities: {
+    presential: { ...weekly.modalities.presential, registeredSeconds: 0, pendingSeconds: 0, validatedSeconds: 0, refusedSeconds: 0, remainingSeconds: 18_000 },
+    remote: { ...weekly.modalities.remote, registeredSeconds: 0, pendingSeconds: 0, validatedSeconds: 0, refusedSeconds: 0, remainingSeconds: 14_400 },
+  },
+};
+const history: DashboardHistory = {
+  columns: ["sourceType", "sourceId", "projectId", "project", "action", "occurredAt", "previousState", "currentState"],
+  rows: [
+    ["ACTIVITY", "event-1", projectId, "Projeto Aurora", "STATUS_CHANGED", "2026-10-30T16:00:00Z", "PLANEJADA", "EM_EXECUCAO"],
+    ["PROJECT", "event-2", projectId, "Projeto Aurora", "UPDATED", "2026-10-29T14:00:00Z", "", ""],
+  ],
+  total: 2,
+};
+
+type Props = { searchParams: Promise<{ scenario?: string; scope?: string }> };
+
+export default async function DashboardScenariosPage({ searchParams }: Props) {
+  if (process.env.NODE_ENV !== "development") notFound();
+  const params = await searchParams;
+  const scenario = ["empty", "participation", "activities", "projects", "pending", "partial", "error"].includes(params.scenario ?? "") ? params.scenario! : "empty";
+  const scope = params.scope === "institutional" || params.scope === "project" ? params.scope : "personal";
+  const contextValue = scope === "project" ? `project:${projectId}` : scope;
+  const contextLabel = scope === "personal" ? "Meu espaço" : scope === "project" ? "Projeto Aurora" : "Visão geral do NITE";
+  const response = dashboard(scenario, scope);
+  return <DashboardShell
+    member={{ id: "fixture", name: "Pessoa de demonstração", institutionalEmail: "demo@example.invalid", status: "ATIVO" }}
+    roles={scope === "personal" ? ["INTEGRANTE"] : ["GESTOR_GERAL"]}
+    contextLabel={contextLabel} contextValue={contextValue}
+    projects={scope === "project" ? [{ projectId, title: "Projeto Aurora" }] : []}
+    canAdminister={scope === "institutional"} from={from} to={to} search=""
+  >
+    <div role="note" className="mb-4 rounded-control border border-status-warning-border bg-status-warning-soft px-3 py-2 text-type-metadata text-status-warning">
+      Prévia local com dados sintéticos. Nenhuma consulta à API ou ao banco institucional.
+    </div>
+    <nav aria-label="Cenários de validação" className="mb-4 flex flex-wrap gap-2 text-type-metadata">
+      {["empty", "participation", "activities", "projects", "pending", "partial", "error"].map((item) => <a key={item} href={`/dev/dashboard-scenarios?scenario=${item}&scope=${scope}`} aria-current={scenario === item ? "page" : undefined} className="rounded-control border border-nite-border-soft px-2 py-1 text-nite-text-secondary focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-nite-focus">{item}</a>)}
+      <a href={`/dev/dashboard-scenarios?scenario=${scenario}&scope=${scope === "personal" ? "institutional" : scope === "institutional" ? "project" : "personal"}`} className="rounded-control border border-nite-border-soft px-2 py-1 text-nite-text-secondary focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-nite-focus">Trocar contexto de prévia</a>
+    </nav>
+    <DashboardView
+      result={scenario === "error" ? { data: null, issue: "unavailable" } : { data: response, issue: null }}
+      historyResult={scope === "personal" ? null : { data: scenario === "empty" ? { ...history, rows: [], total: 0 } : history, issue: null }}
+      weeklyResult={scope === "personal" && scenario !== "error" ? { data: scenario === "participation" || scenario === "pending" ? weekly : emptyWeekly, issue: null } : null}
+      scope={scope} scopeLabel={contextLabel} contextValue={contextValue} from={from} to={to} search=""
+    />
+  </DashboardShell>;
+}

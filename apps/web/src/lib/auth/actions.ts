@@ -6,7 +6,7 @@ import { isAuthConfigured } from "./config";
 
 export async function signInWithMicrosoft(): Promise<void> {
   if (!isAuthConfigured()) redirect("/login?error=Configuration");
-  await signIn("microsoft-entra-id", { redirectTo: "/login" });
+  await signIn("microsoft-entra-id", { redirectTo: "/dashboard" });
 }
 
 export async function signOutOfNite(): Promise<void> {

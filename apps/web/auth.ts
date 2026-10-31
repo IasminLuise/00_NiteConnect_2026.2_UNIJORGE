@@ -10,6 +10,9 @@ import { parseNiteIdentity } from "./src/lib/auth/identity";
 const providerId = "microsoft-entra-id";
 const sessionDurationSeconds = 8 * 60 * 60;
 const refreshBufferMs = 2 * 60 * 1_000;
+export const authSessionCookieName = process.env.NODE_ENV === "production"
+  ? "__Host-nite-connect.session"
+  : "nite-connect.session";
 type AuthError = "AccessDenied" | "SessionExpired";
 
 function hasTokenCredentials(
@@ -35,9 +38,7 @@ const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "jwt", maxAge: sessionDurationSeconds },
   cookies: {
     sessionToken: {
-      name: process.env.NODE_ENV === "production"
-        ? "__Host-nite-connect.session"
-        : "nite-connect.session",
+      name: authSessionCookieName,
       options: {
         httpOnly: true,
         sameSite: "lax",
