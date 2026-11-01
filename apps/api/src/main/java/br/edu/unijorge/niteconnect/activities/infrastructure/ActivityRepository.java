@@ -93,13 +93,25 @@ public class ActivityRepository {
         if(f.dueFrom()!=null) { w.append(" and a.due_on>=?");args.add(f.dueFrom()); }
         if(f.dueTo()!=null) { w.append(" and a.due_on<=?");args.add(f.dueTo()); }
         if(f.overdue()!=null) { w.append(f.overdue()?" and ":" and not ");w.append("(a.due_on is not null and a.due_on<? and a.status in ('PLANEJADA','EM_EXECUCAO'))");args.add(today); }
+        if(f.q()!=null) {
+            String pattern="%"+f.q().strip().replace("!","!!").replace("%","!%").replace("_","!_")+"%";
+            w.append(" and (a.title ilike ? escape '!' or a.description ilike ? escape '!')");
+            args.add(pattern);args.add(pattern);
+        }
         String from=SELECT.substring(SELECT.indexOf(" from "));
         long total=jdbc.queryForObject("select count(*)"+from+w,Long.class,args.toArray());
         args.add(size);args.add((long)page*size);
         return new PageResult<>(jdbc.query(SELECT+w+" order by a.created_at desc,a.id limit ? offset ?",ACTIVITY,args.toArray()),page,size,total);
     }
-    public record Filter(ActivityStatus status,UUID projectId,UUID executorId,LocalDate dueFrom,LocalDate dueTo,Boolean overdue) {
-        public void validate() { if(dueFrom!=null && dueTo!=null && dueFrom.isAfter(dueTo)) throw ApiException.invalid("Intervalo de prazo inválido"); }
+    public record Filter(ActivityStatus status,UUID projectId,UUID executorId,LocalDate dueFrom,LocalDate dueTo,Boolean overdue,String q) {
+        public Filter(ActivityStatus status,UUID projectId,UUID executorId,LocalDate dueFrom,LocalDate dueTo,Boolean overdue) {
+            this(status,projectId,executorId,dueFrom,dueTo,overdue,null);
+        }
+        public void validate() {
+            if(dueFrom!=null && dueTo!=null && dueFrom.isAfter(dueTo)) throw ApiException.invalid("Intervalo de prazo inválido");
+            if(q!=null && (q.length()>160 || q.strip().codePointCount(0,q.strip().length())<2 || q.chars().anyMatch(Character::isISOControl)))
+                throw ApiException.invalid("Pesquisa deve conter de 2 a 160 caracteres sem caracteres de controle");
+        }
     }
     public record Assignment(UUID id,UUID activityId,UUID memberId,String role,Instant startedAt,UUID startedBy,String startReason,Instant endedAt,UUID endedBy,String endReason) {}
     public record PersonalPeriod(UUID assignmentId,UUID activityId,String activityTitle,UUID projectId,String role,Instant startedAt,Instant endedAt) {}

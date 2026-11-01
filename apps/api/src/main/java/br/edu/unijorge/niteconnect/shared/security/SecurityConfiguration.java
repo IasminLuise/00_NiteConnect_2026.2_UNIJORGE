@@ -70,7 +70,7 @@ public class SecurityConfiguration {
                                 "/api/v1/attendance/justifications/*/decisions", "/api/v1/attendance/corrections/*/decisions").access(authenticatedJwt)
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/agenda/events/*").access(authenticatedJwt)
                         .requestMatchers(HttpMethod.GET, "/api/v1/activities", "/api/v1/activities/*",
-                                "/api/v1/me/activities", "/api/v1/me/activities/history", "/api/v1/activities/*/history",
+                                "/api/v1/me/activities", "/api/v1/me/activities/history", "/api/v1/me/activities/capabilities", "/api/v1/activities/*/history", "/api/v1/activities/*/capabilities",
                                 "/api/v1/activities/*/assignees", "/api/v1/activities/*/assignees/history",
                                 "/api/v1/activities/*/assignee-candidates", "/api/v1/projects/*/activities",
                                 "/api/v1/projects/*/activity-assignee-candidates").access(authenticatedJwt)
@@ -79,7 +79,7 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.PUT, "/api/v1/activities/*/executor").access(authenticatedJwt)
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/activities/*/collaborators/*").access(authenticatedJwt)
                         .requestMatchers(HttpMethod.GET, "/api/v1/activities/*/evidence", "/api/v1/activities/*/evidence/*",
-                                "/api/v1/activities/*/evidence/*/download", "/api/v1/me/activities/evidence",
+                                "/api/v1/activities/*/evidence/*/download", "/api/v1/activities/*/evidence/*/capabilities", "/api/v1/me/activities/evidence",
                                 "/api/v1/me/activities/evidence/*", "/api/v1/me/activities/evidence/*/download").access(authenticatedJwt)
                         .requestMatchers(HttpMethod.POST, "/api/v1/activities/*/evidence", "/api/v1/activities/*/evidence/uploads",
                                 "/api/v1/activities/*/evidence/*/withdraw").access(authenticatedJwt)

@@ -40,9 +40,7 @@ public class EvidenceService {
     @Transactional public View withdraw(UUID actor,UUID id,UUID evidence,Command c) {
         Activity a=activities.write(actor,id,c.expectedVersion(),c.reason());policy.context(a,false);ActivityService.confirm(c.confirmed());
         Evidence e=inActivity(id,evidence);
-        if(!policy.manages(actor,a)) {
-            policy.contribute(actor,a);if(!actor.equals(e.authorId())) throw ApiException.forbidden();
-        }
+        policy.withdraw(actor,a,e.authorId());
         repo.withdraw(actor,evidence,c.reason());changed(actor,a,repo.require(evidence),"WITHDRAWN",c.reason());
         return view(repo.require(evidence),canInspectWithdrawn(actor,a));
     }

@@ -3,6 +3,7 @@ package br.edu.unijorge.niteconnect.activities.application;
 import br.edu.unijorge.niteconnect.access.application.AccessService;
 import br.edu.unijorge.niteconnect.access.application.ProjectAccess;
 import br.edu.unijorge.niteconnect.activities.domain.Activity;
+import br.edu.unijorge.niteconnect.activities.domain.ActivityStatus;
 import br.edu.unijorge.niteconnect.activities.infrastructure.ActivityRepository;
 import br.edu.unijorge.niteconnect.projects.application.ProjectDirectory;
 import br.edu.unijorge.niteconnect.projects.domain.ProjectStatus;
@@ -49,5 +50,20 @@ public class ActivityPolicy {
         read(actor,a);context(a,true);
         if(!manages(actor,a) && !a.primaryExecutorId().equals(actor)) throw ApiException.forbidden();
         if(!manages(actor,a)) eligible(actor,a.projectId());
+    }
+    public void transition(UUID actor,Activity a,ActivityStatus next) {
+        if(next==ActivityStatus.CANCELADA || a.status().terminal()) { manage(actor,a);context(a,a.status().terminal()); }
+        else execute(actor,a);
+    }
+    public void assign(UUID actor,Activity a) {
+        manage(actor,a);editable(a);
+        if(a.projectId()==null) access.requireAdministrator(actor);
+    }
+    public void withdraw(UUID actor,Activity a,UUID author) {
+        context(a,false);
+        if(!manages(actor,a)) {
+            contribute(actor,a);
+            if(!actor.equals(author)) throw ApiException.forbidden();
+        }
     }
 }

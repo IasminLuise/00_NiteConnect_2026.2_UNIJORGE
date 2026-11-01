@@ -33,6 +33,9 @@ class ActivityUploadsTest extends ActivityTestSupport {
     MockMultipartFile metadata(UUID id) { return new MockMultipartFile("metadata","","application/json",command(id,"").getBytes(java.nio.charset.StandardCharsets.UTF_8)); }
     @Test void privateTextUploadDownloadsOnlyThroughAuthorizedContext() throws Exception {
         UUID id=activity(MEMBER,null,MEMBER);
+        mvc.perform(get("/api/v1/activities/"+id+"/capabilities").with(token(MEMBER)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.upload").value(true));
+        mvc.perform(get("/api/v1/activities/"+id+"/capabilities").with(token(OTHER))).andExpect(status().isNotFound());
         mvc.perform(multipart("/api/v1/activities/"+id+"/evidence/uploads").file(new MockMultipartFile("file","report.txt","text/plain","Contribution".getBytes())).file(metadata(id)).with(token(MEMBER)))
                 .andExpect(status().isCreated()).andExpect(jsonPath("$.object.size").value(12)).andExpect(jsonPath("$.object.objectKey").doesNotExist());
         UUID evidence=jdbc.queryForObject("select id from nite_connect.activity_evidence where activity_id=?",UUID.class,id);

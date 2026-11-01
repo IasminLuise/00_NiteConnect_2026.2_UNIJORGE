@@ -50,16 +50,15 @@ public class ActivityService {
     @Transactional public View status(UUID actor,UUID id,StatusChange c) {
         Activity a=write(actor,id,c.expectedVersion(),c.reason());
         boolean critical=c.status()==ActivityStatus.CANCELADA || a.status().terminal();
-        if(critical) { policy.manage(actor,a);policy.context(a,a.status().terminal());confirm(c.confirmed()); }
-        else policy.execute(actor,a);
+        policy.transition(actor,a,c.status());
+        if(critical) confirm(c.confirmed());
         if(!a.status().canTransitionTo(c.status())) throw ApiException.conflict("Transição de atividade não permitida");
         repo.status(id,c.status(),c.expectedVersion(),clock.instant());Activity next=repo.require(id);
         record(actor,next,"STATUS_CHANGED",snapshot(a),snapshot(next),c.reason());return view(next,LocalDate.now(clock));
     }
     @Transactional public Assignee assign(UUID actor,UUID id,Assign c,boolean executor) {
-        Activity a=write(actor,id,c.expectedVersion(),c.reason());policy.manage(actor,a);policy.editable(a);
+        Activity a=write(actor,id,c.expectedVersion(),c.reason());policy.assign(actor,a);
         // Personal owners may maintain their own work, never distribute it to other people.
-        if(a.projectId()==null) access.requireAdministrator(actor);
         policy.eligible(c.memberId(),a.projectId());
         var previous=repo.assigned(id,c.memberId());
         if(executor) {

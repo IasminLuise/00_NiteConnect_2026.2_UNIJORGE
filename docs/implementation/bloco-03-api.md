@@ -52,13 +52,32 @@ Metadados de retirada incluem marcador; conteúdo/bytes retirados só para gest�
 | PATCH `/api/v1/activities/{id}` | title,description,dueOn,expectedVersion,reason | Gestão ou dono pessoal D02; 200 Activity |
 | PATCH `/api/v1/activities/{id}/status` | status,expectedVersion,reason,confirmed? | D04; 200 Activity; confirmed=true em cancelar/reabrir |
 | GET `/api/v1/activities/{id}/history` | page,size | Gestão ou dono pessoal D02; Page de eventos operacionais |
-| GET `/api/v1/me/activities` | page,size,status?,dueFrom?,dueTo?,overdue? | Somente atribuições vigentes e contexto legível do próprio ator, inclusive administrador |
+| GET `/api/v1/me/activities` | page,size,status?,projectId?,dueFrom?,dueTo?,overdue?,q? | Somente atribuições vigentes e contexto legível do próprio ator, inclusive administrador |
+| GET `/api/v1/me/activities/capabilities` | — | Integrante ativo; capacidade de criar atividade independente para si |
+| GET `/api/v1/activities/{id}/capabilities` | — | Leitura contextual; capacidades calculadas para o ator e a atividade |
 | GET `/api/v1/me/activities/history` | page,size | Próprios períodos e contribuições em projeção limitada D11 |
 | GET `/api/v1/projects/{id}/activities` | page,size,status?,executorId?,dueFrom?,dueTo?,overdue? | requireRead do projeto; Page de Activity restrita ao projeto |
 
 PATCH de dados substitui integralmente title/description/dueOn, seguindo a
 convenção do Bloco 02; omitir dueOn limpa prazo. Documentar esse comportamento
 e testar. A presença de projectId na edição é recusada, inclusive null, sem ignorar silenciosamente o campo (D06).
+
+Na consulta pessoal, `q` é opcional; quando presente, tem no máximo 160 unidades
+UTF-16 e ao menos dois pontos de código após remoção de espaços externos, sem
+caracteres de controle. A pesquisa é parcial,
+insensível a maiúsculas, em título ou descrição. `%`, `_` e `!` são literais.
+Aplicam-se primeiro visibilidade e filtros, depois contagem e paginação; a
+ordem continua `createdAt` decrescente e `id`. Os índices existentes favorecem
+escopo e ordenação, mas não aceleram necessariamente busca por substring;
+avaliar plano de consulta e volume antes de introduzir índice especializado.
+
+Capacidades pessoais retornam `{ "createIndependent": true }` para integrante
+ativo. As capacidades contextuais retornam `edit`, `transitions` (estados de
+destino), `history`, `manageAssignees`, `addEvidence` e `upload`. `upload` só é
+verdadeiro quando a contribuição é autorizada e o armazenamento está habilitado.
+Estas projeções são instantâneos consultados após autorização de leitura; não
+substituem validação, motivo, confirmação ou `expectedVersion` das mutações.
+Disponibilidade de armazenamento não garante sucesso de uma gravação futura.
 
 Evento operacional: `id,activityId,actorId,action,reason,occurredAt,
 activityVersion,before,after`, sem conteúdo integral de evidência/anexo.
@@ -101,6 +120,7 @@ Rotas literais de candidatos/histórico não são interpretadas como UUID `{id}`
 | GET `/api/v1/activities/{id}/evidence` | page,size | Leitura contextual; Page de Evidence (conteúdo retirado filtrado) |
 | POST `/api/v1/activities/{id}/evidence` | type,content?,url?,correctsEvidenceId?,expectedVersion,reason | Atribuído elegível/gestão; 201 Evidence |
 | GET `/api/v1/activities/{id}/evidence/{evidenceId}` | — | Leitura contextual + evidenceId da atividade; 200 Evidence |
+| GET `/api/v1/activities/{id}/evidence/{evidenceId}/capabilities` | — | Leitura contextual e evidência da atividade; `{withdraw}` indica retirada autorizada no momento |
 | POST `/api/v1/activities/{id}/evidence/{evidenceId}/withdraw` | expectedVersion,reason,confirmed=true | D08; 200 metadados de retirada; incrementa versão da atividade |
 | POST `/api/v1/activities/{id}/evidence/uploads` | multipart file + metadata JSON {expectedVersion,reason,correctsEvidenceId?} | Atribuído elegível/gestão; 201 Evidence somente após validação/commit |
 | GET `/api/v1/activities/{id}/evidence/{evidenceId}/download` | — | Contexto + objeto AVAILABLE + D08; bytes privados com attachment/no-store/nosniff |
