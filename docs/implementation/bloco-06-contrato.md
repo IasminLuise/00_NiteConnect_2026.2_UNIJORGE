@@ -38,15 +38,15 @@ Consultas diretas do módulo acadêmico às tabelas internas de outros módulos 
 | Constatação E | Consequência |
 |---|---|
 | Java 21, Spring Boot 4.1.1, Spring Security, JDBC, PostgreSQL e Flyway no backend | Preservar dependências e organização por domínio; não introduzir serviços externos |
-| V1–V5 no checkout, nas referências Git locais inspecionadas e na `main` remota consultada | Não há V6 nesses inventários; isso não prova ausência de V6 aplicada em bancos |
+| V1–V20 no checkout atual; V1–V19 são histórico append-only e V20 apenas documenta tabelas B04 aposentadas | Não remover migrações históricas nem inferir dados de produção a partir do checkout |
 | `main` remota sete commits à frente da antiga referência local `e643408`; comparação contendo apenas documentos | Worktree documental parte da referência remota atualizada, sem transportar código experimental |
 | `AccessService.requireAdministrator()` aceita `COORDENADOR` e `GESTOR_GERAL` | Não usar esse método isoladamente para registrar notas, homologar ou reabrir homologação |
 | `MemberDirectory`, `ProjectDirectory` e `ActivityParticipation` são contratos já existentes | Reutilizar conceitos e verificações; eles não constituem leitores acadêmicos completos |
-| `ParticipationQueries` distingue períodos registrados, aprovados, pendentes, recusados e abertos | Preservar as distinções; resumo agregado não substitui proveniência de cada registro |
+| `AttendanceQueries` expõe apenas agenda esperada e presenças próprias; horas/revisões não são contratos ativos | Capturar presença por evento sem derivar horas; histórico permanece sujeito à autorização acadêmica própria |
 | `SecurityConfiguration` usa allowlist de operações e `anyRequest().denyAll()` | Toda futura operação acadêmica exige proteção HTTP e autorização contextual no serviço |
 | Docker Engine indisponível na tentativa de consulta inicial | Histórico Flyway e execução PostgreSQL não foram verificados nesta auditoria |
 
-Os 185 testes registrados para o B04 são evidência histórica. Não foram reexecutados nem constituem validação do B06. O histórico dos demais blocos não substitui a validação do código acadêmico.
+Contagens históricas de testes do B04 descrevem escopos anteriores e não são referência para a validação atual. O histórico dos demais blocos não substitui a validação do código acadêmico.
 
 ## 3. Rastreabilidade funcional
 
@@ -118,7 +118,7 @@ Não presumir contador de versão em toda origem. Para dados imutáveis, usar id
 | B01 `MemberAcademicReader` | `MemberDirectory`, `AccessService` | ID, situação, versão e identidade mínima; não copiar contato/claims desnecessários. Situação atual restringe acesso, sem apagar histórico |
 | B02 `ProjectAcademicReader` | `ProjectDirectory`, `ProjectAccess` | Projeto e contribuição individual com vínculo/intervalo histórico e versão pertinente. Vínculo atual isolado não comprova participação no semestre passado |
 | B03 `ActivityEvidenceReader` | `ActivityPolicy`, `ActivityService`, `EvidenceService`, `ActivityParticipation` | Atividade, projeto opcional, atribuição, autor, evidência e correções/retirada, versões e disponibilidade. `ActivityParticipation` valida contexto próprio de declaração; não exporta captura acadêmica |
-| B04 `AttendanceAcademicReader` | `ParticipationQueries`, `Participation.Period`, histórico de participação | Referências de períodos, modalidade, início/fim, estado de revisão, revisor e versão; separar declaração, presença e duração validada. O resumo agregado atual não basta como trilha de cada insumo |
+| B04 `AttendanceAcademicReader` | `AttendanceRepository`, segmentos `ATTENDANCE` ligados a `attendance_records` e evento de Agenda | Captura apenas presença individual por encontro: ID/título/tipo do evento, modalidade, início/fim do segmento, indicador aberto e revisões de presença/evento. Exige autorização acadêmica própria e vínculo do período ao integrante; rejeita lançamentos remotos históricos e encontros cancelados. Não expõe duração em segundos, aprovação de horas, revisor nem justificativa |
 | `DocumentEvidenceReader` | Não há provedor documental de produto nessa base | Documento, versão, titular/contexto e validação; integração indisponível. Não simular documento válido nem criar armazenamento paralelo |
 
 Atividade concluída não é entrega academicamente validada. Não presumir um módulo de ciclos/entregas existente a partir do fluxo conceitual do PDF: a integração usa apenas capacidades comprovadas e registra a lacuna onde não houver entidade ou decisão operacional correspondente. Arquivo anexado a uma atividade não equivale a documento acadêmico oficial.

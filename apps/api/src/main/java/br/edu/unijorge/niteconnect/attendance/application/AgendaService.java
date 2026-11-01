@@ -2,7 +2,7 @@ package br.edu.unijorge.niteconnect.attendance.application;
 
 import br.edu.unijorge.niteconnect.access.application.AccessService;
 import br.edu.unijorge.niteconnect.attendance.api.AttendanceContracts.*;
-import br.edu.unijorge.niteconnect.attendance.domain.Participation.*;
+import br.edu.unijorge.niteconnect.attendance.domain.Agenda.*;
 import br.edu.unijorge.niteconnect.attendance.infrastructure.AttendanceRepository;
 import br.edu.unijorge.niteconnect.members.application.MemberDirectory;
 import br.edu.unijorge.niteconnect.shared.api.*;
@@ -14,14 +14,14 @@ import java.security.*;
 import java.time.*;
 import java.util.*;
 import static br.edu.unijorge.niteconnect.attendance.infrastructure.AttendanceRepository.ts;
-import static br.edu.unijorge.niteconnect.attendance.application.ParticipationRules.*;
+import static br.edu.unijorge.niteconnect.attendance.application.AgendaRules.*;
 
 @Service
 public class AgendaService {
     private final AttendanceRepository repo; private final AccessService access; private final MemberDirectory members;
-    private final AdministrativeTransactions tx; private final ParticipationJournal journal; private final Clock clock;
+    private final AdministrativeTransactions tx; private final AttendanceJournal journal; private final Clock clock;
     private final SecureRandom random=new SecureRandom();
-    public AgendaService(AttendanceRepository repo,AccessService access,MemberDirectory members,AdministrativeTransactions tx,ParticipationJournal journal,Clock clock) {
+    public AgendaService(AttendanceRepository repo,AccessService access,MemberDirectory members,AdministrativeTransactions tx,AttendanceJournal journal,Clock clock) {
         this.repo=repo;this.access=access;this.members=members;this.tx=tx;this.journal=journal;this.clock=clock;
     }
     @Transactional public Event create(UUID actor,EventCreate c) {
@@ -34,11 +34,10 @@ public class AgendaService {
     }
     @Transactional public Event update(UUID actor,UUID id,EventUpdate c) {
         Event before=write(actor,id,c.expectedVersion());
-        if(before.status()!=EventStatus.AGENDADO || repo.count("""
-            select (select count(*) from nite_connect.attendance_records where event_id=?)
-             +(select count(*) from nite_connect.absence_justifications where event_id=?)
-             +(select count(*) from nite_connect.correction_requests where event_id=?)
-            """,id,id,id)>0) throw ApiException.conflict("Programação já possui participação ou análise; preserve o encontro original");
+        if(before.status()!=EventStatus.AGENDADO || repo.count(
+                "select count(*) from nite_connect.attendance_records where event_id=?", id) > 0) {
+            throw ApiException.conflict("Programação já possui presença; preserve o encontro original");
+        }
         interval(c.startsAt(),c.endsAt());validateExpected(c.expectedMemberIds(),c.kind());Object previous=snapshot(before);
         repo.changed(repo.update("""
             update nite_connect.calendar_events set title=?,description=?,kind=?,modality=?,starts_at=?,ends_at=?,version=version+1 where id=? and version=?

@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { AuthenticatedShell } from "../../../components/shell/authenticated-shell";
 import { ViewSelector } from "../../../components/dashboard/view-selector";
 import { DashboardView } from "../../../components/dashboard/dashboard-view";
-import type { DashboardHistory, DashboardResponse, ParticipationWeeklySummary } from "../../../lib/dashboard/contracts";
+import type { DashboardHistory, DashboardResponse } from "../../../lib/dashboard/contracts";
 
 export const dynamic = "force-dynamic";
 
@@ -31,17 +31,11 @@ const baseIndicators = {
   "activities.concluida": 0,
   "activities.cancelada": 0,
   overdueActivitiesNow: 0,
-  "participation.pendente": 0,
-  "participation.aprovada": 0,
-  "participation.recusada": 0,
-  "participation.presencial.seconds": 0,
-  "participation.remota.seconds": 0,
-  validatedSeconds: 0,
 };
 
 function dashboard(scenario: string, scope: "personal" | "project" | "institutional"): DashboardResponse {
   const projects = scope !== "personal";
-  const activeRows = scenario === "empty" || scenario === "participation" ? [] : projects ? projectRows : activityRows;
+  const activeRows = scenario === "empty" ? [] : projects ? projectRows : activityRows;
   const activityIndicators: Record<string, number> = ["activities", "partial", "pending", "projects"].includes(scenario) && !projects ? {
     "activities.planejada": 1, "activities.em_execucao": 1, "activities.concluida": 1, "activities.cancelada": 1,
     overdueActivitiesNow: 1, recordsInPeriod: 4,
@@ -53,12 +47,8 @@ function dashboard(scenario: string, scope: "personal" | "project" | "institutio
     projects: activeRows.length, activities: 10, openActivities: 4, completedActivities: 5,
     overdueActivitiesNow: 1, recordsInPeriod: activeRows.length,
   } : projects ? { projects: 0, activities: 0, openActivities: 0, completedActivities: 0, overdueActivitiesNow: 0 } : {};
-  const participationIndicators: Record<string, number> = scenario === "participation" || scenario === "pending" ? {
-    "participation.pendente": 2, "participation.aprovada": 1, "participation.recusada": 1,
-    "participation.presencial.seconds": 10_800, "participation.remota.seconds": 7_200, validatedSeconds: 7_200,
-  } : {};
   const indicators: Record<string, number> = {
-    ...baseIndicators, ...activityIndicators, ...projectIndicators, ...participationIndicators,
+    ...baseIndicators, ...activityIndicators, ...projectIndicators,
   };
   if (projects) {
     delete indicators["activities.planejada"];
@@ -67,42 +57,16 @@ function dashboard(scenario: string, scope: "personal" | "project" | "institutio
     delete indicators["activities.cancelada"];
   }
   if (scenario === "partial") {
-    delete indicators["participation.pendente"];
     delete indicators["activities.cancelada"];
   }
   return {
     from, to, generatedAt, scope, indicators,
     columns: projects ? projectColumns : activityColumns,
     rows: scope === "project" ? activeRows.slice(0, 1) : activeRows,
-    unavailableMetrics: scenario === "partial" ? ["Registros aguardando revisão indisponíveis nesta consulta.", "Situação cancelada indisponível nesta consulta."] : [],
+    unavailableMetrics: scenario === "partial" ? ["Situação cancelada indisponível nesta consulta."] : [],
   };
 }
 
-const weekly: ParticipationWeeklySummary = {
-  zone: "America/Bahia", weekStart: from, weekEnd: to,
-  modalities: {
-    presential: { requiredSeconds: 18_000, registeredSeconds: 10_800, pendingSeconds: 3_600, validatedSeconds: 3_600, refusedSeconds: 3_600, openPeriods: 0, remainingSeconds: 14_400 },
-    remote: { requiredSeconds: 14_400, registeredSeconds: 7_200, pendingSeconds: 0, validatedSeconds: 3_600, refusedSeconds: 3_600, openPeriods: 0, remainingSeconds: 10_800 },
-  },
-  loadPolicy: {
-    status: "HOMOLOGADA_NO_PERIODO", currentConfiguration: null,
-    applicableToWeek: { id: "policy-1", version: 1, effectiveFrom: from, effectiveUntil: null, presentialHours: 5, remoteHours: 4 },
-    institutionalConfirmation: { presentialHours: 5, remoteHours: 4, status: "CONFIRMADA" },
-    plannedConfiguration: null,
-  },
-};
-const emptyWeekly: ParticipationWeeklySummary = {
-  ...weekly,
-  loadPolicy: {
-    status: "SEM_POLITICA_APLICAVEL", currentConfiguration: null, applicableToWeek: null,
-    institutionalConfirmation: { presentialHours: 5, remoteHours: 4, status: "CONFIRMADA" },
-    plannedConfiguration: null,
-  },
-  modalities: {
-    presential: { ...weekly.modalities.presential, requiredSeconds: null, registeredSeconds: 0, pendingSeconds: 0, validatedSeconds: 0, refusedSeconds: 0, remainingSeconds: null },
-    remote: { ...weekly.modalities.remote, requiredSeconds: null, registeredSeconds: 0, pendingSeconds: 0, validatedSeconds: 0, refusedSeconds: 0, remainingSeconds: null },
-  },
-};
 const history: DashboardHistory = {
   columns: ["sourceType", "sourceId", "projectId", "project", "action", "occurredAt", "previousState", "currentState"],
   rows: [
@@ -117,7 +81,7 @@ type Props = { searchParams: Promise<{ scenario?: string; scope?: string }> };
 export default async function DashboardScenariosPage({ searchParams }: Props) {
   if (process.env.NODE_ENV !== "development") notFound();
   const params = await searchParams;
-  const scenario = ["empty", "participation", "activities", "projects", "pending", "partial", "error"].includes(params.scenario ?? "") ? params.scenario! : "empty";
+  const scenario = ["empty", "activities", "projects", "pending", "partial", "error"].includes(params.scenario ?? "") ? params.scenario! : "empty";
   const scope = params.scope === "institutional" ? "institutional" : params.scope === `project:${projectId}` ? "project" : "personal";
   const contextValue = scope === "project" ? `project:${projectId}` : scope;
   const contextLabel = scope === "personal" ? "Meu espaço" : scope === "project" ? "Projeto Aurora" : "Visão geral do NITE";
@@ -133,14 +97,13 @@ export default async function DashboardScenariosPage({ searchParams }: Props) {
       Prévia local com dados sintéticos. Nenhuma consulta à API ou ao banco institucional.
     </div>
     <nav aria-label="Cenários de validação" className="mb-4 flex flex-wrap gap-2 text-type-metadata">
-      {["empty", "participation", "activities", "projects", "pending", "partial", "error"].map((item) => <a key={item} href={`/dev/dashboard-scenarios?scenario=${item}&scope=${encodeURIComponent(contextValue)}`} aria-current={scenario === item ? "page" : undefined} className="rounded-control border border-nite-border-soft px-2 py-1 text-nite-text-secondary focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-nite-focus">{item}</a>)}
+      {["empty", "activities", "projects", "pending", "partial", "error"].map((item) => <a key={item} href={`/dev/dashboard-scenarios?scenario=${item}&scope=${encodeURIComponent(contextValue)}`} aria-current={scenario === item ? "page" : undefined} className="rounded-control border border-nite-border-soft px-2 py-1 text-nite-text-secondary focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-nite-focus">{item}</a>)}
       <a href={`/dev/dashboard-scenarios?scenario=${scenario}&scope=${encodeURIComponent(nextContextValue)}`} className="rounded-control border border-nite-border-soft px-2 py-1 text-nite-text-secondary focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-nite-focus">Trocar contexto de prévia</a>
     </nav>
     <DashboardView
       viewSelector={<ViewSelector id="dashboard-view" projects={scope === "personal" ? [] : [{ projectId, title: "Projeto Aurora" }]} canAdminister={scope !== "personal"} />}
       result={scenario === "error" ? { data: null, issue: "unavailable" } : { data: response, issue: null }}
       historyResult={scope === "personal" ? null : { data: scenario === "empty" ? { ...history, rows: [], total: 0 } : history, issue: null }}
-      weeklyResult={scope === "personal" && scenario !== "error" ? { data: scenario === "participation" || scenario === "pending" ? weekly : emptyWeekly, issue: null } : null}
       scope={scope} scopeLabel={contextLabel} contextValue={contextValue} from={from} to={to} search=""
     />
   </AuthenticatedShell>;

@@ -6,7 +6,6 @@ const mocks = vi.hoisted(() => ({
   getLeadershipProjects: vi.fn(),
   getDashboard: vi.fn(),
   getDashboardHistory: vi.fn(),
-  getParticipationWeeklySummary: vi.fn(),
 }));
 
 vi.mock("../../../lib/auth/server-session", () => ({ requireAuthenticatedNiteSession: mocks.requireSession }));
@@ -14,7 +13,6 @@ vi.mock("../../../lib/projects/data", () => ({ getLeadershipProjects: mocks.getL
 vi.mock("../../../lib/dashboard/data", () => ({
   getDashboard: mocks.getDashboard,
   getDashboardHistory: mocks.getDashboardHistory,
-  getParticipationWeeklySummary: mocks.getParticipationWeeklySummary,
 }));
 
 import DashboardPage from "./page";
@@ -31,7 +29,6 @@ describe("rota do painel autenticado", () => {
     mocks.getLeadershipProjects.mockResolvedValue({ data: [], issue: null });
     mocks.getDashboard.mockResolvedValue({ data: null, issue: "unavailable" });
     mocks.getDashboardHistory.mockResolvedValue({ data: null, issue: "unavailable" });
-    mocks.getParticipationWeeklySummary.mockResolvedValue({ data: null, issue: "unavailable" });
   });
 
   afterEach(() => {

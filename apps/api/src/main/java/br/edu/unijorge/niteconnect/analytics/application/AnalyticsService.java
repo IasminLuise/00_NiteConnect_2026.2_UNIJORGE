@@ -30,7 +30,6 @@ import br.edu.unijorge.niteconnect.analytics.api.AnalyticsContracts.MetricCompar
 public class AnalyticsService {
     private static final List<String> B05_UNAVAILABLE = List.of("Evidências documentais e Diários de Bordo: indisponíveis (não há serviço Java B05 ativo)",
             "Estados históricos completos de projeto/atividade: indisponíveis quando não preservados como eventos ou snapshots na origem");
-    private static final List<String> FREQUENCY_COLUMNS = List.of("periodId","memberName","modality","kind","reviewStatus","periodStatus","startsAt","endsAt","secondsInRange");
     private static final List<String> ACTIVITY_COLUMNS = List.of("activityId","project","activity","executor","status","createdAt","dueOn","completedAt","overdueNow");
     private final AnalyticsRepository repository;
     private final AccessService access;
@@ -82,9 +81,8 @@ public class AnalyticsService {
     @Transactional(readOnly=true)
     public Dashboard ownDashboard(UUID actor, LocalDate from, LocalDate to) {
         access.requireActive(actor);
-        Report report=build(actor,ReportType.FREQUENCIA_PARTICIPACAO,from,to,null,actor,null,0,200,true);
         Report activities=build(actor,ReportType.ATIVIDADES_ENTREGAS,from,to,null,actor,null,0,200,true);
-        var result=dashboard(from,to,"integrante",report,null,actor);
+        var result=dashboard(from,to,"integrante",activities,null,actor);
         var indicators=new LinkedHashMap<>(result.indicators());
         indicators.put("activities",activities.total());
         indicators.putAll(repository.activityDashboardMetrics(null,actor,startOf(from),endOf(to)));
@@ -164,7 +162,7 @@ public class AnalyticsService {
         for(String name:before.keySet()) metrics.add(new MetricComparison(name,before.get(name),current.get(name),Math.subtractExact(current.get(name),before.get(name))));
         return new Comparison(baselineFrom,baselineTo,comparisonFrom,comparisonTo,clock.instant(),scope,List.copyOf(metrics),
                 List.of("Contagens de eventos de origem; não equivalem a indicadores de desempenho homologados.",
-                        "A consulta compara criação de atividades, eventos preservados e início de períodos; não reconstitui estados completos nem atribui horas pela conclusão de tarefas."));
+                        "A consulta compara criação de atividades e eventos preservados; não reconstitui estados completos nem atribui horas pela conclusão de tarefas."));
     }
 
     private void validateWindow(LocalDate from,LocalDate to) {
@@ -186,14 +184,8 @@ public class AnalyticsService {
     private Dashboard dashboard(LocalDate from,LocalDate to,String scope,Report report,UUID projectId,UUID memberId) {
         var indicators=new LinkedHashMap<String,Long>();
         indicators.put("recordsInPeriod",report.total());
-        if(report.type()!=ReportType.FREQUENCIA_PARTICIPACAO) {
-            indicators.putAll(repository.projectDashboardMetrics(projectId,memberId,startOf(from),endOf(to),null));
-        }
-        indicators.putAll(repository.participationDashboardMetrics(projectId,memberId,startOf(from),endOf(to)));
-        List<String> unavailable=report.type()==ReportType.FREQUENCIA_PARTICIPACAO
-                ?report.unavailableMetrics().stream().filter(value->!value.startsWith("A consulta retornou as primeiras ")).toList()
-                :report.unavailableMetrics();
-        return new Dashboard(from,to,report.generatedAt(),scope,Map.copyOf(indicators),report.columns(),report.rows(),unavailable);
+        indicators.putAll(repository.projectDashboardMetrics(projectId,memberId,startOf(from),endOf(to),null));
+        return new Dashboard(from,to,report.generatedAt(),scope,Map.copyOf(indicators),report.columns(),report.rows(),report.unavailableMetrics());
     }
 
     private Instant startOf(LocalDate date) { return date.atStartOfDay(clock.getZone()).toInstant(); }
@@ -201,7 +193,6 @@ public class AnalyticsService {
 
     private String criteria(ReportType type,LocalDate from,LocalDate to,ZoneId zone,String situation,Instant generated) {
         String periodSemantics=switch(type) {
-            case FREQUENCIA_PARTICIPACAO -> "períodos que se sobrepõem ao intervalo";
             case ATIVIDADES_ENTREGAS -> "atividades criadas no intervalo";
             case ACOMPANHAMENTO_PROJETOS -> "projetos no escopo autorizado, sem filtro pela criação; estado e saúde atuais na geração";
             case GERENCIAL_CONSOLIDADO -> "projetos no escopo autorizado, sem filtro pela criação; estado, equipe e atividades atuais na geração";
@@ -223,7 +214,6 @@ public class AnalyticsService {
         long total;
         List<String> unavailable=new ArrayList<>(B05_UNAVAILABLE);
         switch(type) {
-            case FREQUENCIA_PARTICIPACAO -> { columns=FREQUENCY_COLUMNS; all=repository.participation(projectId,memberId,start,end,situation); total=repository.countParticipation(projectId,memberId,start,end,situation); }
             case ATIVIDADES_ENTREGAS -> { columns=ACTIVITY_COLUMNS; all=repository.activities(projectId,memberId,start,end,situation); total=repository.countActivities(projectId,memberId,start,end,situation); }
             case ACOMPANHAMENTO_PROJETOS, GERENCIAL_CONSOLIDADO -> {
                 var source=repository.projects(projectId,memberId,start,end,situation);
@@ -239,12 +229,9 @@ public class AnalyticsService {
             }
             default -> throw ApiException.invalid("Modelo de relatório não suportado");
         }
-        if(type==ReportType.FREQUENCIA_PARTICIPACAO && projectId!=null)
-            unavailable.add("Registros de presença sem atividade vinculada não possuem relação de projeto e são omitidos desta consulta");
         if(type==ReportType.GERENCIAL_CONSOLIDADO && memberId!=null)
             unavailable.add("A situação atual do projeto e das atividades não é reconstruída para a data de cada vínculo histórico");
         int sourceLimit=switch(type) {
-            case FREQUENCIA_PARTICIPACAO -> 2000;
             case ATIVIDADES_ENTREGAS -> 1000;
             case ACOMPANHAMENTO_PROJETOS,GERENCIAL_CONSOLIDADO -> 200;
         };
@@ -264,7 +251,6 @@ public class AnalyticsService {
     private void validateSituation(ReportType type,String situation) {
         if(situation==null)return;
         List<String> allowed=switch(type) {
-            case FREQUENCIA_PARTICIPACAO -> List.of("PENDENTE","APROVADA","RECUSADA");
             case ATIVIDADES_ENTREGAS -> List.of("PLANEJADA","EM_EXECUCAO","CONCLUIDA","CANCELADA");
             case ACOMPANHAMENTO_PROJETOS,GERENCIAL_CONSOLIDADO -> List.of("PLANEJAMENTO","ATIVO","PAUSADO","CONCLUIDO");
         };

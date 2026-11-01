@@ -1,5 +1,7 @@
 # Auditoria técnica — Bloco 05: Gestão Documental e Diário de Bordo
 
+> **Registro histórico:** descreve o checkout auditado em 30/10/2026. As referências a horas, justificativas ou frequência do B04 refletem o contrato anterior e não são requisitos ativos após a decisão de substituição de 01/11/2026. Consultar os documentos B04/B07 ativos em [`docs/implementation`](../implementation/bloco-04.md).
+
 **Data da auditoria:** 2026-10-30
 **Checkout:** `main`, commit `4988778db72543ce6fabfd2391dd2779b0066e13` (`2026-10-29`, merge de `main`).
 **Estado observado antes da auditoria:** `main...origin/main`; a única alteração não rastreada era a pasta `docs/auditorias/`, que já continha `bloco-07-contratos.md`. O relatório do B07 não foi editado; seu SHA-256 antes e depois foi conferido como `E254972755D3968AE10DF031E14ACAB3D986A4466DDBD06852E81E31BB1FCB00`. Este arquivo é a única adição desta tarefa.

@@ -1,5 +1,7 @@
 # Auditoria técnica — Contratos dos Blocos 00–06 para o Bloco 07
 
+> **Registro histórico:** descreve o checkout auditado em 30/10/2026. A decisão de substituição B04 de 01/11/2026 descontinuou os contratos de horas, resumos de participação, justificativas e revisões descritos neste relatório. Para requisitos ativos, consultar [`bloco-04.md`](../implementation/bloco-04.md), [`bloco-04-api.md`](../implementation/bloco-04-api.md) e [`bloco-07-api.md`](../implementation/bloco-07-api.md).
+
 **Repositório auditado:** `D:\nite-connect`, branch `main`, commit `4988778db72543ce6fabfd2391dd2779b0066e13` (30/10/2026).
 **Referência funcional adicional:** Adendo à Especificação Funcional — Bloco 07: Regras Institucionais, Participação e Governança, fornecido pelo solicitante; decisões consolidadas e detalhamentos reservados na seção 9 do adendo.
 **Escopo:** código Java da API, migrações Flyway, contratos HTTP, registros de execução/testes versionados no repositório e compatibilidade com o adendo.

@@ -7,7 +7,7 @@ import java.util.Map;
 
 public final class AnalyticsContracts {
     private AnalyticsContracts() {}
-    public enum ReportType { FREQUENCIA_PARTICIPACAO, ATIVIDADES_ENTREGAS, ACOMPANHAMENTO_PROJETOS, GERENCIAL_CONSOLIDADO }
+    public enum ReportType { ATIVIDADES_ENTREGAS, ACOMPANHAMENTO_PROJETOS, GERENCIAL_CONSOLIDADO }
     public enum ExportFormat { CSV, PDF }
     public record Report(ReportType type, LocalDate from, LocalDate to, Instant generatedAt,
                          String criteria, List<String> columns, List<List<String>> rows,

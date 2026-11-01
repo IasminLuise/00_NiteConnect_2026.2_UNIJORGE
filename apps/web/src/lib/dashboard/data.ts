@@ -5,10 +5,8 @@ import type { ApiResult } from "../api/contracts";
 import {
   parseDashboard,
   parseDashboardHistory,
-  parseParticipationWeeklySummary,
   type DashboardHistory,
   type DashboardResponse,
-  type ParticipationWeeklySummary,
 } from "./contracts";
 
 export type { ApiResult };
@@ -27,11 +25,6 @@ export async function getDashboard(
       ? `/api/v1/analytics/dashboard?${query}`
       : `/api/v1/projects/${encodeURIComponent(projectId ?? "")}/dashboard?${query}`;
   return getApiJson(path, bearer, parseDashboard);
-}
-
-export async function getParticipationWeeklySummary(bearer: string, from: string, to: string): Promise<ApiResult<ParticipationWeeklySummary>> {
-  const query = new URLSearchParams({ from, to });
-  return getApiJson(`/api/v1/me/participation-weekly-summary?${query}`, bearer, parseParticipationWeeklySummary);
 }
 
 export async function getDashboardHistory(

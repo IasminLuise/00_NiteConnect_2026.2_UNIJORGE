@@ -3,7 +3,6 @@ package br.edu.unijorge.niteconnect;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import java.time.LocalDate;
-import java.util.UUID;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -26,31 +25,20 @@ class AnalyticsTest extends ProjectTestSupport {
     }
 
     @Test
-    void administrativeDashboardParticipationIndicatorsIncludeRecordsBeyondReportRowLimit() throws Exception {
+    void administrativeDashboardDoesNotExposeRetiredWorkHourIndicators() throws Exception {
         jdbc.update("""
                 insert into nite_connect.participation_periods
                     (id,member_id,kind,modality,starts_at,ends_at,description,origin,review_status)
-                select gen_random_uuid(), (array[?,?,?,?]::uuid[])[((n-1)%4)+1], 'WORK_LOG','REMOTA',
-                       clock_timestamp()-interval '30 days'+n*interval '15 minutes',
-                       clock_timestamp()-interval '30 days'+n*interval '15 minutes'+interval '5 minutes',
-                       'Registro de teste','DECLARATION','PENDENTE'
-                from generate_series(1,2001) n
-                """, ADMIN, LEADER, MEMBER, OTHER);
-        for(UUID memberId:java.util.List.of(LEADER,OTHER)) {
-            jdbc.update("""
-                    insert into nite_connect.participation_periods
-                        (id,member_id,kind,modality,starts_at,ends_at,description,origin,review_status)
-                    select gen_random_uuid(),?,'WORK_LOG','REMOTA',span.starts_at,span.starts_at+interval '0.4 seconds',
-                           'Registro fracionário de teste','DECLARATION','PENDENTE'
-                    from (select clock_timestamp()-interval '30 days' starts_at) span
-                    """, memberId);
-        }
+                values (gen_random_uuid(),?,'WORK_LOG','REMOTA',clock_timestamp()-interval '30 days',
+                        clock_timestamp()-interval '30 days'+interval '5 minutes','Legacy test data','DECLARATION','PENDENTE')
+                """, MEMBER);
 
         mvc.perform(get("/api/v1/analytics/dashboard").queryParam("from",LocalDate.now().minusDays(31).toString())
                         .queryParam("to",LocalDate.now().toString()).with(token(ADMIN)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$['indicators']['participation.pendente']").value(2003))
-                .andExpect(jsonPath("$['indicators']['participation.remota.seconds']").value(600300));
+                .andExpect(jsonPath("$['indicators']['participation.pendente']").doesNotExist())
+                .andExpect(jsonPath("$['indicators']['participation.remota.seconds']").doesNotExist())
+                .andExpect(jsonPath("$['indicators']['validatedSeconds']").doesNotExist());
     }
 
     @Test
@@ -129,9 +117,9 @@ class AnalyticsTest extends ProjectTestSupport {
     }
 
     @Test
-    void allFourAdministrativeReportModelsShareFiltersAndAuthorization() throws Exception {
+    void activeAdministrativeReportModelsShareFiltersAndAuthorization() throws Exception {
         project();
-        for(String model:java.util.List.of("FREQUENCIA_PARTICIPACAO","ATIVIDADES_ENTREGAS","ACOMPANHAMENTO_PROJETOS","GERENCIAL_CONSOLIDADO")) {
+        for(String model:java.util.List.of("ATIVIDADES_ENTREGAS","ACOMPANHAMENTO_PROJETOS","GERENCIAL_CONSOLIDADO")) {
             mvc.perform(get("/api/v1/analytics/reports/"+model)
                             .queryParam("from",LocalDate.now().minusDays(2).toString())
                             .queryParam("to",LocalDate.now().plusDays(2).toString())
@@ -144,6 +132,10 @@ class AnalyticsTest extends ProjectTestSupport {
                             .queryParam("format","CSV").with(token(MEMBER)))
                     .andExpect(status().isForbidden());
         }
+        mvc.perform(get("/api/v1/analytics/reports/FREQUENCIA_PARTICIPACAO")
+                        .queryParam("from",LocalDate.now().minusDays(2).toString())
+                        .queryParam("to",LocalDate.now().plusDays(2).toString()).with(token(ADMIN)))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -152,7 +144,7 @@ class AnalyticsTest extends ProjectTestSupport {
         mvc.perform(get("/api/v1/analytics/comparison")
                         .queryParam("baselineFrom","2026-10-20").queryParam("baselineTo","2026-10-26")
                         .queryParam("comparisonFrom","2026-10-27").queryParam("comparisonTo","2026-11-02").with(token(ADMIN)))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.metrics.length()").value(4))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.metrics.length()").value(3))
                 .andExpect(jsonPath("$.unavailableMetrics[0]").value(org.hamcrest.Matchers.containsString("não equivalem")));
         mvc.perform(get("/api/v1/analytics/comparison")
                         .queryParam("baselineFrom","2026-10-20").queryParam("baselineTo","2026-10-26")

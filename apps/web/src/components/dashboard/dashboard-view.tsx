@@ -2,16 +2,15 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { Button, Surface } from "../ui";
 import type { ApiResult } from "../../lib/api/contracts";
-import { formatDuration, type DashboardHistory, type DashboardResponse, type ParticipationWeeklySummary } from "../../lib/dashboard/contracts";
+import type { DashboardHistory, DashboardResponse } from "../../lib/dashboard/contracts";
 
 type Scope = "personal" | "project" | "institutional";
 type Tone = "neutral" | "brand" | "done" | "warning" | "error";
-type Metric = { key: string; label: string; detail: string; href: string; tone: Tone; format?: "duration" };
+type Metric = { key: string; label: string; detail: string; href: string; tone: Tone };
 type DashboardViewProps = {
   viewSelector?: ReactNode;
   result: ApiResult<DashboardResponse>;
   historyResult: ApiResult<DashboardHistory> | null;
-  weeklyResult: ApiResult<ParticipationWeeklySummary> | null;
   scope: Scope;
   scopeLabel: string;
   contextValue: string;
@@ -72,25 +71,13 @@ function date(value: string): string {
   return new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Bahia", day: "2-digit", month: "short", year: "numeric" }).format(parsed);
 }
 
-function dateRange(from: string, to: string): string {
-  const start = new Date(`${from}T12:00:00`);
-  const end = new Date(`${to}T12:00:00`);
-  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return `${date(from)} – ${date(to)}`;
-  const monthYear = new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Bahia", month: "short", year: "numeric" });
-  if (monthYear.format(start) === monthYear.format(end)) {
-    const day = new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Bahia", day: "2-digit" });
-    return `${day.format(start)}–${day.format(end)} ${monthYear.format(end)}`;
-  }
-  return `${date(from)} – ${date(to)}`;
-}
-
 function metricCards(scope: Scope, indicators: Record<string, number>): Metric[] {
   const candidates: Metric[] = scope === "personal"
     ? [
         { key: "overdueActivitiesNow", label: "Atividades atrasadas", detail: "Criadas no período; atrasadas agora", href: "#records", tone: indicators.overdueActivitiesNow > 0 ? "error" : "neutral" },
-        { key: "participation.pendente", label: "Aguardando revisão", detail: "Registros no período", href: "#participation", tone: indicators["participation.pendente"] > 0 ? "warning" : "neutral" },
         { key: "activities.em_execucao", label: "Em execução", detail: "Criadas no período; situação atual", href: "#records", tone: indicators["activities.em_execucao"] > 0 ? "brand" : "neutral" },
-        { key: "validatedSeconds", label: "Participação validada", detail: "No período selecionado", href: "#participation", tone: "neutral", format: "duration" },
+        { key: "activities.concluida", label: "Concluídas", detail: "Criadas no período; situação atual", href: "#records", tone: indicators["activities.concluida"] > 0 ? "done" : "neutral" },
+        { key: "activities.planejada", label: "Planejadas", detail: "Criadas no período; situação atual", href: "#records", tone: "neutral" },
       ]
     : [
         { key: "projects", label: "Projetos no escopo", detail: scope === "project" ? "Projeto selecionado" : "Situação atual", href: "#records", tone: "neutral" },
@@ -101,24 +88,23 @@ function metricCards(scope: Scope, indicators: Record<string, number>): Metric[]
   return candidates.filter(({ key }) => Object.hasOwn(indicators, key));
 }
 
-function metricValue(metric: Metric, value: number): string {
-  return metric.format === "duration" ? formatDuration(value) : number(value);
+function metricValue(value: number): string {
+  return number(value);
 }
 
-function missingPriorityMessage(scope: Scope, indicators: Record<string, number>): string | null {
+function missingPriorityMessage(indicators: Record<string, number>): string | null {
   const missing = [
     indicators.overdueActivitiesNow === undefined ? "atividades atrasadas" : null,
-    scope !== "project" && indicators["participation.pendente"] === undefined ? "registros aguardando revisão" : null,
   ].filter((message): message is string => message !== null);
   if (missing.length === 0) return null;
   return `Não foi possível verificar ${missing.join(" e ")} nesta consulta.`;
 }
 
 export function priorityEmptyMessage(scope: Scope, indicators: Record<string, number>, hasRows = true): string {
-  const missing = missingPriorityMessage(scope, indicators);
+  const missing = missingPriorityMessage(indicators);
   if (missing) return missing;
   if (!hasRows) return scope === "personal"
-    ? "Não há atividades exibidas neste recorte. Consulte os indicadores de participação abaixo."
+    ? "Não há atividades exibidas neste recorte."
     : "Não há projetos exibidos neste recorte para resumir as pendências.";
   return "Nenhuma pendência identificada nos dados consultados.";
 }
@@ -126,19 +112,16 @@ export function priorityEmptyMessage(scope: Scope, indicators: Record<string, nu
 function PriorityPanel({ data, scope }: { data: DashboardResponse; scope: Scope }) {
   const { indicators } = data;
   const overdue = indicators.overdueActivitiesNow;
-  const pending = indicators["participation.pendente"];
   const hasOverdue = overdue !== undefined && overdue > 0;
-  const hasPending = scope !== "project" && pending !== undefined && pending > 0;
-  const missing = missingPriorityMessage(scope, indicators);
+  const missing = missingPriorityMessage(indicators);
   return <section id="priorities" aria-labelledby="priorities-heading" className="min-w-0 scroll-mt-24">
     <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
       <h2 id="priorities-heading" className="font-display text-type-section-title text-nite-text-primary">Precisa de atenção</h2>
-      {hasOverdue || hasPending ? <ul className="flex min-w-0 flex-wrap gap-x-5 gap-y-2 text-type-body-compact">
+      {hasOverdue ? <ul className="flex min-w-0 flex-wrap gap-x-5 gap-y-2 text-type-body-compact">
         {hasOverdue ? <li><Link href="#records" className="inline-flex items-center gap-2 rounded-control text-nite-text-primary hover:text-status-error focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-nite-focus"><span className="size-2 shrink-0 rounded-full bg-status-error" aria-hidden="true" /><span>{number(overdue)} {overdue === 1 ? "atividade atrasada" : "atividades atrasadas"}</span><span className="text-type-metadata text-nite-text-muted">{scope === "personal" ? "Ver atividades" : scope === "project" ? "Ver projeto" : "Ver projetos"}</span></Link></li> : null}
-        {hasPending ? <li><Link href="#participation" className="inline-flex items-center gap-2 rounded-control text-nite-text-primary hover:text-status-warning focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-nite-focus"><span className="size-2 shrink-0 rounded-full bg-status-warning" aria-hidden="true" /><span>{number(pending)} {pending === 1 ? "registro aguarda revisão" : "registros aguardam revisão"}</span><span className="text-type-metadata text-nite-text-muted">Ver participação</span></Link></li> : null}
       </ul> : <p className="text-type-body-compact text-nite-text-secondary">{priorityEmptyMessage(scope, indicators, data.rows.length > 0)}</p>}
     </div>
-    {missing && (hasOverdue || hasPending) ? <p role="status" className="mt-2 text-type-metadata text-status-warning">{missing}</p> : null}
+    {missing && hasOverdue ? <p role="status" className="mt-2 text-type-metadata text-status-warning">{missing}</p> : null}
   </section>;
 }
 
@@ -234,86 +217,6 @@ function RecordsTable({ data, scope, query }: { data: DashboardResponse; scope: 
   </section>;
 }
 
-function durationTone(key: string, value: number): Tone {
-  if (key === "validatedSeconds" || key === "participation.aprovada") return "neutral";
-  if (key === "participation.pendente") return value > 0 ? "warning" : "neutral";
-  if (key === "participation.recusada") return value > 0 ? "error" : "neutral";
-  return "neutral";
-}
-
-function WeeklyParticipationPanel({ summary }: { summary: ParticipationWeeklySummary }) {
-  const modalities = [
-    { key: "presential", label: "Presencial", value: summary.modalities.presential },
-    { key: "remote", label: "Remota", value: summary.modalities.remote },
-  ];
-  const timeZone = summary.zone === "America/Bahia" ? "Horário da Bahia" : summary.zone;
-  const applicablePolicy = summary.loadPolicy.applicableToWeek;
-  const plannedPolicy = summary.loadPolicy.plannedConfiguration;
-  const policyMessage = applicablePolicy
-    ? `Política de carga v${applicablePolicy.version} vigente nesta semana.`
-    : summary.loadPolicy.status === "SEM_POLITICA_APLICAVEL"
-      ? plannedPolicy?.status === "SEM_VIGENCIA_DEFINIDA"
-        ? `Política v${plannedPolicy.version} de ${plannedPolicy.presentialHours}h presenciais e ${plannedPolicy.remoteHours}h remotas aprovada para ${plannedPolicy.intendedSemester ?? "vigência futura"}; aguarda a data oficial. Não há exigência nem saldo para esta semana.`
-        : plannedPolicy && plannedPolicy.effectiveFrom
-          ? `Política v${plannedPolicy.version} de ${plannedPolicy.presentialHours}h presenciais e ${plannedPolicy.remoteHours}h remotas ${plannedPolicy.status === "ATIVADA_PARA_FUTURO" ? "ativada" : "aprovada, aguardando ativação"} para ${date(plannedPolicy.effectiveFrom)}; ainda não aplicável a esta semana. Exigência e saldo não são exibidos.`
-          : `Parâmetros institucionais confirmados: ${summary.loadPolicy.institutionalConfirmation.presentialHours}h presenciais e ${summary.loadPolicy.institutionalConfirmation.remoteHours}h remotas. Não há política aplicável a esta semana; exigência e saldo não são exibidos.`
-      : "A configuração não cobre integralmente esta semana; exigência e saldo não são exibidos.";
-  return <section id="participation" aria-labelledby="participation-heading" className="min-w-0 scroll-mt-24">
-    <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-      <h2 id="participation-heading" className="font-display text-type-component-title text-nite-text-primary">Minha participação no período</h2>
-      <span className="text-type-metadata text-nite-text-muted">{dateRange(summary.weekStart, summary.weekEnd)} · {timeZone}</span>
-    </div>
-    <p className="mb-3 text-type-metadata text-nite-text-muted">{policyMessage}</p>
-    <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
-      {modalities.map(({ key, label, value }) => <Surface key={key} padding="compact">
-        <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-nite-border-soft pb-3">
-          <h3 className="font-display text-type-body-compact font-semibold text-nite-text-primary">{label}</h3>
-          <span className="text-type-metadata text-nite-text-muted">{applicablePolicy ? "Horas após dispensas" : "Participação registrada"}</span>
-        </div>
-        <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-3 min-[420px]:grid-cols-3">
-          {applicablePolicy && value.requiredSeconds !== null ? <div><dt className="text-type-metadata text-nite-text-muted">Exigido</dt><dd className="mt-1 text-type-body-compact font-semibold tabular-nums text-nite-text-primary">{formatDuration(value.requiredSeconds)}</dd></div> : null}
-          <div><dt className="text-type-metadata text-nite-text-muted">Validado</dt><dd className="mt-1 text-type-body-compact font-semibold tabular-nums text-nite-text-primary">{formatDuration(value.validatedSeconds)}</dd></div>
-          {applicablePolicy && value.remainingSeconds !== null ? <div><dt className="text-type-metadata text-nite-text-muted">Saldo</dt><dd className="mt-1 text-type-body-compact font-semibold tabular-nums text-nite-text-primary">{formatDuration(value.remainingSeconds)}</dd></div> : null}
-          <div><dt className="text-type-metadata text-nite-text-muted">Registrado</dt><dd className="mt-1 text-type-body-compact tabular-nums text-nite-text-secondary">{formatDuration(value.registeredSeconds)}</dd></div>
-          <div><dt className="text-type-metadata text-nite-text-muted">Pendente</dt><dd className={`mt-1 text-type-body-compact tabular-nums ${value.pendingSeconds > 0 ? "text-status-warning" : "text-nite-text-secondary"}`}>{formatDuration(value.pendingSeconds)}</dd></div>
-          <div><dt className="text-type-metadata text-nite-text-muted">Recusado</dt><dd className={`mt-1 text-type-body-compact tabular-nums ${value.refusedSeconds > 0 ? "text-status-error" : "text-nite-text-secondary"}`}>{formatDuration(value.refusedSeconds)}</dd></div>
-        </dl>
-        {value.openPeriods > 0 ? <p className="mt-3 border-t border-nite-border-soft pt-3 text-type-metadata text-nite-text-muted">{number(value.openPeriods)} {value.openPeriods === 1 ? "período segue" : "períodos seguem"} em aberto; a duração ainda não foi consolidada.</p> : null}
-      </Surface>)}
-    </div>
-    <p className="mt-2 text-type-metadata text-nite-text-muted">Dispensas reconhecidas reduzem as horas exigidas. Elas não contam como horas trabalhadas.</p>
-  </section>;
-}
-
-function ParticipationPanel({ indicators, weeklyResult, scope }: { indicators: Record<string, number>; weeklyResult: ApiResult<ParticipationWeeklySummary> | null; scope: Scope }) {
-  if (scope === "personal" && weeklyResult?.data) return <WeeklyParticipationPanel summary={weeklyResult.data} />;
-  const candidates: Metric[] = [
-    { key: "participation.presencial.seconds", label: "Presencial registrada", detail: "Horas no período", href: "#participation", tone: "neutral", format: "duration" },
-    { key: "participation.remota.seconds", label: "Remota registrada", detail: "Horas no período", href: "#participation", tone: "neutral", format: "duration" },
-    { key: "validatedSeconds", label: "Horas validadas", detail: "Períodos aprovados", href: "#participation", tone: "done", format: "duration" },
-    { key: "participation.pendente", label: "Aguardando revisão", detail: "Registros no período", href: "#participation", tone: "warning" },
-    { key: "participation.aprovada", label: "Registros aprovados", detail: "No período selecionado", href: "#participation", tone: "done" },
-    { key: "participation.recusada", label: "Registros recusados", detail: "No período selecionado", href: "#participation", tone: "error" },
-  ];
-  const items = candidates.filter(({ key }) => Object.hasOwn(indicators, key));
-  if (scope === "project" && items.length === 0) return null;
-  const title = scope === "personal" ? "Minha participação no período" : scope === "project" ? "Participação no projeto" : "Frequência e participação";
-  const unavailable = scope === "personal" && weeklyResult?.issue;
-  return <section id="participation" aria-labelledby="participation-heading" className="min-w-0 scroll-mt-24">
-    <h2 id="participation-heading" className="mb-3 font-display text-type-component-title text-nite-text-primary">{title}</h2>
-    {items.length === 0 ? <p role={unavailable ? "status" : undefined} className={`rounded-control border px-4 py-3 text-type-body-compact ${unavailable ? "border-status-warning-border bg-status-warning-soft text-status-warning" : "border-nite-border-soft bg-nite-surface text-nite-text-secondary"}`}>
-      {unavailable ? "Não foi possível consultar sua participação nesta semana." : scope === "personal" ? "O resumo semanal aparece quando o período selecionado contém sete dias consecutivos." : "Os dados de participação não estão disponíveis neste escopo."}
-    </p> : <div className="grid min-w-0 grid-cols-1 gap-px overflow-hidden rounded-panel border border-nite-border-soft bg-nite-border-soft sm:grid-cols-2 xl:grid-cols-3">
-      {items.map((item) => <div key={item.key} className="min-w-0 bg-nite-surface px-3 py-3">
-        <p className="text-type-metadata text-nite-text-secondary">{item.label}</p>
-        <p className={`mt-1 font-display text-type-metric tabular-nums ${toneClasses[durationTone(item.key, indicators[item.key])]}`}>{metricValue(item, indicators[item.key])}</p>
-        <p className="mt-1 text-type-metadata text-nite-text-muted">{item.detail}</p>
-      </div>)}
-    </div>}
-    {unavailable && items.length > 0 ? <p role="status" className="mt-2 text-type-metadata text-status-warning">O resumo desta semana não está disponível; os valores exibidos cobrem o período selecionado.</p> : null}
-  </section>;
-}
-
 const eventLabels: Record<string, string> = {
   STATUS_CHANGED: "Situação alterada",
   CREATED: "Atividade criada",
@@ -372,7 +275,7 @@ function RecentEvents({ result }: { result: ApiResult<DashboardHistory> | null }
   </section>;
 }
 
-export function DashboardView({ viewSelector, result, historyResult, weeklyResult, scope, scopeLabel, contextValue, from, to, search }: DashboardViewProps) {
+export function DashboardView({ viewSelector, result, historyResult, scope, scopeLabel, contextValue, from, to, search }: DashboardViewProps) {
   if (result.issue) {
     const accessDenied = result.issue === "access";
     const title = accessDenied ? "Este espaço não está disponível" : result.issue === "invalid" ? "Não foi possível validar os dados" : "Não foi possível carregar o painel";
@@ -402,8 +305,6 @@ export function DashboardView({ viewSelector, result, historyResult, weeklyResul
   const cards = metricCards(scope, data.indicators);
   const generated = date(data.generatedAt);
   const showActivityBars = activityStatuses.some(([key]) => Object.hasOwn(data.indicators, key));
-  const hasParticipationMetrics = ["participation.presencial.seconds", "participation.remota.seconds", "validatedSeconds", "participation.pendente", "participation.aprovada", "participation.recusada"].some((key) => Object.hasOwn(data.indicators, key));
-  const showParticipation = scope !== "project" || hasParticipationMetrics;
   const title = scope === "project" ? "Acompanhamento do projeto" : scopeLabel;
   return <div className="grid min-w-0 gap-6">
     <section id="overview" aria-labelledby="dashboard-heading" className="min-w-0 scroll-mt-24 border-b border-nite-border-soft pb-5">
@@ -430,16 +331,13 @@ export function DashboardView({ viewSelector, result, historyResult, weeklyResul
       {cards.length > 0 ? <div className="grid min-w-0 grid-cols-1 gap-2 min-[560px]:grid-cols-2 xl:grid-cols-4">
         {cards.map((card) => <Link key={card.key} href={card.href} className="min-w-0 rounded-panel border border-nite-border-soft bg-nite-surface px-3 py-3 transition-colors hover:bg-nite-surface-focus focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-nite-focus sm:px-4">
           <p className="truncate text-type-body-compact font-medium text-nite-text-secondary">{card.label}</p>
-          <p className={`mt-1 font-display text-type-metric tabular-nums ${toneClasses[card.tone]}`}>{metricValue(card, data.indicators[card.key])}</p>
+          <p className={`mt-1 font-display text-type-metric tabular-nums ${toneClasses[card.tone]}`}>{metricValue(data.indicators[card.key])}</p>
           <p className="mt-1 truncate text-type-metadata text-nite-text-muted">{card.detail}</p>
         </Link>)}
       </div> : <p className="rounded-control border border-nite-border-soft bg-nite-surface px-4 py-3 text-type-body-compact text-nite-text-secondary">Os indicadores deste espaço não estão disponíveis.</p>}
     </section>
 
-    {showActivityBars || showParticipation ? <div className={`grid min-w-0 gap-4 ${showActivityBars && showParticipation ? "xl:grid-cols-12" : ""}`}>
-      {showActivityBars ? <div className={showParticipation ? "min-w-0 xl:col-span-5" : "min-w-0"}><ActivityBars indicators={data.indicators} /></div> : null}
-      {showParticipation ? <div className={showActivityBars ? "min-w-0 xl:col-span-7" : "min-w-0"}><ParticipationPanel indicators={data.indicators} weeklyResult={weeklyResult} scope={scope} /></div> : null}
-    </div> : null}
+    {showActivityBars ? <ActivityBars indicators={data.indicators} /> : null}
 
     <RecordsTable data={data} scope={scope} query={search} />
     <RecentEvents result={historyResult} />

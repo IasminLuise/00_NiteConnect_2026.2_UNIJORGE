@@ -55,9 +55,9 @@ export function buildAuthenticatedNavigationGroups(options: NavigationOptions): 
       defaultOpen: true,
       items: [
         { label: "Minhas atividades", icon: "activity", href: "/atividades" },
-        { label: "Minha participação", icon: "clock", href: "/participacao" },
         planned("Meus projetos", "projects"),
         planned("Agenda", "calendar"),
+        planned("Frequência", "attendance"),
       ],
     },
   ];
@@ -83,7 +83,7 @@ export function buildAuthenticatedNavigationGroups(options: NavigationOptions): 
         items: [
           planned("Projetos", "projects"),
           planned("Atividades e entregas", "activity"),
-          planned("Frequência e revisões", "attendance"),
+          planned("Frequência coletiva", "attendance"),
           planned("Relatórios", "report"),
         ],
       },

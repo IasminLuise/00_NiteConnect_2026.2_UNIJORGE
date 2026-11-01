@@ -45,40 +45,6 @@ public class AnalyticsRepository {
         return jdbc.queryForObject("select count(*) from nite_connect.activities a join nite_connect.activity_assignments x on x.activity_id=a.id and x.role='EXECUTOR' and x.ended_at is null"+where,Long.class,args.toArray());
     }
 
-    public List<List<String>> participation(UUID projectId, UUID memberId, Instant from, Instant to,String status) {
-        StringBuilder where = new StringBuilder(" where p.starts_at < ? and (p.ends_at is null or p.ends_at > ?)");
-        var args = new ArrayList<Object>(List.of(Timestamp.from(to), Timestamp.from(from)));
-        if (projectId != null) { where.append(" and a.project_id=?"); args.add(projectId); }
-        if (memberId != null) { where.append(" and p.member_id=?"); args.add(memberId); }
-        if (status != null) { where.append(" and p.review_status=?"); args.add(status); }
-        var sqlArgs=new ArrayList<Object>();sqlArgs.addAll(args);
-        var queryArgs=new ArrayList<Object>();queryArgs.add(Timestamp.from(to));queryArgs.add(Timestamp.from(from));queryArgs.addAll(sqlArgs);
-        return jdbc.query("""
-                select p.id::text,m.name,p.modality,p.kind,p.review_status,
-                       case when p.ends_at is null then 'ABERTO' when p.review_status='APROVADA' then 'VALIDADO'
-                            when p.review_status='RECUSADA' then 'RECUSADO' when p.kind='WORK_LOG' then 'DECLARADO'
-                            else 'PENDENTE' end period_status,p.starts_at::text,coalesce(p.ends_at::text,''),
-                       case when p.ends_at is null then '0' else
-                         greatest(0,extract(epoch from (least(p.ends_at,?)-greatest(p.starts_at,?))))::bigint::text end
-                from nite_connect.participation_periods p
-                join nite_connect.members m on m.id=p.member_id
-                left join nite_connect.attendance_records ar on ar.id=p.attendance_id
-                left join nite_connect.calendar_events e on e.id=ar.event_id
-                left join nite_connect.activities a on a.id=p.activity_id
-                """ + where + " and (p.attendance_id is null or e.status<>'CANCELADO') order by p.starts_at,p.id limit 2000",
-                (rs, row) -> List.of(rs.getString(1),rs.getString(2),rs.getString(3),rs.getString(4),rs.getString(5),rs.getString(6),rs.getString(7),rs.getString(8),rs.getString(9)),
-                queryArgs.toArray());
-    }
-
-    public long countParticipation(UUID projectId,UUID memberId,Instant from,Instant to,String status) {
-        StringBuilder where=new StringBuilder(" where p.starts_at<? and (p.ends_at is null or p.ends_at>?)");
-        var args=new ArrayList<Object>(List.of(Timestamp.from(to),Timestamp.from(from)));
-        if(projectId!=null){where.append(" and a.project_id=?");args.add(projectId);}
-        if(memberId!=null){where.append(" and p.member_id=?");args.add(memberId);}
-        if(status!=null){where.append(" and p.review_status=?");args.add(status);}
-        return jdbc.queryForObject("select count(*) from nite_connect.participation_periods p left join nite_connect.activities a on a.id=p.activity_id left join nite_connect.attendance_records ar on ar.id=p.attendance_id left join nite_connect.calendar_events e on e.id=ar.event_id"+where+" and (p.attendance_id is null or e.status<>'CANCELADO')",Long.class,args.toArray());
-    }
-
     public List<List<String>> projects(UUID projectId, UUID memberId, Instant from, Instant to,String status) {
         StringBuilder where = new StringBuilder(" where true");
         var args = new ArrayList<Object>();
@@ -107,42 +73,6 @@ public class AnalyticsRepository {
         if(memberId!=null){where.append(" and exists(select 1 from nite_connect.project_memberships pm where pm.project_id=p.id and pm.member_id=? and pm.started_at<? and (pm.ended_at is null or pm.ended_at>=?))");args.add(memberId);args.add(Timestamp.from(to));args.add(Timestamp.from(from));}
         if(status!=null){where.append(" and p.status=?");args.add(status);}
         return jdbc.queryForObject("select count(*) from nite_connect.projects p"+where,Long.class,args.toArray());
-    }
-
-    public Map<String,Long> participationDashboardMetrics(UUID projectId,UUID memberId,Instant from,Instant to) {
-        StringBuilder where=new StringBuilder(" where p.starts_at<? and (p.ends_at is null or p.ends_at>?)");
-        var args=new ArrayList<Object>(List.of(Timestamp.from(to),Timestamp.from(from)));
-        if(projectId!=null){where.append(" and a.project_id=?");args.add(projectId);}
-        if(memberId!=null){where.append(" and p.member_id=?");args.add(memberId);}
-        var sqlArgs=new ArrayList<Object>();
-        for(int i=0;i<4;i++){sqlArgs.add(Timestamp.from(to));sqlArgs.add(Timestamp.from(from));}
-        sqlArgs.addAll(args);
-        return jdbc.queryForObject("""
-                select count(*) filter(where p.ends_at is not null and p.review_status='PENDENTE')::bigint pending,
-                       count(*) filter(where p.ends_at is not null and p.review_status='APROVADA')::bigint approved,
-                       count(*) filter(where p.ends_at is not null and p.review_status='RECUSADA')::bigint rejected,
-                       count(*) filter(where p.ends_at is null)::bigint open,
-                       coalesce(sum(greatest(0,extract(epoch from (least(p.ends_at,?)-greatest(p.starts_at,?))))::bigint)
-                           filter(where p.ends_at is not null and p.modality='PRESENCIAL'),0)::bigint presential_seconds,
-                       coalesce(sum(greatest(0,extract(epoch from (least(p.ends_at,?)-greatest(p.starts_at,?))))::bigint)
-                           filter(where p.ends_at is not null and p.modality='REMOTA'),0)::bigint remote_seconds,
-                       coalesce(sum(greatest(0,extract(epoch from (least(p.ends_at,?)-greatest(p.starts_at,?))))::bigint)
-                           filter(where p.ends_at is not null and p.modality='PRESENCIAL' and p.review_status='APROVADA'),0)::bigint validated_presential_seconds,
-                       coalesce(sum(greatest(0,extract(epoch from (least(p.ends_at,?)-greatest(p.starts_at,?))))::bigint)
-                           filter(where p.ends_at is not null and p.modality='REMOTA' and p.review_status='APROVADA'),0)::bigint validated_remote_seconds
-                from nite_connect.participation_periods p
-                left join nite_connect.attendance_records ar on ar.id=p.attendance_id
-                left join nite_connect.calendar_events e on e.id=ar.event_id
-                left join nite_connect.activities a on a.id=p.activity_id
-                """+where+" and (p.attendance_id is null or e.status<>'CANCELADO')", (rs,row)->Map.of(
-                "participation.pendente",rs.getLong("pending"),
-                "participation.aprovada",rs.getLong("approved"),
-                "participation.recusada",rs.getLong("rejected"),
-                "participation.open",rs.getLong("open"),
-                "participation.presencial.seconds",rs.getLong("presential_seconds"),
-                "participation.remota.seconds",rs.getLong("remote_seconds"),
-                "validatedSeconds",Math.addExact(rs.getLong("validated_presential_seconds"),rs.getLong("validated_remote_seconds"))),
-                sqlArgs.toArray());
     }
 
     public Map<String,Long> activityDashboardMetrics(UUID projectId,UUID memberId,Instant from,Instant to) {
@@ -230,10 +160,6 @@ public class AnalyticsRepository {
         if(projectId!=null){eventScope+=" and a.project_id=?";eventArgs.add(projectId);}
         if(memberId!=null){eventScope+=" and exists(select 1 from nite_connect.activity_assignments x where x.activity_id=a.id and x.member_id=? and x.started_at<e.occurred_at and (x.ended_at is null or x.ended_at>=e.occurred_at))";eventArgs.add(memberId);}
         metrics.put("activityEvents",jdbc.queryForObject("select count(*) from nite_connect.activity_events e join nite_connect.activities a on a.id=e.activity_id where e.occurred_at>=? and e.occurred_at<?"+eventScope,Long.class,eventArgs.toArray()));
-        String periodScope="";var periodArgs=new ArrayList<Object>(List.of(Timestamp.from(from),Timestamp.from(to)));
-        if(projectId!=null){periodScope+=" and a.project_id=?";periodArgs.add(projectId);}
-        if(memberId!=null){periodScope+=" and p.member_id=?";periodArgs.add(memberId);}
-        metrics.put("participationPeriods",jdbc.queryForObject("select count(*) from nite_connect.participation_periods p left join nite_connect.activities a on a.id=p.activity_id left join nite_connect.attendance_records ar on ar.id=p.attendance_id left join nite_connect.calendar_events e on e.id=ar.event_id where p.starts_at>=? and p.starts_at<?"+periodScope+" and (p.attendance_id is null or e.status<>'CANCELADO')",Long.class,periodArgs.toArray()));
         if(memberId==null){
             String projectScope=projectId==null?"":" and project_id=?";
             Object[] args=projectId==null?new Object[]{Timestamp.from(from),Timestamp.from(to)}:new Object[]{Timestamp.from(from),Timestamp.from(to),projectId};

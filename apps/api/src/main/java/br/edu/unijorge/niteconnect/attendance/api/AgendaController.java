@@ -2,7 +2,7 @@ package br.edu.unijorge.niteconnect.attendance.api;
 
 import br.edu.unijorge.niteconnect.attendance.application.AgendaService;
 import br.edu.unijorge.niteconnect.attendance.api.AttendanceContracts.*;
-import br.edu.unijorge.niteconnect.attendance.domain.Participation.*;
+import br.edu.unijorge.niteconnect.attendance.domain.Agenda.*;
 import br.edu.unijorge.niteconnect.identity.application.IdentityDirectory;
 import br.edu.unijorge.niteconnect.shared.api.PageResult;
 import jakarta.validation.Valid;

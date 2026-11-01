@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { ViewSelector } from "../../../components/dashboard/view-selector";
 import { DashboardView } from "../../../components/dashboard/dashboard-view";
 import { requireAuthenticatedNiteSession } from "../../../lib/auth/server-session";
-import { getDashboard, getDashboardHistory, getParticipationWeeklySummary } from "../../../lib/dashboard/data";
+import { getDashboard, getDashboardHistory } from "../../../lib/dashboard/data";
 import { getLeadershipProjects } from "../../../lib/projects/data";
 
 export const metadata: Metadata = { title: "Painel" };
@@ -57,13 +57,9 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         selectedProject?.projectId,
       )
     : { data: null, issue: "access" as const };
-  const isSevenDayWindow = Date.parse(`${range.to}T00:00:00Z`) - Date.parse(`${range.from}T00:00:00Z`) === 6 * 86_400_000;
-  const [historyResult, weeklyResult] = await Promise.all([
+  const [historyResult] = await Promise.all([
     !isPersonal && allowedScope
       ? getDashboardHistory(identity.bearer, isInstitutional ? "institutional" : "project", range.from, range.to, selectedProject?.projectId)
-      : Promise.resolve(null),
-    isPersonal && isSevenDayWindow
-      ? getParticipationWeeklySummary(identity.bearer, range.from, range.to)
       : Promise.resolve(null),
   ]);
   const scope = isPersonal ? "personal" : isInstitutional ? "institutional" : selectedProject ? "project" : "personal";
@@ -81,7 +77,6 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
       search={search}
       contextValue={contextValue}
       historyResult={historyResult}
-      weeklyResult={weeklyResult}
     />
   );
 }
