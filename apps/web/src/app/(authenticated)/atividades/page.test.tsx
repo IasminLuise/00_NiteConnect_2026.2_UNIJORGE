@@ -16,8 +16,8 @@ vi.mock("../../../components/activities/activity-detail", () => ({ ActivityFeedb
 
 import ActivitiesPage from "./page";
 
-function pageResult(total: number, page = 0) {
-  return { data: { items: [previewActivities[0]], page, size: 20, total }, issue: null };
+function pageResult(total: number, page = 0, items = [previewActivities[0]]) {
+  return { data: { items, page, size: 20, total }, issue: null };
 }
 
 describe("página Minhas atividades", () => {
@@ -48,5 +48,32 @@ describe("página Minhas atividades", () => {
 
     expect(markup).toContain('aria-label="Paginação"');
     expect(markup).toContain("Itens 1–20 de 41");
+  });
+
+  it("recupera uma página vencida com link para a última página e preserva filtros", async () => {
+    getMyActivities.mockResolvedValue(pageResult(41, 3, []));
+    getAllMyProjects.mockResolvedValue({ data: [], issue: null });
+    getMyActivityCapabilities.mockResolvedValue({ data: { createIndependent: false }, issue: null });
+
+    const page = await ActivitiesPage({ searchParams: Promise.resolve({ page: "3", status: "EM_EXECUCAO", q: "orienta" }) });
+    const markup = renderToStaticMarkup(page);
+
+    expect(markup).toContain("Esta página não contém atividades.");
+    expect(markup).toContain('href="/atividades?page=2&amp;size=20&amp;q=orienta&amp;status=EM_EXECUCAO"');
+    expect(markup).not.toContain("Nenhuma atividade encontrada.");
+  });
+
+  it("preserva o projeto selecionado quando a lista de projetos falha", async () => {
+    const projectId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+    getMyActivities.mockResolvedValue(pageResult(1));
+    getAllMyProjects.mockResolvedValue({ data: null, issue: "unavailable" });
+    getMyActivityCapabilities.mockResolvedValue({ data: { createIndependent: false }, issue: null });
+
+    const page = await ActivitiesPage({ searchParams: Promise.resolve({ projectId }) });
+    const markup = renderToStaticMarkup(page);
+
+    expect(markup).toContain(`name="projectId" value="${projectId}"`);
+    expect(markup).toContain("Projeto selecionado");
+    expect(markup).toContain("O filtro por projeto está indisponível no momento.");
   });
 });

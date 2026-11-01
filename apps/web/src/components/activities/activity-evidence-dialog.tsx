@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button, Dialog, Field, Select, TextField, Textarea } from "../ui";
+import { isActivityEvidenceFileTooLarge } from "../../lib/activities/limits";
 
 type ActivityFormAction = (formData: FormData) => void | Promise<void>;
 type EvidenceInputType = "TEXT" | "TECHNICAL" | "LINK" | "FILE";
@@ -23,6 +24,7 @@ export function ActivityEvidenceDialog({
   const initialType: EvidenceInputType = addAction ? "TEXT" : "FILE";
   const [open, setOpen] = useState(false);
   const [type, setType] = useState<EvidenceInputType>(initialType);
+  const [fileTooLarge, setFileTooLarge] = useState(false);
   const selectedAction = type === "FILE" ? uploadAction : addAction;
   if (!selectedAction) return null;
 
@@ -51,7 +53,7 @@ export function ActivityEvidenceDialog({
         <input type="hidden" name="returnTo" value={returnTo} />
         {type !== "FILE" ? <input type="hidden" name="type" value={type} /> : null}
         {inputTypes.length > 1 ? <Field id="activity-evidence-type" label="Tipo de evidência" required>
-          <Select name="evidenceType" value={type} onChange={(event) => setType(selectType(event.currentTarget.value))}>
+          <Select name="evidenceType" value={type} onChange={(event) => { setType(selectType(event.currentTarget.value)); setFileTooLarge(false); }}>
             {inputTypes.map((option) => <option key={option} value={option}>{typeLabel[option]}</option>)}
           </Select>
         </Field> : null}
@@ -61,9 +63,20 @@ export function ActivityEvidenceDialog({
         {type === "LINK" ? <Field id="activity-evidence-url" label="Endereço externo" description="Use um endereço HTTP ou HTTPS." required>
           <TextField name="url" type="url" required maxLength={2_048} placeholder="https://" />
         </Field> : null}
-        {type === "FILE" ? <Field id="activity-evidence-file" label="Arquivo privado" description="TXT, PNG ou JPEG. Até 10 MiB." required>
-          <TextField name="file" type="file" required accept=".txt,.png,.jpg,.jpeg,text/plain,image/png,image/jpeg" />
-        </Field> : null}
+        {type === "FILE" ? <>
+          <Field id="activity-evidence-file" label="Arquivo privado" description="TXT, PNG ou JPEG. Até 10 MiB." required>
+            <TextField
+              name="file"
+              type="file"
+              required
+              accept=".txt,.png,.jpg,.jpeg,text/plain,image/png,image/jpeg"
+              aria-invalid={fileTooLarge}
+              aria-describedby={fileTooLarge ? "activity-evidence-file-error" : undefined}
+              onChange={(event) => setFileTooLarge(Boolean(event.currentTarget.files?.[0] && isActivityEvidenceFileTooLarge(event.currentTarget.files[0])))}
+            />
+          </Field>
+          {fileTooLarge ? <p id="activity-evidence-file-error" role="alert" className="text-type-body-compact text-status-error">O arquivo excede o limite de 10 MiB. Escolha um arquivo menor.</p> : null}
+        </> : null}
         {corrections.length ? <Field id="activity-evidence-correction" label="Corrige um registro desta página" optional>
           <Select name="correctsEvidenceId" defaultValue="">
             <option value="">Não se aplica</option>
@@ -74,7 +87,7 @@ export function ActivityEvidenceDialog({
           <Textarea name="reason" required maxLength={1_000} />
         </Field>
         <div className="flex justify-end">
-          <Button type="submit" variant="secondary">{type === "FILE" ? "Enviar arquivo" : "Salvar evidência"}</Button>
+          <Button type="submit" variant="secondary" disabled={type === "FILE" && fileTooLarge}>{type === "FILE" ? "Enviar arquivo" : "Salvar evidência"}</Button>
         </div>
       </form>
     </Dialog>

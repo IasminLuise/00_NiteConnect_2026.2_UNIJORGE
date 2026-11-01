@@ -6,6 +6,7 @@ import { parseActivity } from "./contracts";
 import { getActivity, getActivityCapabilities, getActivityEvidenceById, getEvidenceCapabilities, getMyActivityCapabilities } from "./data";
 import { mutateActivity, uploadActivityEvidence, type ActivityMutationIssue } from "./mutations";
 import { getAuthenticatedNiteSession } from "../auth/server-session";
+import { MAX_ACTIVITY_EVIDENCE_BYTES } from "./limits";
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 type Feedback = "created" | "updated" | "status" | "evidence" | "upload" | "assigned" | "removed" | "withdrawn" | "invalid" | "forbidden" | "not-found" | "conflict" | "too-large" | "unsupported" | "unavailable";
@@ -60,11 +61,12 @@ async function requireSessionOrRedirect(): Promise<NonNullable<Awaited<ReturnTyp
   return session;
 }
 
-async function requireActivityCapability(id: string, bearer: string, capability: "edit" | "transitions" | "manageAssignees" | "addEvidence" | "upload"): Promise<boolean> {
+async function requireActivityCapability(id: string, bearer: string, capability: "edit" | "transitions" | "manageAssignees" | "addEvidence" | "upload"): Promise<Feedback | null> {
   const result = await getActivityCapabilities(bearer, id);
-  if (result.issue || !result.data) return false;
-  if (capability === "transitions") return result.data.transitions.length > 0;
-  return result.data[capability];
+  if (result.issue) return resultFeedback(result.issue);
+  if (!result.data) return "unavailable";
+  const allowed = capability === "transitions" ? result.data.transitions.length > 0 : result.data[capability];
+  return allowed ? null : "forbidden";
 }
 
 function revalidateActivity(id: string): void {
@@ -101,7 +103,8 @@ export async function updateActivityAction(id: string, form: FormData): Promise<
   if (!uuidPattern.test(id)) redirect(`${returnTo}?feedback=not-found`);
   const target = (feedback: Feedback) => detailTarget(id, feedback, returnTo);
   const session = await requireSessionOrRedirect();
-  if (!(await requireActivityCapability(id, session.bearer, "edit"))) redirect(target("forbidden"));
+  const capabilityFeedback = await requireActivityCapability(id, session.bearer, "edit");
+  if (capabilityFeedback) redirect(target(capabilityFeedback));
 
   const title = field(form, "title");
   const description = field(form, "description");
@@ -127,7 +130,8 @@ export async function transitionActivityAction(id: string, form: FormData): Prom
   if (!uuidPattern.test(id)) redirect(`${returnTo}?feedback=not-found`);
   const target = (feedback: Feedback) => detailTarget(id, feedback, returnTo);
   const session = await requireSessionOrRedirect();
-  if (!(await requireActivityCapability(id, session.bearer, "transitions"))) redirect(target("forbidden"));
+  const capabilityFeedback = await requireActivityCapability(id, session.bearer, "transitions");
+  if (capabilityFeedback) redirect(target(capabilityFeedback));
 
   const statusValue = field(form, "status");
   const status = (["PLANEJADA", "EM_EXECUCAO", "CONCLUIDA", "CANCELADA"] as const).find((value) => value === statusValue);
@@ -155,7 +159,8 @@ export async function addActivityEvidenceAction(id: string, form: FormData): Pro
   if (!uuidPattern.test(id)) redirect(`${returnTo}?feedback=not-found`);
   const target = (feedback: Feedback) => detailTarget(id, feedback, returnTo);
   const session = await requireSessionOrRedirect();
-  if (!(await requireActivityCapability(id, session.bearer, "addEvidence"))) redirect(target("forbidden"));
+  const capabilityFeedback = await requireActivityCapability(id, session.bearer, "addEvidence");
+  if (capabilityFeedback) redirect(target(capabilityFeedback));
 
   const typeValue = field(form, "type");
   const type = (["TEXT", "TECHNICAL", "LINK"] as const).find((value) => value === typeValue);
@@ -194,14 +199,15 @@ export async function uploadActivityEvidenceAction(id: string, form: FormData): 
   if (!uuidPattern.test(id)) redirect(`${returnTo}?feedback=not-found`);
   const target = (feedback: Feedback) => detailTarget(id, feedback, returnTo);
   const session = await requireSessionOrRedirect();
-  if (!(await requireActivityCapability(id, session.bearer, "upload"))) redirect(target("forbidden"));
+  const capabilityFeedback = await requireActivityCapability(id, session.bearer, "upload");
+  if (capabilityFeedback) redirect(target(capabilityFeedback));
 
   const file = form.get("file");
   const correctsEvidenceId = field(form, "correctsEvidenceId");
   const reason = field(form, "reason");
   const expectedVersion = version(form);
   if (!(file instanceof File) || file.size < 1 || !reason || reason.length > 1_000 || expectedVersion === null || (correctsEvidenceId && !uuidPattern.test(correctsEvidenceId))) redirect(target("invalid"));
-  if (file.size > 10 * 1024 * 1024) redirect(target("too-large"));
+  if (file.size > MAX_ACTIVITY_EVIDENCE_BYTES) redirect(target("too-large"));
   const metadata = new Blob([JSON.stringify({ expectedVersion, reason, ...(correctsEvidenceId ? { correctsEvidenceId } : {}) })], { type: "application/json" });
   const upload = new FormData();
   upload.append("file", file, file.name);
@@ -225,7 +231,8 @@ async function assignActivityParticipant(id: string, form: FormData, role: "exec
   if (!uuidPattern.test(id)) redirect(`${returnTo}?feedback=not-found`);
   const target = (feedback: Feedback) => detailTarget(id, feedback, returnTo);
   const session = await requireSessionOrRedirect();
-  if (!(await requireActivityCapability(id, session.bearer, "manageAssignees"))) redirect(target("forbidden"));
+  const capabilityFeedback = await requireActivityCapability(id, session.bearer, "manageAssignees");
+  if (capabilityFeedback) redirect(target(capabilityFeedback));
   const memberId = field(form, "memberId");
   const reason = field(form, "reason");
   const expectedVersion = version(form);
@@ -248,7 +255,8 @@ export async function removeActivityCollaboratorAction(id: string, memberId: str
   if (!uuidPattern.test(id) || !uuidPattern.test(memberId)) redirect(`${returnTo}?feedback=not-found`);
   const target = (feedback: Feedback) => detailTarget(id, feedback, returnTo);
   const session = await requireSessionOrRedirect();
-  if (!(await requireActivityCapability(id, session.bearer, "manageAssignees"))) redirect(target("forbidden"));
+  const capabilityFeedback = await requireActivityCapability(id, session.bearer, "manageAssignees");
+  if (capabilityFeedback) redirect(target(capabilityFeedback));
   const reason = field(form, "reason");
   const expectedVersion = version(form);
   if (!reason || reason.length > 1_000 || expectedVersion === null) redirect(target("invalid"));
@@ -264,6 +272,7 @@ export async function withdrawActivityEvidenceAction(id: string, evidenceId: str
   if (!uuidPattern.test(id) || !uuidPattern.test(evidenceId)) redirect(`${returnTo}?feedback=not-found`);
   const target = (feedback: Feedback) => detailTarget(id, feedback, returnTo);
   const session = await requireSessionOrRedirect();
+  if (field(form, "confirmed") !== "true") redirect(target("invalid"));
   const [evidence, authorized] = await Promise.all([
     getActivityEvidenceById(session.bearer, id, evidenceId),
     getEvidenceCapabilities(session.bearer, id, evidenceId),

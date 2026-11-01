@@ -10,6 +10,7 @@ export function activityMutationIssueFromStatus(status: number): ActivityMutatio
   if (status === 409) return "conflict";
   if (status === 413) return "too-large";
   if (status === 415) return "unsupported";
+  if (status === 400) return "invalid";
   return apiIssueFromStatus(status);
 }
 

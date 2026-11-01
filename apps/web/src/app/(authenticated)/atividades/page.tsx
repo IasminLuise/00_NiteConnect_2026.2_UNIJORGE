@@ -75,6 +75,7 @@ export default async function ActivitiesPage({ searchParams }: { searchParams: P
     <form action="/atividades" method="get" className="grid min-w-0 gap-3 lg:grid-cols-[minmax(16rem,1fr)_minmax(14rem,auto)_auto] lg:items-end">
       <input type="hidden" name="page" value="0" />
       {status ? <input type="hidden" name="status" value={status} /> : null}
+      {selectedProjectId && projects.issue ? <input type="hidden" name="projectId" value={selectedProjectId} /> : null}
       <label className="grid min-w-0 gap-1.5 text-type-metadata text-nite-text-secondary">Buscar atividades<input className={controlClass} type="search" name="q" minLength={2} maxLength={160} defaultValue={query.get("q") ?? ""} placeholder="Título ou descrição" /></label>
       <details className="group relative min-w-0 lg:w-56">
         <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 rounded-control border border-nite-border-soft bg-nite-surface px-3 text-type-body-compact font-medium text-nite-text-secondary transition-colors hover:bg-nite-surface-subtle hover:text-nite-text-primary group-open:border-nite-brand-primary group-open:bg-nite-surface-subtle group-open:text-nite-text-primary focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-nite-focus motion-reduce:transition-none [&::-webkit-details-marker]:hidden">
@@ -107,6 +108,9 @@ export default async function ActivitiesPage({ searchParams }: { searchParams: P
     {result.issue ? <section aria-live="polite" className="border-y border-nite-border-soft py-8">
       <p className="font-medium text-nite-text-primary">{result.issue === "access" ? "Você não tem acesso a esta consulta." : result.issue === "not-found" ? "A consulta não está disponível." : "Não foi possível carregar suas atividades."}</p>
       <p className="mt-1 text-type-body-compact text-nite-text-secondary">{result.issue === "access" ? "Confira sua sessão institucional e tente novamente." : "Tente atualizar a página em alguns instantes."}</p>
+    </section> : result.data.items.length === 0 && result.data.total > 0 ? <section aria-live="polite" className="flex min-h-64 flex-col items-center justify-center gap-3 border-y border-nite-border-soft px-4 py-12 text-center">
+      <h2 className="font-display text-type-section-title text-nite-text-primary">Esta página não contém atividades.</h2>
+      <Link href={pageHref(query, Math.max(0, Math.ceil(result.data.total / result.data.size) - 1))} className="inline-flex min-h-11 items-center rounded-control px-3 text-type-body-compact font-medium text-nite-brand-primary underline underline-offset-4 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-nite-focus">Ir para a última página disponível</Link>
     </section> : result.data.items.length === 0 ? <ActivityEmptyState filtered={filtered} canCreate={canCreate} clearHref="/atividades" /> : <>
       <div className="flex min-w-0 flex-wrap items-baseline justify-between gap-2 text-type-metadata text-nite-text-secondary">
         <p>{result.data.total} {result.data.total === 1 ? "atividade" : "atividades"}</p>
