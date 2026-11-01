@@ -13,7 +13,8 @@ describe("navegação autenticada", () => {
     const items = groups.flatMap(({ items: groupItems }) => groupItems);
 
     expect(groups.map(({ label }) => label)).toEqual(["Início", "Meu espaço"]);
-    expect(items.filter(({ href }) => href).map(({ href }) => href)).toEqual(["/dashboard", "/atividades"]);
+    expect(items.filter(({ href }) => href).map(({ href }) => href)).toEqual(["/dashboard", "/atividades", "/participacao"]);
+    expect(items.find(({ label }) => label === "Minha participação")).toMatchObject({ href: "/participacao" });
     expect(items.every(({ href, status }) => href || status === "development")).toBe(true);
     expect(items.some(({ href }) => href?.includes("#") || href?.includes("scope="))).toBe(false);
   });
@@ -44,6 +45,6 @@ describe("navegação autenticada", () => {
       "Administração",
       "Acompanhamento acadêmico",
     ]);
-    expect(groups.flatMap(({ items: groupItems }) => groupItems).filter(({ href }) => href).map(({ href }) => href)).toEqual(["/dashboard", "/atividades"]);
+    expect(groups.flatMap(({ items: groupItems }) => groupItems).filter(({ href }) => href).map(({ href }) => href)).toEqual(["/dashboard", "/atividades", "/participacao"]);
   });
 });
