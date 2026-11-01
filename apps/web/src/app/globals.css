@@ -33,6 +33,9 @@
   --color-status-done: var(--nite-status-done);
   --color-status-done-soft: var(--nite-status-done-soft);
   --color-status-done-border: var(--nite-status-done-border);
+  --color-status-cancelled: var(--nite-status-cancelled);
+  --color-status-cancelled-soft: var(--nite-status-cancelled-soft);
+  --color-status-cancelled-border: var(--nite-status-cancelled-border);
   --color-status-warning: var(--nite-status-warning);
   --color-status-warning-soft: var(--nite-status-warning-soft);
   --color-status-warning-border: var(--nite-status-warning-border);
@@ -148,6 +151,7 @@
   --nite-light-status-progress: #0369a1;
   --nite-light-status-validated: #6d28d9;
   --nite-light-status-done: #047857;
+  --nite-light-status-cancelled: #914a58;
   --nite-light-status-warning: #92400e;
   --nite-light-status-error: #be123c;
   --nite-light-data-1: #1d4ed8;
@@ -182,6 +186,7 @@
   --nite-dark-status-progress: #38bdf8;
   --nite-dark-status-validated: #a78bfa;
   --nite-dark-status-done: #34d399;
+  --nite-dark-status-cancelled: #df9aa4;
   --nite-dark-status-warning: #fbbf24;
   --nite-dark-status-error: #fb7185;
   --nite-dark-data-1: #60a5fa;
@@ -220,6 +225,7 @@
   --nite-status-progress: var(--nite-light-status-progress);
   --nite-status-validated: var(--nite-light-status-validated);
   --nite-status-done: var(--nite-light-status-done);
+  --nite-status-cancelled: var(--nite-light-status-cancelled);
   --nite-status-warning: var(--nite-light-status-warning);
   --nite-status-error: var(--nite-light-status-error);
   --nite-data-1: var(--nite-light-data-1);
@@ -258,6 +264,7 @@
   --nite-status-progress: var(--nite-dark-status-progress);
   --nite-status-validated: var(--nite-dark-status-validated);
   --nite-status-done: var(--nite-dark-status-done);
+  --nite-status-cancelled: var(--nite-dark-status-cancelled);
   --nite-status-warning: var(--nite-dark-status-warning);
   --nite-status-error: var(--nite-dark-status-error);
   --nite-data-1: var(--nite-dark-data-1);
@@ -276,12 +283,14 @@
   --nite-status-progress-soft: color-mix(in srgb, var(--nite-status-progress) 10%, var(--nite-surface));
   --nite-status-validated-soft: color-mix(in srgb, var(--nite-status-validated) 10%, var(--nite-surface));
   --nite-status-done-soft: color-mix(in srgb, var(--nite-status-done) 10%, var(--nite-surface));
+  --nite-status-cancelled-soft: color-mix(in srgb, var(--nite-status-cancelled) 11%, var(--nite-surface));
   --nite-status-warning-soft: color-mix(in srgb, var(--nite-status-warning) 10%, var(--nite-surface));
   --nite-status-error-soft: color-mix(in srgb, var(--nite-status-error) 10%, var(--nite-surface));
   --nite-status-draft-border: color-mix(in srgb, var(--nite-status-draft) 38%, var(--nite-surface));
   --nite-status-progress-border: color-mix(in srgb, var(--nite-status-progress) 38%, var(--nite-surface));
   --nite-status-validated-border: color-mix(in srgb, var(--nite-status-validated) 38%, var(--nite-surface));
   --nite-status-done-border: color-mix(in srgb, var(--nite-status-done) 38%, var(--nite-surface));
+  --nite-status-cancelled-border: color-mix(in srgb, var(--nite-status-cancelled) 42%, var(--nite-surface));
   --nite-status-warning-border: color-mix(in srgb, var(--nite-status-warning) 42%, var(--nite-surface));
   --nite-status-error-border: color-mix(in srgb, var(--nite-status-error) 42%, var(--nite-surface));
   --nite-brand-soft: color-mix(in srgb, var(--nite-brand-primary) 10%, var(--nite-surface));
@@ -301,6 +310,14 @@ button, select { font: inherit; }
 button:focus-visible, a:focus-visible, select:focus-visible {
   outline: 3px solid var(--nite-focus);
   outline-offset: 2px;
+}
+select option, select optgroup {
+  background-color: var(--nite-surface-elevated);
+  color: var(--nite-text-primary);
+}
+select option:checked {
+  background-color: var(--nite-brand-primary);
+  color: var(--nite-action-text);
 }
 .shell { min-height: 100vh; display: flex; flex-direction: column; }
 .topbar { min-height: 68px; background: var(--nite-surface); border-bottom: 1px solid var(--nite-border-soft); display: flex; align-items: center; justify-content: space-between; padding: 0 clamp(20px,5vw,72px); }
