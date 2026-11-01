@@ -27,15 +27,67 @@ describe("dashboard contracts", () => {
 
   it("keeps weekly modalities and review states separate", () => {
     const modality = { requiredSeconds: 18_000, registeredSeconds: 7_200, pendingSeconds: 3_600, validatedSeconds: 3_600, refusedSeconds: 0, openPeriods: 0, remainingSeconds: 14_400 };
-    const summary = parseParticipationWeeklySummary({ zone: "America/Bahia", weekStart: "2026-10-24", weekEnd: "2026-10-30", modalities: { presential: modality, remote: { ...modality, requiredSeconds: 14_400 } } });
+    const loadPolicy = {
+      status: "HOMOLOGADA_NO_PERIODO",
+      currentConfiguration: null,
+      applicableToWeek: { id: "policy-1", version: 1, effectiveFrom: "2026-10-24", effectiveUntil: null, presentialHours: 5, remoteHours: 4 },
+      institutionalConfirmation: { presentialHours: 5, remoteHours: 4, status: "CONFIRMADA" },
+      plannedConfiguration: null,
+    };
+    const summary = parseParticipationWeeklySummary({ zone: "America/Bahia", weekStart: "2026-10-24", weekEnd: "2026-10-30", modalities: { presential: modality, remote: { ...modality, requiredSeconds: 14_400 } }, loadPolicy });
     expect(summary?.modalities.presential.pendingSeconds).toBe(3_600);
     expect(summary?.modalities.remote.requiredSeconds).toBe(14_400);
+    expect(summary?.loadPolicy.applicableToWeek?.version).toBe(1);
+  });
+
+  it("preserves unavailable weekly requirements without turning them into zero", () => {
+    const modality = { requiredSeconds: null, registeredSeconds: 0, pendingSeconds: 0, validatedSeconds: 0, refusedSeconds: 0, openPeriods: 0, remainingSeconds: null };
+    const summary = parseParticipationWeeklySummary({
+      zone: "America/Bahia", weekStart: "2026-10-24", weekEnd: "2026-10-30",
+      modalities: { presential: modality, remote: modality },
+      loadPolicy: {
+        status: "SEM_POLITICA_APLICAVEL", currentConfiguration: null, applicableToWeek: null,
+        institutionalConfirmation: { presentialHours: 5, remoteHours: 4, status: "CONFIRMADA" },
+        plannedConfiguration: null,
+      },
+    });
+    expect(summary?.modalities.presential.requiredSeconds).toBeNull();
+    expect(summary?.modalities.remote.remainingSeconds).toBeNull();
+    expect(summary?.loadPolicy.institutionalConfirmation).toEqual({ presentialHours: 5, remoteHours: 4, status: "CONFIRMADA" });
   });
 
   it("rejects non-integer weekly counters and invalid history totals", () => {
     const modality = { requiredSeconds: 18_000, registeredSeconds: 7_200.5, pendingSeconds: 3_600, validatedSeconds: 3_600, refusedSeconds: 0, openPeriods: 0, remainingSeconds: 14_400 };
-    expect(parseParticipationWeeklySummary({ zone: "America/Bahia", weekStart: "2026-10-24", weekEnd: "2026-10-30", modalities: { presential: modality, remote: modality } })).toBeNull();
+    expect(parseParticipationWeeklySummary({
+      zone: "America/Bahia", weekStart: "2026-10-24", weekEnd: "2026-10-30",
+      modalities: { presential: modality, remote: modality },
+      loadPolicy: {
+        status: "HOMOLOGADA_NO_PERIODO", currentConfiguration: null, applicableToWeek: null,
+        institutionalConfirmation: { presentialHours: 5, remoteHours: 4, status: "CONFIRMADA" },
+        plannedConfiguration: null,
+      },
+    })).toBeNull();
     expect(parseDashboardHistory({ columns: [], rows: [], total: -1 })).toBeNull();
+  });
+
+  it("preserves a future official policy with no invented effective date", () => {
+    const modality = { requiredSeconds: null, registeredSeconds: 0, pendingSeconds: 0, validatedSeconds: 0, refusedSeconds: 0, openPeriods: 0, remainingSeconds: null };
+    const summary = parseParticipationWeeklySummary({
+      zone: "America/Bahia", weekStart: "2026-10-24", weekEnd: "2026-10-30",
+      modalities: { presential: modality, remote: modality },
+      loadPolicy: {
+        status: "SEM_POLITICA_APLICAVEL", currentConfiguration: null, applicableToWeek: null,
+        institutionalConfirmation: { presentialHours: 5, remoteHours: 4, status: "CONFIRMADA" },
+        plannedConfiguration: {
+          id: "policy-2027", version: 2, presentialHours: 5, remoteHours: 4,
+          effectiveFrom: null, intendedSemester: "2027.1",
+          effectiveWindow: "PRIMEIRA_SEMANA_OFICIAL_DE_ATIVIDADES", status: "SEM_VIGENCIA_DEFINIDA",
+        },
+      },
+    });
+    expect(summary?.loadPolicy.plannedConfiguration?.effectiveFrom).toBeNull();
+    expect(summary?.modalities.presential.requiredSeconds).toBeNull();
+    expect(summary?.modalities.remote.remainingSeconds).toBeNull();
   });
 
   it("parses historical events without inventing state snapshots", () => {

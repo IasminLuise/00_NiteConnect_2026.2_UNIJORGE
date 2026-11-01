@@ -7,15 +7,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class WeeklyParticipationTest extends ProjectTestSupport {
     @Test
-    void personalWeeklySummaryReturnsSeparateApprovedLoads() throws Exception {
+    void personalWeeklySummaryDoesNotPresentTheUnapprovedReferenceAsRequiredLoad() throws Exception {
         mvc.perform(get("/api/v1/me/participation-weekly-summary")
                         .with(token(MEMBER)).param("from", "2026-10-26").param("to", "2026-11-01"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.weekStart").value("2026-10-26"))
-                .andExpect(jsonPath("$.modalities.presential.requiredSeconds").value(18000))
-                .andExpect(jsonPath("$.modalities.remote.requiredSeconds").value(14400))
-                .andExpect(jsonPath("$.modalities.presential.remainingSeconds").value(18000))
-                .andExpect(jsonPath("$.modalities.remote.remainingSeconds").value(14400));
+                .andExpect(jsonPath("$.loadPolicy.status").value("SEM_POLITICA_APLICAVEL"))
+                .andExpect(jsonPath("$.modalities.presential.requiredSeconds").value(org.hamcrest.Matchers.nullValue()))
+                .andExpect(jsonPath("$.modalities.remote.requiredSeconds").value(org.hamcrest.Matchers.nullValue()))
+                .andExpect(jsonPath("$.modalities.presential.remainingSeconds").value(org.hamcrest.Matchers.nullValue()))
+                .andExpect(jsonPath("$.modalities.remote.remainingSeconds").value(org.hamcrest.Matchers.nullValue()));
     }
 
     @Test

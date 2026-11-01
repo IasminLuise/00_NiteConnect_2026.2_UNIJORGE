@@ -30,4 +30,13 @@ public final class Participation {
                           String reason, Instant occurredAt) {}
     public record SessionPayload(UUID eventId, String payload, Instant expiresAt, long version) {}
     public record ExpectedParticipant(UUID memberId, String memberName, boolean expected, boolean checkedIn, UUID attendanceId) {}
+    public record ExpectedEvent(UUID id, String title, String description, EventKind kind, Modality modality,
+                                Instant startsAt, Instant endsAt, EventStatus status,
+                                boolean expected, boolean checkedIn, UUID attendanceId) {}
+    public record TimelineItem(UUID id, UUID eventId, String eventTitle, EventKind eventKind,
+                               EventStatus eventStatus, PeriodKind kind, Modality modality,
+                               Instant startsAt, Instant endsAt, Long durationSeconds,
+                               String description, UUID activityId, UUID evidenceId, String origin,
+                               ReviewStatus reviewStatus, String periodStatus, UUID replacementAdjustmentId, Instant reviewedAt,
+                               String reviewReason, long version) {}
 }

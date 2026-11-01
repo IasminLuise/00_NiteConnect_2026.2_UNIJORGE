@@ -30,7 +30,7 @@ import br.edu.unijorge.niteconnect.analytics.api.AnalyticsContracts.MetricCompar
 public class AnalyticsService {
     private static final List<String> B05_UNAVAILABLE = List.of("Evidências documentais e Diários de Bordo: indisponíveis (não há serviço Java B05 ativo)",
             "Estados históricos completos de projeto/atividade: indisponíveis quando não preservados como eventos ou snapshots na origem");
-    private static final List<String> FREQUENCY_COLUMNS = List.of("periodId","memberName","modality","kind","reviewStatus","startsAt","endsAt","secondsInRange");
+    private static final List<String> FREQUENCY_COLUMNS = List.of("periodId","memberName","modality","kind","reviewStatus","periodStatus","startsAt","endsAt","secondsInRange");
     private static final List<String> ACTIVITY_COLUMNS = List.of("activityId","project","activity","executor","status","createdAt","dueOn","completedAt","overdueNow");
     private final AnalyticsRepository repository;
     private final AccessService access;

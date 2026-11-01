@@ -5,8 +5,14 @@ import br.edu.unijorge.niteconnect.attendance.domain.Participation.*;
 import br.edu.unijorge.niteconnect.attendance.domain.Participation.Period;
 import br.edu.unijorge.niteconnect.attendance.infrastructure.AttendanceRepository;
 import br.edu.unijorge.niteconnect.attendance.infrastructure.ParticipationGovernanceRepository;
+import br.edu.unijorge.niteconnect.attendance.infrastructure.ParticipationLoadPolicyRepository;
 import br.edu.unijorge.niteconnect.attendance.api.ParticipationGovernanceContracts.AdjustmentView;
 import br.edu.unijorge.niteconnect.attendance.api.ParticipationGovernanceContracts.CalendarVersion;
+import br.edu.unijorge.niteconnect.attendance.api.ParticipationGovernanceContracts.InstitutionalLoadConfirmation;
+import br.edu.unijorge.niteconnect.attendance.api.ParticipationGovernanceContracts.LoadPolicySummary;
+import br.edu.unijorge.niteconnect.attendance.api.ParticipationGovernanceContracts.LoadPolicyVersion;
+import br.edu.unijorge.niteconnect.attendance.api.ParticipationGovernanceContracts.PlannedLoadPolicy;
+import br.edu.unijorge.niteconnect.attendance.api.ParticipationGovernanceContracts.PersonalCalendarVersion;
 import br.edu.unijorge.niteconnect.shared.api.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,16 +25,18 @@ import static br.edu.unijorge.niteconnect.attendance.infrastructure.AttendanceRe
 @Transactional(readOnly=true)
 public class ParticipationQueries {
     private final AttendanceRepository repo; private final ParticipationGovernanceRepository governance;
+    private final ParticipationLoadPolicyRepository loadPolicies;
     private final AccessService access; private final ParticipationService participation; private final Clock clock;
-    public ParticipationQueries(AttendanceRepository repo,ParticipationGovernanceRepository governance,AccessService access,ParticipationService participation,Clock clock) {
-        this.repo=repo;this.governance=governance;this.access=access;this.participation=participation;this.clock=clock;
+    public ParticipationQueries(AttendanceRepository repo,ParticipationGovernanceRepository governance,ParticipationLoadPolicyRepository loadPolicies,
+                                AccessService access,ParticipationService participation,Clock clock) {
+        this.repo=repo;this.governance=governance;this.loadPolicies=loadPolicies;this.access=access;this.participation=participation;this.clock=clock;
     }
     public record Range(Instant from,Instant to) {}
     public record Summary(String zone,Instant from,Instant to,long registeredSeconds,long validatedSeconds,long pendingSeconds,
                           long refusedSeconds,long openPeriods,long pendingRecords,long expectedMeetings,long attendedMeetings,long absentMeetings) {}
     public record WeeklySummary(String zone,LocalDate weekStart,LocalDate weekEnd,
-                                WeeklyParticipationRules.Summary modalities,CalendarVersion calendarException,
-                                List<AdjustmentView> adjustments) {}
+                                WeeklyParticipationRules.Summary modalities,PersonalCalendarVersion calendarException,
+                                List<AdjustmentView> adjustments,LoadPolicySummary loadPolicy) {}
     public Range range(LocalDate from,LocalDate to) {
         if(from==null || to==null || from.isAfter(to) || to.equals(LocalDate.MAX)) throw ApiException.invalid("Informe from/to em ordem válida");
         return new Range(from.atStartOfDay(clock.getZone()).toInstant(),to.plusDays(1).atStartOfDay(clock.getZone()).toInstant());
@@ -39,6 +47,24 @@ public class ParticipationQueries {
         if(from!=null || to!=null) { Range r=range(from,to);where+=" and exists(select 1 from nite_connect.participation_periods p where p.attendance_id=a.id and p.starts_at<? and (p.ends_at is null or p.ends_at>?))";args.add(ts(r.to()));args.add(ts(r.from())); }
         var result=repo.page("a.*",where,args,"a.created_at desc,a.id",AttendanceRepository.ATTENDANCE,page,size);
         return new PageResult<>(result.items().stream().map(participation::view).toList(),page,size,result.total());
+    }
+    public PageResult<ExpectedEvent> expectedEvents(UUID actor,LocalDate from,LocalDate to,int page,int size) {
+        access.requireActive(actor);
+        if((from==null)!=(to==null)) throw ApiException.invalid("Informe from e to juntos");
+        Range r=from==null?null:range(from,to);
+        return repo.expectedEvents(actor,r==null?null:r.from(),r==null?null:r.to(),page,size);
+    }
+    public PageResult<TimelineItem> timeline(UUID actor,LocalDate from,LocalDate to,int page,int size) {
+        access.requireActive(actor);
+        if((from==null)!=(to==null)) throw ApiException.invalid("Informe from e to juntos");
+        Range r=from==null?null:range(from,to);
+        return repo.timeline(actor,r==null?null:r.from(),r==null?null:r.to(),page,size);
+    }
+    public PageResult<PersonalCalendarVersion> personalCalendarHistory(UUID actor,LocalDate from,LocalDate to,int page,int size) {
+        access.requireActive(actor);
+        if((from==null)!=(to==null)) throw ApiException.invalid("Informe from e to juntos");
+        if(from!=null) range(from,to);
+        return governance.personalCalendarHistory(from,to,page,size);
     }
     public PageResult<Period> periods(UUID actor,boolean admin,UUID member,PeriodKind kind,LocalDate from,LocalDate to,int page,int size) {
         access.requireActive(actor);if(admin) access.requireAdministrator(actor);else member=actor;
@@ -76,7 +102,7 @@ public class ParticipationQueries {
         long registered=repo.count("select "+duration+eligible+" and p.ends_at is not null",ts(r.to()),ts(r.from()),member,ts(r.to()),ts(r.from()));
         long validated=seconds(eligible,duration,member,r,"APROVADA"),pending=seconds(eligible,duration,member,r,"PENDENTE"),refused=seconds(eligible,duration,member,r,"RECUSADA");
         long open=repo.count("select count(*)"+eligible+" and p.ends_at is null",member,ts(r.to()),ts(r.from()));
-        long pendingRecords=repo.count("select count(*)"+eligible+" and p.review_status='PENDENTE'",member,ts(r.to()),ts(r.from()));
+        long pendingRecords=repo.count("select count(*)"+eligible+" and p.ends_at is not null and p.review_status='PENDENTE'",member,ts(r.to()),ts(r.from()));
         String meetings="""
              from nite_connect.calendar_events e join nite_connect.event_participants ep on ep.event_id=e.id
              where ep.member_id=? and e.status='ENCERRADO' and e.starts_at>=? and e.starts_at<?
@@ -93,19 +119,56 @@ public class ParticipationQueries {
         }
         Range interval = range(from, to);
         var periods = repo.overlappingForWeeklySummary(actor, interval.from(), interval.to());
-        CalendarVersion calendar = governance.currentCalendar(from, to).orElse(null);
+        PersonalCalendarVersion calendar = governance.currentPersonalCalendar(from, to).orElse(null);
         List<AdjustmentView> adjustments = governance.adjustmentsForWeek(actor, from, to);
-        long calendarPresential = calendar == null ? 0 : seconds(calendar.presentialHoursRelieved());
-        long calendarRemote = calendar == null ? 0 : seconds(calendar.remoteHoursRelieved());
-        long individualPresential = seconds(governance.dispensationHours(actor, from, to, Modality.PRESENCIAL));
-        long individualRemote = seconds(governance.dispensationHours(actor, from, to, Modality.REMOTA));
-        long requiredPresential = 5 * 3600L;
-        long requiredRemote = 4 * 3600L;
-        long releasedPresential = Math.min(requiredPresential, Math.addExact(calendarPresential, individualPresential));
-        long releasedRemote = Math.min(requiredRemote, Math.addExact(calendarRemote, individualRemote));
-        var modalities = WeeklyParticipationRules.calculate(periods, interval.from(), interval.to(),
-                requiredPresential, requiredRemote, releasedPresential, releasedRemote);
-        return new WeeklySummary(clock.getZone().getId(), from, to, modalities, calendar, adjustments);
+        LoadPolicySummary policy=loadPolicy(from,to);
+        WeeklyParticipationRules.Summary modalities;
+        if(policy.applicableToWeek()==null) {
+            var recorded=WeeklyParticipationRules.calculate(periods,interval.from(),interval.to(),0,0,0,0);
+            modalities=new WeeklyParticipationRules.Summary(withoutRequirement(recorded.presential()),withoutRequirement(recorded.remote()));
+        } else {
+            long requiredPresential=seconds(policy.applicableToWeek().presentialHours());
+            long requiredRemote=seconds(policy.applicableToWeek().remoteHours());
+            long calendarPresential=calendar==null?0:seconds(calendar.presentialHoursRelieved());
+            long calendarRemote=calendar==null?0:seconds(calendar.remoteHoursRelieved());
+            long individualPresential=seconds(governance.dispensationHours(actor,from,to,Modality.PRESENCIAL));
+            long individualRemote=seconds(governance.dispensationHours(actor,from,to,Modality.REMOTA));
+            long releasedPresential=Math.min(requiredPresential,Math.addExact(calendarPresential,individualPresential));
+            long releasedRemote=Math.min(requiredRemote,Math.addExact(calendarRemote,individualRemote));
+            modalities=WeeklyParticipationRules.calculate(periods,interval.from(),interval.to(),requiredPresential,requiredRemote,releasedPresential,releasedRemote);
+        }
+        return new WeeklySummary(clock.getZone().getId(),from,to,modalities,calendar,adjustments,policy);
+    }
+    private LoadPolicySummary loadPolicy(LocalDate from,LocalDate to) {
+        LocalDate today=clock.instant().atZone(clock.getZone()).toLocalDate();
+        List<LoadPolicyVersion> current=loadPolicies.current(today);
+        List<LoadPolicyVersion> overlapping=loadPolicies.overlapping(from,to.plusDays(1));
+        LoadPolicyVersion applicable=null;
+        if(overlapping.size()==1) {
+            LoadPolicyVersion candidate=overlapping.getFirst();
+            if(!candidate.effectiveFrom().isAfter(from)
+                    && (candidate.effectiveUntil()==null || !candidate.effectiveUntil().isBefore(to.plusDays(1)))) applicable=candidate;
+        }
+        String status=applicable!=null?"HOMOLOGADA_NO_PERIODO":overlapping.isEmpty()?"SEM_POLITICA_APLICAVEL":
+                overlapping.size()==1?"CONFIGURACAO_PARCIAL_NO_PERIODO":hasOverlappingPolicies(overlapping)
+                        ?"CONFIGURACOES_SOBREPOSTAS":"MULTIPLAS_CONFIGURACOES_NO_PERIODO";
+        PlannedLoadPolicy planned=loadPolicies.planned(today).orElse(null);
+        return new LoadPolicySummary(status,current.size()==1?current.getFirst():null,applicable,
+                new InstitutionalLoadConfirmation(new java.math.BigDecimal("5.00"),new java.math.BigDecimal("4.00"),"CONFIRMADA"),
+                planned);
+    }
+    private static boolean hasOverlappingPolicies(List<LoadPolicyVersion> policies) {
+        for(int i=0;i<policies.size();i++) for(int j=i+1;j<policies.size();j++) {
+            LoadPolicyVersion left=policies.get(i),right=policies.get(j);
+            boolean leftBeforeRightEnds=right.effectiveUntil()==null || left.effectiveFrom().isBefore(right.effectiveUntil());
+            boolean rightBeforeLeftEnds=left.effectiveUntil()==null || right.effectiveFrom().isBefore(left.effectiveUntil());
+            if(leftBeforeRightEnds && rightBeforeLeftEnds) return true;
+        }
+        return false;
+    }
+    private static WeeklyParticipationRules.ModalitySummary withoutRequirement(WeeklyParticipationRules.ModalitySummary value) {
+        return new WeeklyParticipationRules.ModalitySummary(null,value.registeredSeconds(),value.pendingSeconds(),
+                value.validatedSeconds(),value.refusedSeconds(),value.openPeriods(),null);
     }
     private static long seconds(java.math.BigDecimal hours) {
         return hours.multiply(java.math.BigDecimal.valueOf(3600)).longValueExact();

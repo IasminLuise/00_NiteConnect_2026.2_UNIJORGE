@@ -43,3 +43,15 @@ nite:
     tenant-id: ${ENTRA_TENANT_ID:}
     audience: ${ENTRA_AUDIENCE:}
     required-scope: ${ENTRA_REQUIRED_SCOPE:}
+  justification:
+    local-root: ${JUSTIFICATION_ATTACHMENT_LOCAL_ROOT:}
+    storage:
+      approved: ${JUSTIFICATION_ATTACHMENT_STORAGE_APPROVED:false}
+    retention:
+      authorized-validator-ids: ${JUSTIFICATION_RETENTION_AUTHORIZED_VALIDATOR_IDS:}
+      purge:
+        enabled: ${JUSTIFICATION_ATTACHMENT_RETENTION_PURGE_ENABLED:false}
+        execution-enabled: ${JUSTIFICATION_ATTACHMENT_RETENTION_PURGE_EXECUTION_ENABLED:false}
+        dry-run: ${JUSTIFICATION_ATTACHMENT_RETENTION_PURGE_DRY_RUN:true}
+        cron: ${JUSTIFICATION_ATTACHMENT_RETENTION_PURGE_CRON:0 15 2 * * *}
+        zone: ${JUSTIFICATION_ATTACHMENT_RETENTION_PURGE_ZONE:UTC}
