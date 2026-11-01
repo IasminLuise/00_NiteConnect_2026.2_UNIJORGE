@@ -54,7 +54,7 @@ export function buildAuthenticatedNavigationGroups(options: NavigationOptions): 
       label: "Meu espaço",
       defaultOpen: true,
       items: [
-        planned("Minhas atividades", "activity"),
+        { label: "Minhas atividades", icon: "activity", href: "/atividades" },
         planned("Minha participação", "clock"),
         planned("Meus projetos", "projects"),
         planned("Agenda", "calendar"),

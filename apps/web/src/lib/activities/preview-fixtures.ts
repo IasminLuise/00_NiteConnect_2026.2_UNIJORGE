@@ -1,0 +1,149 @@
+import type { Activity, ActivityAssignee, ActivityEvidence, ActivityHistoryEvent } from "./contracts";
+
+export const previewProjectTitles: Readonly<Record<string, string>> = {
+  "81000000-0000-4000-8000-000000000001": "Pesquisa em protocolos institucionais",
+  "81000000-0000-4000-8000-000000000002": "Experiência de integração acadêmica",
+};
+
+export const previewActivities: readonly Activity[] = [
+  {
+    id: "82000000-0000-4000-8000-000000000001",
+    title: "Mapear com integrantes os passos de entrada e validar a sequência de orientação para o início do próximo ciclo de pesquisa",
+    description: "Organizar uma conversa curta com a equipe, registrar os pontos de dúvida e consolidar uma sequência inicial de orientações para revisão.",
+    projectId: "81000000-0000-4000-8000-000000000001",
+    status: "EM_EXECUCAO",
+    dueOn: "2026-10-30",
+    primaryExecutorId: "83000000-0000-4000-8000-000000000001",
+    primaryExecutorName: "Integrante sintético",
+    executorAvailable: true,
+    createdBy: "83000000-0000-4000-8000-000000000001",
+    version: 4,
+    createdAt: "2026-10-12T13:30:00Z",
+    updatedAt: "2026-10-29T18:15:00Z",
+    completedAt: null,
+    deadlinePassed: true,
+    overdue: true,
+    attentionRequired: true,
+  },
+  {
+    id: "82000000-0000-4000-8000-000000000002",
+    title: "Preparar roteiro para a próxima reunião de orientação",
+    description: "Reunir os tópicos de acompanhamento e organizar a pauta.",
+    projectId: null,
+    status: "PLANEJADA",
+    dueOn: "2026-11-05",
+    primaryExecutorId: "83000000-0000-4000-8000-000000000001",
+    primaryExecutorName: "Integrante sintético",
+    executorAvailable: true,
+    createdBy: "83000000-0000-4000-8000-000000000001",
+    version: 1,
+    createdAt: "2026-10-28T12:00:00Z",
+    updatedAt: "2026-10-28T12:00:00Z",
+    completedAt: null,
+    deadlinePassed: false,
+    overdue: false,
+    attentionRequired: false,
+  },
+  {
+    id: "82000000-0000-4000-8000-000000000003",
+    title: "Revisar material de apoio da equipe",
+    description: "Conferir as informações do material antes de compartilhar com o grupo.",
+    projectId: "81000000-0000-4000-8000-000000000002",
+    status: "CONCLUIDA",
+    dueOn: "2026-10-27",
+    primaryExecutorId: "83000000-0000-4000-8000-000000000001",
+    primaryExecutorName: "Integrante sintético",
+    executorAvailable: true,
+    createdBy: "83000000-0000-4000-8000-000000000001",
+    version: 3,
+    createdAt: "2026-10-20T11:00:00Z",
+    updatedAt: "2026-10-27T18:00:00Z",
+    completedAt: "2026-10-27T18:00:00Z",
+    deadlinePassed: true,
+    overdue: false,
+    attentionRequired: false,
+  },
+  {
+    id: "82000000-0000-4000-8000-000000000004",
+    title: "Atividade cancelada para consulta de histórico",
+    description: "Registro sintético para conferir a exibição do estado cancelado.",
+    projectId: null,
+    status: "CANCELADA",
+    dueOn: null,
+    primaryExecutorId: "83000000-0000-4000-8000-000000000001",
+    primaryExecutorName: "Integrante sintético",
+    executorAvailable: true,
+    createdBy: "83000000-0000-4000-8000-000000000001",
+    version: 2,
+    createdAt: "2026-10-18T12:00:00Z",
+    updatedAt: "2026-10-22T17:00:00Z",
+    completedAt: null,
+    deadlinePassed: false,
+    overdue: false,
+    attentionRequired: false,
+  },
+];
+
+export const previewActivity = previewActivities[0];
+
+export const previewAssignees: readonly ActivityAssignee[] = [
+  { id: "84000000-0000-4000-8000-000000000001", memberId: previewActivity.primaryExecutorId, memberName: "Integrante sintético", role: "EXECUTOR", startedAt: "2026-10-12T13:30:00Z", available: true },
+  { id: "84000000-0000-4000-8000-000000000002", memberId: "83000000-0000-4000-8000-000000000002", memberName: "Colaborador sintético", role: "COLLABORATOR", startedAt: "2026-10-14T10:00:00Z", available: true },
+];
+
+export const previewEvidence: readonly ActivityEvidence[] = [
+  {
+    id: "85000000-0000-4000-8000-000000000001",
+    activityId: previewActivity.id,
+    authorId: previewActivity.primaryExecutorId,
+    authorName: "Integrante sintético",
+    assignmentId: previewAssignees[0].id,
+    type: "TEXT",
+    content: "Síntese sintética: organizar os pontos de entrada e revisar a sequência proposta com a equipe.",
+    url: null,
+    correctsEvidenceId: null,
+    createdAt: "2026-10-28T15:20:00Z",
+    withdrawnAt: null,
+    object: null,
+  },
+  {
+    id: "85000000-0000-4000-8000-000000000002",
+    activityId: previewActivity.id,
+    authorId: "83000000-0000-4000-8000-000000000002",
+    authorName: "Colaborador sintético",
+    assignmentId: previewAssignees[1].id,
+    type: "LINK",
+    content: null,
+    url: "https://example.invalid/preview-reference",
+    correctsEvidenceId: null,
+    createdAt: "2026-10-27T11:45:00Z",
+    withdrawnAt: null,
+    object: null,
+  },
+];
+
+const historyEntries = [
+  ["CREATED", "Planejamento iniciado com um escopo inicial para a equipe."],
+  ["COLLABORATOR_ADDED", "Apoio incluído para revisar a sequência de orientação."],
+  ["UPDATED", "Descrição ajustada após a primeira conversa."],
+  ["STATUS_CHANGED", "Execução iniciada após a organização do roteiro."],
+  ["EVIDENCE_CREATED", "Registro sintético da conversa de acompanhamento."],
+  ["UPDATED", "Prazo revisto para acomodar a agenda do grupo."],
+  ["EVIDENCE_CREATED", "Link de referência associado à atividade."],
+  ["STATUS_CHANGED", "Atividade mantida em execução para concluir a revisão."],
+] as const;
+
+export const previewHistory: readonly ActivityHistoryEvent[] = Array.from({ length: 20 }, (_, index) => {
+  const [action, reason] = historyEntries[index % historyEntries.length];
+  return {
+    id: `86000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`,
+    activityId: previewActivity.id,
+    actorId: index % 2 === 0 ? previewActivity.primaryExecutorId : previewAssignees[1].memberId,
+    action,
+    reason,
+    occurredAt: new Date(Date.UTC(2026, 9, 29 - Math.floor(index / 2), 15 - (index % 8), 20)).toISOString(),
+    activityVersion: Math.max(0, previewActivity.version - Math.floor(index / 4)),
+    before: null,
+    after: null,
+  };
+});

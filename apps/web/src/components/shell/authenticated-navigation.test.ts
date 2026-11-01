@@ -8,12 +8,12 @@ const base = {
 };
 
 describe("navegação autenticada", () => {
-  it("liga somente para a rota existente e sinaliza módulos sem página", () => {
+  it("liga as rotas integradas e sinaliza módulos sem página", () => {
     const groups = buildAuthenticatedNavigationGroups(base);
     const items = groups.flatMap(({ items: groupItems }) => groupItems);
 
     expect(groups.map(({ label }) => label)).toEqual(["Início", "Meu espaço"]);
-    expect(items.filter(({ href }) => href).map(({ href }) => href)).toEqual(["/dashboard"]);
+    expect(items.filter(({ href }) => href).map(({ href }) => href)).toEqual(["/dashboard", "/atividades"]);
     expect(items.every(({ href, status }) => href || status === "development")).toBe(true);
     expect(items.some(({ href }) => href?.includes("#") || href?.includes("scope="))).toBe(false);
   });
@@ -44,6 +44,6 @@ describe("navegação autenticada", () => {
       "Administração",
       "Acompanhamento acadêmico",
     ]);
-    expect(groups.flatMap(({ items: groupItems }) => groupItems).filter(({ href }) => href).map(({ href }) => href)).toEqual(["/dashboard"]);
+    expect(groups.flatMap(({ items: groupItems }) => groupItems).filter(({ href }) => href).map(({ href }) => href)).toEqual(["/dashboard", "/atividades"]);
   });
 });
