@@ -21,13 +21,13 @@ class AttendanceTransactionsTest extends AttendanceTestSupport {
     @Test void auditFailureRollsBackAttendancePeriodAndJournal() throws Exception {
         UUID event = event();
         String payload = qr(event);
-        jdbc.execute("create function nite_connect.fail_b04_audit() returns trigger language plpgsql as $$ begin if NEW.entity_type='PERIOD' then raise exception 'Simulated audit failure'; end if;return NEW;end;$$");
+        jdbc.execute("create function nite_connect.fail_b04_audit() returns trigger language plpgsql as $$ begin if NEW.entity_type='ATTENDANCE_SEGMENT' then raise exception 'Simulated audit failure'; end if;return NEW;end;$$");
         jdbc.execute("create trigger fail_b04_audit before insert on nite_connect.audit_events for each row execute function nite_connect.fail_b04_audit()");
         try {
             assertThatThrownBy(() -> checkIn(event, payload)).isInstanceOf(Exception.class);
             assertThat(jdbc.queryForObject("select count(*) from nite_connect.attendance_records", Long.class)).isZero();
-            assertThat(jdbc.queryForObject("select count(*) from nite_connect.participation_periods", Long.class)).isZero();
-            assertThat(jdbc.queryForObject("select count(*) from nite_connect.participation_events where member_id=?", Long.class, MEMBER)).isZero();
+            assertThat(jdbc.queryForObject("select count(*) from nite_connect.attendance_segments", Long.class)).isZero();
+            assertThat(jdbc.queryForObject("select count(*) from nite_connect.attendance_events where member_id=?", Long.class, MEMBER)).isZero();
         } finally {
             jdbc.execute("drop trigger fail_b04_audit on nite_connect.audit_events");
             jdbc.execute("drop function nite_connect.fail_b04_audit()");

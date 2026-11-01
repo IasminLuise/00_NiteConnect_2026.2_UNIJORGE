@@ -5,7 +5,7 @@ import java.util.*;
 import org.springframework.stereotype.Component;
 import br.edu.unijorge.niteconnect.access.application.AccessService;
 import br.edu.unijorge.niteconnect.attendance.infrastructure.AttendanceRepository;
-import br.edu.unijorge.niteconnect.attendance.domain.Attendance.Period;
+import br.edu.unijorge.niteconnect.attendance.domain.Attendance.AttendanceSegment;
 import br.edu.unijorge.niteconnect.shared.api.ApiException;
 
 @Component
@@ -15,7 +15,7 @@ public class AttendanceAcademicReader {
     public record Snapshot(UUID id,UUID memberId,String revision,UUID authorId,UUID validatedBy,String status,Instant occurredAt,Instant validatedAt,Map<String,String> attributes) {}
     public Snapshot read(UUID actor,UUID member,UUID sourceId,Instant from,Instant to) {
         access.requireActive(actor);if(!actor.equals(member)) access.requireAdministrator(actor);
-        Period p=repo.period(sourceId);if(!member.equals(p.memberId())) throw ApiException.forbidden();
+        AttendanceSegment p=repo.segment(sourceId);if(!member.equals(p.memberId())) throw ApiException.forbidden();
         if (p.attendanceId() == null) {
             throw ApiException.conflict("Origem não é presença registrada em encontro");
         }

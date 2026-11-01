@@ -13,7 +13,7 @@ class AttendanceAcademicReaderTest extends AttendanceTestSupport {
     @Test void evidenceSnapshotContainsMeetingPresenceWithoutHourMeasurements() throws Exception {
         UUID event = event();
         UUID attendance = checkIn(event, qr(event));
-        UUID period = jdbc.queryForObject("select id from nite_connect.participation_periods where attendance_id=?", UUID.class, attendance);
+        UUID period = jdbc.queryForObject("select id from nite_connect.attendance_segments where attendance_id=?", UUID.class, attendance);
         Instant from = Instant.now().minusSeconds(3600), to = Instant.now().plusSeconds(3600);
         var snapshot = reader.read(ADMIN, MEMBER, period, from, to);
         assertThat(snapshot.status()).isEqualTo("REGISTRADA");
@@ -27,7 +27,7 @@ class AttendanceAcademicReaderTest extends AttendanceTestSupport {
     @Test void canceledMeetingCannotBeCapturedAsAttendanceEvidence() throws Exception {
         UUID event = event();
         UUID attendance = checkIn(event, qr(event));
-        UUID period = jdbc.queryForObject("select id from nite_connect.participation_periods where attendance_id=?", UUID.class, attendance);
+        UUID period = jdbc.queryForObject("select id from nite_connect.attendance_segments where attendance_id=?", UUID.class, attendance);
         mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/v1/agenda/events/" + event + "/cancel")
                 .with(token(ADMIN)).contentType("application/json")
                 .content(json.writeValueAsString(java.util.Map.of("expectedVersion", ev(event), "reason", "Cancelamento", "confirmed", true))))

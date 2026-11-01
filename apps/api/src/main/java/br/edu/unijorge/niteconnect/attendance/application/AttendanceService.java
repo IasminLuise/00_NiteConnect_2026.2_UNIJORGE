@@ -5,7 +5,6 @@ import br.edu.unijorge.niteconnect.attendance.api.AttendanceContracts.CheckIn;
 import br.edu.unijorge.niteconnect.attendance.api.AttendanceContracts.CheckOut;
 import br.edu.unijorge.niteconnect.attendance.api.AttendanceContracts.Return;
 import br.edu.unijorge.niteconnect.attendance.domain.Attendance.*;
-import br.edu.unijorge.niteconnect.attendance.domain.Agenda.Event;
 import br.edu.unijorge.niteconnect.attendance.infrastructure.AttendanceRepository;
 import br.edu.unijorge.niteconnect.shared.api.ApiException;
 import br.edu.unijorge.niteconnect.shared.security.AdministrativeTransactions;
@@ -45,9 +44,8 @@ public class AttendanceService {
             throw ApiException.conflict("Presença já registrada; utilize retorno");
         }
         UUID id = repo.createAttendance(command.eventId(), actor);
-        Event event = repo.event(command.eventId());
-        UUID period = repo.createPeriod(actor, id, event.modality(), now);
-        journal.record(actor, actor, "PERIOD", period, 0, "CHECKED_IN", null, repo.period(period),
+        UUID segment = repo.createSegment(actor, id, now);
+        journal.record(actor, actor, "ATTENDANCE_SEGMENT", segment, 0, "CHECKED_IN", null, repo.segment(segment),
                 "Entrada por sessão temporária");
         journal.record(actor, actor, "ATTENDANCE", id, 0, "CREATED", null, repo.attendance(id),
                 "Presença em encontro");
@@ -58,16 +56,16 @@ public class AttendanceService {
     public View checkOut(UUID actor, CheckOut command) {
         tx.lock();
         access.requireActive(actor);
-        Period before = repo.open(actor).orElseThrow(() -> ApiException.conflict("Nenhuma presença aberta"));
+        AttendanceSegment before = repo.openSegment(actor).orElseThrow(() -> ApiException.conflict("Nenhuma presença aberta"));
         Presence attendance = repo.attendance(before.attendanceId());
         repo.version(attendance.version(), command.expectedVersion());
         Instant now = clock.instant();
         if (!now.isAfter(before.startsAt())) throw ApiException.conflict("Saída deve ser posterior à entrada");
-        repo.changed(repo.update("update nite_connect.participation_periods set ends_at=?,version=version+1 where id=? and version=?",
+        repo.changed(repo.update("update nite_connect.attendance_segments set ends_at=?,version=version+1 where id=? and version=?",
                 ts(now), before.id(), before.version()));
         repo.touchAttendance(attendance.id(), attendance.version());
-        journal.record(actor, actor, "PERIOD", before.id(), before.version() + 1, "CHECKED_OUT", before,
-                repo.period(before.id()), "Saída registrada pelo integrante");
+        journal.record(actor, actor, "ATTENDANCE_SEGMENT", before.id(), before.version() + 1, "CHECKED_OUT", before,
+                repo.segment(before.id()), "Saída registrada pelo integrante");
         journal.record(actor, actor, "ATTENDANCE", attendance.id(), attendance.version() + 1, "DEPARTURE", attendance,
                 repo.attendance(attendance.id()), "Saída do encontro");
         return view(repo.attendance(attendance.id()));
@@ -81,10 +79,10 @@ public class AttendanceService {
         repo.version(before.version(), command.expectedVersion());
         Instant now = clock.instant();
         repo.qr(before.eventId(), AgendaService.hash(command.payload()), now);
-        if (repo.open(actor).isPresent()) throw ApiException.conflict("Já existe presença aberta");
-        UUID period = repo.createPeriod(actor, id, repo.event(before.eventId()).modality(), now);
+        if (repo.openSegment(actor).isPresent()) throw ApiException.conflict("Já existe presença aberta");
+        UUID segment = repo.createSegment(actor, id, now);
         repo.touchAttendance(id, before.version());
-        journal.record(actor, actor, "PERIOD", period, 0, "RETURNED", null, repo.period(period),
+        journal.record(actor, actor, "ATTENDANCE_SEGMENT", segment, 0, "RETURNED", null, repo.segment(segment),
                 "Retorno ao encontro");
         journal.record(actor, actor, "ATTENDANCE", id, before.version() + 1, "RETURNED", before,
                 repo.attendance(id), "Retorno ao encontro");
@@ -98,8 +96,8 @@ public class AttendanceService {
     }
 
     public View view(Presence attendance) {
-        var segments = repo.periods(attendance.id()).stream()
-                .map(period -> new Segment(period.id(), period.startsAt(), period.endsAt(), period.version()))
+        var segments = repo.segments(attendance.id()).stream()
+                .map(segment -> new Segment(segment.id(), segment.startsAt(), segment.endsAt(), segment.version()))
                 .toList();
         return new View(attendance.id(), attendance.eventId(), attendance.memberId(), attendance.version(), segments);
     }

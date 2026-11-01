@@ -38,7 +38,7 @@ public class AttendanceQueries {
         String where = "from nite_connect.attendance_records a where a.member_id=?";
         if (from != null || to != null) {
             Range range = range(from, to);
-            where += " and exists(select 1 from nite_connect.participation_periods p where p.attendance_id=a.id and p.starts_at<? and (p.ends_at is null or p.ends_at>?))";
+            where += " and exists(select 1 from nite_connect.attendance_segments p where p.attendance_id=a.id and p.starts_at<? and (p.ends_at is null or p.ends_at>?))";
             args.add(ts(range.to()));
             args.add(ts(range.from()));
         }

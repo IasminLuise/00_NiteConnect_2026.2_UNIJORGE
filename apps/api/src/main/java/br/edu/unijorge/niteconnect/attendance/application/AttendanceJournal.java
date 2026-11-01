@@ -25,7 +25,7 @@ public class AttendanceJournal {
     public void record(UUID actor, UUID member, String type, UUID id, long version, String action,
                        Object before, Object after, String reason) {
         repo.update("""
-                insert into nite_connect.participation_events(id,entity_type,entity_id,member_id,actor_id,action,entity_version,before_value,after_value,reason)
+                insert into nite_connect.attendance_events(id,entity_type,entity_id,member_id,actor_id,action,entity_version,before_value,after_value,reason)
                 values (?,?,?,?,?,?,?,?,?,?)
                 """, UUID.randomUUID(), type, id, member, actor, action, version,
                 before == null ? null : json.writeValueAsString(before), json.writeValueAsString(after), reason);

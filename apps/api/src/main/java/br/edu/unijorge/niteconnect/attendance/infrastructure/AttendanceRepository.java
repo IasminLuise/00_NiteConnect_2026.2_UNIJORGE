@@ -1,7 +1,7 @@
 package br.edu.unijorge.niteconnect.attendance.infrastructure;
 
 import br.edu.unijorge.niteconnect.attendance.domain.Agenda.*;
-import br.edu.unijorge.niteconnect.attendance.domain.Attendance.Period;
+import br.edu.unijorge.niteconnect.attendance.domain.Attendance.AttendanceSegment;
 import br.edu.unijorge.niteconnect.attendance.domain.Attendance.Presence;
 import br.edu.unijorge.niteconnect.shared.api.ApiException;
 import br.edu.unijorge.niteconnect.shared.api.PageResult;
@@ -37,8 +37,7 @@ public class AttendanceRepository {
             r.getString("description"), EventKind.valueOf(r.getString("kind")), Modality.valueOf(r.getString("modality")),
             instant(r, "starts_at"), instant(r, "ends_at"), EventStatus.valueOf(r.getString("status")), r.getLong("version"));
 
-    /** Reads only the presence fields needed from the mixed historical table. */
-    public static final RowMapper<Period> PERIOD = (r, i) -> new Period(uuid(r, "id"), uuid(r, "member_id"),
+    public static final RowMapper<AttendanceSegment> ATTENDANCE_SEGMENT = (r, i) -> new AttendanceSegment(uuid(r, "id"), uuid(r, "member_id"),
             uuid(r, "attendance_id"), instant(r, "starts_at"), instant(r, "ends_at"), r.getLong("version"));
 
     public static final RowMapper<Presence> ATTENDANCE = (r, i) -> new Presence(uuid(r, "id"),
@@ -51,7 +50,7 @@ public class AttendanceRepository {
             uuid(r, "attendance_id"));
 
     public Event event(UUID id) { return one("select * from nite_connect.calendar_events where id=?", EVENT, id); }
-    public Period period(UUID id) { return one("select * from nite_connect.participation_periods where id=? and attendance_id is not null and kind='ATTENDANCE'", PERIOD, id); }
+    public AttendanceSegment segment(UUID id) { return one("select * from nite_connect.attendance_segments where id=?", ATTENDANCE_SEGMENT, id); }
     public Presence attendance(UUID id) { return one("select * from nite_connect.attendance_records where id=?", ATTENDANCE, id); }
 
     private <T> T one(String sql, RowMapper<T> mapper, Object... args) {
@@ -84,14 +83,14 @@ public class AttendanceRepository {
                 .stream().findFirst();
     }
 
-    public List<Period> periods(UUID attendance) {
-        return jdbc.query("select * from nite_connect.participation_periods where attendance_id=? and kind='ATTENDANCE' order by starts_at,id",
-                PERIOD, attendance);
+    public List<AttendanceSegment> segments(UUID attendance) {
+        return jdbc.query("select * from nite_connect.attendance_segments where attendance_id=? order by starts_at,id",
+                ATTENDANCE_SEGMENT, attendance);
     }
 
-    public Optional<Period> open(UUID member) {
-        return jdbc.query("select * from nite_connect.participation_periods where member_id=? and attendance_id is not null and kind='ATTENDANCE' and ends_at is null",
-                PERIOD, member).stream().findFirst();
+    public Optional<AttendanceSegment> openSegment(UUID member) {
+        return jdbc.query("select * from nite_connect.attendance_segments where member_id=? and ends_at is null",
+                ATTENDANCE_SEGMENT, member).stream().findFirst();
     }
 
     public void qr(UUID event, String hash, Instant now) {
@@ -108,12 +107,12 @@ public class AttendanceRepository {
         return id;
     }
 
-    public UUID createPeriod(UUID member, UUID attendance, Modality modality, Instant start) {
+    public UUID createSegment(UUID member, UUID attendance, Instant start) {
         UUID id = UUID.randomUUID();
         update("""
-                insert into nite_connect.participation_periods(id,member_id,attendance_id,kind,modality,starts_at,ends_at,description,activity_id,evidence_id,origin)
-                values (?,?,?,?,?,?,?,?,?,?,?)
-                """, id, member, attendance, "ATTENDANCE", modality.name(), ts(start), null, "", null, null, "QR");
+                insert into nite_connect.attendance_segments(id,member_id,attendance_id,starts_at,ends_at)
+                values (?,?,?,?,?)
+                """, id, member, attendance, ts(start), null);
         return id;
     }
 

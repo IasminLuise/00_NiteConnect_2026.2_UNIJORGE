@@ -46,7 +46,7 @@ Rotas pessoais limitam-se ao integrante autenticado; rotas de projeto exigem lid
 - `GET /api/v1/projects/{projectId}/analytics/comparison?baselineFrom=&baselineTo=&comparisonFrom=&comparisonTo=`: liderança contextual ou administração.
 - `GET /api/v1/analytics/comparison?baselineFrom=&baselineTo=&comparisonFrom=&comparisonTo=&projectId=&memberId=`: administração.
 
-O histórico retorna eventos preservados de projeto e atividade com ID, ação, instante e estados conhecidos; não inventa snapshots. A comparação exige janelas inclusivas de mesma duração, sem sobreposição, e retorna contagens de criação de atividades e eventos B03 preservados; consultas sem integrante também contam mudanças de situação do projeto. Essas contagens não são indicadores homologados de desempenho. A comparação não lê presença, segmentos de `participation_periods` nem calcula horas.
+O histórico retorna eventos preservados de projeto e atividade com ID, ação, instante e estados conhecidos; não inventa snapshots. A comparação exige janelas inclusivas de mesma duração, sem sobreposição, e retorna contagens de criação de atividades e eventos B03 preservados; consultas sem integrante também contam mudanças de situação do projeto. Essas contagens não são indicadores homologados de desempenho. A comparação não lê presença nem calcula horas.
 
 ## Criticidade de projeto
 

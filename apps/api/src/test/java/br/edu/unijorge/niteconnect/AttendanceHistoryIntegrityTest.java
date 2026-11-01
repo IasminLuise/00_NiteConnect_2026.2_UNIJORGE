@@ -21,7 +21,7 @@ class AttendanceHistoryIntegrityTest extends AttendanceTestSupport {
                 .andExpect(jsonPath("$.periods[0].durationSeconds").doesNotExist())
                 .andExpect(jsonPath("$.periods[0].modality").doesNotExist());
         assertThat(jdbc.queryForObject("select count(*) from nite_connect.attendance_records", Long.class)).isEqualTo(1);
-        assertThat(jdbc.queryForObject("select count(*) from nite_connect.participation_periods where attendance_id=?", Long.class, attendance)).isEqualTo(2);
+        assertThat(jdbc.queryForObject("select count(*) from nite_connect.attendance_segments where attendance_id=?", Long.class, attendance)).isEqualTo(2);
         mvc.perform(get("/api/v1/me/attendance").with(token(OTHER))).andExpect(status().isOk()).andExpect(jsonPath("$.total").value(0));
         mvc.perform(post("/api/v1/me/attendance/" + attendance + "/return").with(token(OTHER)).contentType("application/json")
                 .content(json.writeValueAsString(Map.of("expectedVersion", 2, "payload", qr(event))))).andExpect(status().isNotFound());

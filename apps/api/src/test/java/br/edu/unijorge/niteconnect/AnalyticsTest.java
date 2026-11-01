@@ -26,13 +26,6 @@ class AnalyticsTest extends ProjectTestSupport {
 
     @Test
     void administrativeDashboardDoesNotExposeRetiredWorkHourIndicators() throws Exception {
-        jdbc.update("""
-                insert into nite_connect.participation_periods
-                    (id,member_id,kind,modality,starts_at,ends_at,description,origin,review_status)
-                values (gen_random_uuid(),?,'WORK_LOG','REMOTA',clock_timestamp()-interval '30 days',
-                        clock_timestamp()-interval '30 days'+interval '5 minutes','Legacy test data','DECLARATION','PENDENTE')
-                """, MEMBER);
-
         mvc.perform(get("/api/v1/analytics/dashboard").queryParam("from",LocalDate.now().minusDays(31).toString())
                         .queryParam("to",LocalDate.now().toString()).with(token(ADMIN)))
                 .andExpect(status().isOk())

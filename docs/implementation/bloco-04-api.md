@@ -43,6 +43,6 @@ O Bloco 07 não agrega presença em horas. A captura acadêmica B06 usa um leito
 
 ## Persistência histórica e migrações
 
-As migrações V1–V19 são históricas, append-only e permanecem necessárias à reconstrução dos bancos. V20 apenas adiciona comentários de escopo; não apaga, altera nem migra linhas. `participation_periods` é tabela mista: contém segmentos de presença e antigos lançamentos remotos; não pode ser removida ou truncada sem inventário e estratégia aprovada. Tabelas antigas de justificativas, correções, políticas, solicitações e anexos permanecem preservadas, sem APIs/serviços ativos.
+V1–V20 permanecem como histórico append-only necessário à reconstrução. V21 separa os intervalos de presença em `attendance_segments`, a trilha de Agenda/presença em `attendance_events` e remove as tabelas e linhas do escopo antigo de horas, políticas, solicitações, justificativas, comprovantes e expurgo. A trilha global preserva eventos de Agenda/presença e B01–B03/B06/B07; eventos de período ligados à presença passam a `ATTENDANCE_SEGMENT`.
 
-Uma eventual limpeza de dados ou binários depende de inventário institucional dos registros reais e sintéticos, localização de cópias privadas, política de retenção, cópias de segurança e autorização específica. O estado atual não afirma descarte de comprovantes nem garantia de expurgo.
+V21 não altera `calendar_events`, `event_participants`, `attendance_records` ou evidências B03. Ela não usa `CASCADE` e interrompe a migração quando um evento `PERIOD` não tem registro de origem para classificação. O SQL remove metadados e históricos armazenados no PostgreSQL; não apaga arquivos externos nem cópias de segurança, que dependem de inventário e procedimento operacional próprios.
