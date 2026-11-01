@@ -16,6 +16,13 @@ Este diretório é a fonte de execução do Flyway, configurada em `application.
 | V10 | [`V10__local_document_inspection.sql`](V10__local_document_inspection.sql) | Estrutura histórica de inspeção local; mantida porque consta no histórico de bancos já migrados. |
 | V11 | [`V11__project_health_governance.sql`](V11__project_health_governance.sql) | B07: baseline inicial aprovada de criticidade por projeto, ajustes versionados e avaliações baseadas em atividade B03 imutáveis. |
 | V12 | [`V12__attendance_governance_and_weekly_reviews.sql`](V12__attendance_governance_and_weekly_reviews.sql) | B07/B04: exceções semanais de calendário, decisões de dispensa/reposição e validações remotas por conjunto. |
+| V13 | [`V13__personal_participation_contracts.sql`](V13__personal_participation_contracts.sql) | B04/B07: política de carga horária com vigência e proveniência, respostas e decisões de correção remota, consultas pessoais e remoção de tetos 5h/4h não homologados. |
+| V14 | [`V14__participation_load_policy_administration.sql`](V14__participation_load_policy_administration.sql) | B04/B07: rascunhos versionados de política de carga, autoria e trilha append-only de criação, aprovação, ativação e substituição administrativa. |
+| V15 | [`V15__planned_participation_load_policy.sql`](V15__planned_participation_load_policy.sql) | B04/B07: plano futuro de política com semestre e janela oficial, permitindo aprovação sem inventar a data e exigindo data explícita para ativação. |
+| V16 | [`V16__private_justification_attachments.sql`](V16__private_justification_attachments.sql) | B04: metadados e auditoria append-only de comprovantes privados, propostas versionadas de retenção, classificações semestrais e conservação excepcional. |
+| V17 | [`V17__cap_justification_deletion_grace.sql`](V17__cap_justification_deletion_grace.sql) | B04: limita a janela configurável para descarte de comprovantes ao máximo institucional proposto de 30 dias. |
+| V18 | [`V18__audited_justification_retention_purge.sql`](V18__audited_justification_retention_purge.sql) | B04: registra execuções e resultados do expurgo, vincula eventos automatizados ao lote e mantém histórico imutável por arquivo. |
+| V19 | [`V19__justification_attachment_limits_and_minimum_grace.sql`](V19__justification_attachment_limits_and_minimum_grace.sql) | B04: índices por estado para quotas de anexos, reserva de tamanho no upload pendente e carência mínima de 30 dias para novas políticas. |
 
 ## Aplicação
 

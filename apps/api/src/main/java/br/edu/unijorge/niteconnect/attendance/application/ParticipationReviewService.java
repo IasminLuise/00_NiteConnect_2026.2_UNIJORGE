@@ -1,10 +1,13 @@
 package br.edu.unijorge.niteconnect.attendance.application;
 
 import br.edu.unijorge.niteconnect.access.application.AccessService;
+import br.edu.unijorge.niteconnect.activities.application.ActivityParticipation;
 import br.edu.unijorge.niteconnect.attendance.api.AttendanceContracts.*;
+import br.edu.unijorge.niteconnect.attendance.api.ParticipationGovernanceContracts.*;
 import br.edu.unijorge.niteconnect.attendance.domain.Participation.*;
 import br.edu.unijorge.niteconnect.attendance.domain.Participation.Period;
 import br.edu.unijorge.niteconnect.attendance.infrastructure.AttendanceRepository;
+import br.edu.unijorge.niteconnect.attendance.infrastructure.ParticipationGovernanceRepository;
 import br.edu.unijorge.niteconnect.shared.api.ApiException;
 import br.edu.unijorge.niteconnect.shared.security.AdministrativeTransactions;
 import org.springframework.stereotype.Service;
@@ -17,10 +20,13 @@ import static br.edu.unijorge.niteconnect.attendance.infrastructure.AttendanceRe
 
 @Service
 public class ParticipationReviewService {
-    private final AttendanceRepository repo; private final AccessService access; private final AdministrativeTransactions tx;
+    private final AttendanceRepository repo; private final ParticipationGovernanceRepository governance;
+    private final AccessService access; private final AdministrativeTransactions tx;
     private final ParticipationJournal journal; private final Clock clock;
-    public ParticipationReviewService(AttendanceRepository repo,AccessService access,AdministrativeTransactions tx,ParticipationJournal journal,Clock clock) {
-        this.repo=repo;this.access=access;this.tx=tx;this.journal=journal;this.clock=clock;
+    private final ActivityParticipation activities;
+    public ParticipationReviewService(AttendanceRepository repo,ParticipationGovernanceRepository governance,AccessService access,
+                                      AdministrativeTransactions tx,ParticipationJournal journal,Clock clock,ActivityParticipation activities) {
+        this.repo=repo;this.governance=governance;this.access=access;this.tx=tx;this.journal=journal;this.clock=clock;this.activities=activities;
     }
     @Transactional public Period review(UUID actor,UUID id,Review c) {
         admin(actor);Period before=repo.period(id);other(actor,before.memberId());repo.version(before.version(),c.expectedVersion());
@@ -68,6 +74,55 @@ public class ParticipationReviewService {
             insert into nite_connect.correction_requests(id,member_id,period_id,event_id,proposed_start,proposed_end,reason) values (?,?,?,?,?,?,?)
             """,id,actor,c.periodId(),c.eventId(),ts(c.startsAt()),ts(c.endsAt()),c.reason());
         Correction after=repo.correction(id);journal.record(actor,actor,"CORRECTION",id,0,"REQUESTED",null,after,c.reason());return after;
+    }
+    @Transactional public ReviewRequest respondToWorkLogCorrection(UUID actor,UUID requestId,SubmitWorkLogCorrection c) {
+        tx.lock();access.requireActive(actor);
+        ReviewRequest request=governance.reviewRequest(actor,requestId);
+        if(!request.status().equals("AGUARDANDO_RESPOSTA")) throw ApiException.conflict("Este pedido já recebeu resposta");
+        Period period=repo.period(request.periodId());
+        if(period.kind()!=PeriodKind.WORK_LOG || period.endsAt()==null || period.reviewStatus()!=ReviewStatus.PENDENTE)
+            throw ApiException.conflict("O pedido não está vinculado a um lançamento remoto pendente e fechado");
+        repo.version(period.version(),c.expectedPeriodVersion());past(c.startsAt(),c.endsAt(),clock);
+        activities.requireOwnContext(actor,c.activityId(),c.evidenceId());
+        if(repo.overlapsOther(actor,period.id(),c.startsAt(),c.endsAt())) throw ApiException.conflict("O intervalo proposto sobrepõe outro registro");
+        governance.createWorkLogCorrectionResponse(requestId,period.id(),actor,c,clock.instant());
+        ReviewRequest after=governance.reviewRequest(actor,requestId);
+        journal.record(actor,actor,"WORK_LOG_CORRECTION_RESPONSE",after.response().id(),after.response().version(),
+                "SUBMITTED",null,after.response(),c.reason());
+        return after;
+    }
+    @Transactional public ReviewRequest decideWorkLogCorrection(UUID actor,UUID requestId,DecideWorkLogCorrection c) {
+        admin(actor);confirm(c.confirmed());
+        ReviewRequest before=governance.reviewRequest(requestId);
+        other(actor,repo.period(before.periodId()).memberId());
+        WorkLogCorrectionResponseView response=before.response();
+        if(response==null || response.decision()!=null) throw ApiException.conflict("Resposta inexistente ou já decidida");
+        repo.version(response.version(),c.expectedResponseVersion());
+        Period period=repo.period(before.periodId());
+        repo.version(period.version(),response.expectedPeriodVersion());
+        if(period.kind()!=PeriodKind.WORK_LOG || period.endsAt()==null || period.reviewStatus()!=ReviewStatus.PENDENTE)
+            throw ApiException.conflict("O lançamento não está mais pendente para correção");
+        Long resultingVersion=null;
+        if(c.decision()==WorkLogCorrectionDecisionType.ACEITA) {
+            past(response.proposedStart(),response.proposedEnd(),clock);
+            activities.requireOwnContext(period.memberId(),response.proposedActivityId(),response.proposedEvidenceId());
+            if(repo.overlapsOther(period.memberId(),period.id(),response.proposedStart(),response.proposedEnd()))
+                throw ApiException.conflict("O intervalo proposto sobrepõe outro registro");
+            repo.changed(repo.update("""
+                    update nite_connect.participation_periods set starts_at=?,ends_at=?,description=?,activity_id=?,evidence_id=?,
+                      origin='CORRECTION',version=version+1 where id=? and version=? and review_status='PENDENTE'
+                    """,ts(response.proposedStart()),ts(response.proposedEnd()),response.proposedDescription(),
+                    response.proposedActivityId(),response.proposedEvidenceId(),period.id(),period.version()));
+            Period corrected=repo.period(period.id());
+            journal.record(actor,period.memberId(),"PERIOD",period.id(),corrected.version(),"WORK_LOG_CORRECTED_BY_RESPONSE",
+                    period,corrected,c.reason());
+            resultingVersion=corrected.version();
+        }
+        governance.createWorkLogCorrectionDecision(response.id(),c.decision(),c.expectedResponseVersion(),resultingVersion,actor,c.reason(),clock.instant());
+        ReviewRequest after=governance.reviewRequest(requestId);
+        journal.record(actor,period.memberId(),"WORK_LOG_CORRECTION_RESPONSE",response.id(),response.version(),"DECIDED",
+                response,after.response(),c.reason());
+        return after;
     }
     @Transactional public Period correct(UUID actor,UUID id,Correct c) {
         admin(actor);confirm(c.confirmed());Period before=repo.period(id);other(actor,before.memberId());repo.version(before.version(),c.expectedVersion());

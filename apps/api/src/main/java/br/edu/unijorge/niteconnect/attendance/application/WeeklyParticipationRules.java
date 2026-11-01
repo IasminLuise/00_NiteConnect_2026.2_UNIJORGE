@@ -10,9 +10,9 @@ import java.util.List;
 public final class WeeklyParticipationRules {
     private WeeklyParticipationRules() {}
 
-    public record ModalitySummary(long requiredSeconds, long registeredSeconds, long pendingSeconds,
+    public record ModalitySummary(Long requiredSeconds, long registeredSeconds, long pendingSeconds,
                                   long validatedSeconds, long refusedSeconds, long openPeriods,
-                                  long remainingSeconds) {}
+                                  Long remainingSeconds) {}
     public record Summary(ModalitySummary presential, ModalitySummary remote) {}
 
     public static Summary calculate(List<Period> periods, Instant from, Instant to,

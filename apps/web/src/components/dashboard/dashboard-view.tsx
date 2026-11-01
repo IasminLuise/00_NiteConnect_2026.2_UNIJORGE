@@ -247,21 +247,33 @@ function WeeklyParticipationPanel({ summary }: { summary: ParticipationWeeklySum
     { key: "remote", label: "Remota", value: summary.modalities.remote },
   ];
   const timeZone = summary.zone === "America/Bahia" ? "Horário da Bahia" : summary.zone;
+  const applicablePolicy = summary.loadPolicy.applicableToWeek;
+  const plannedPolicy = summary.loadPolicy.plannedConfiguration;
+  const policyMessage = applicablePolicy
+    ? `Política de carga v${applicablePolicy.version} vigente nesta semana.`
+    : summary.loadPolicy.status === "SEM_POLITICA_APLICAVEL"
+      ? plannedPolicy?.status === "SEM_VIGENCIA_DEFINIDA"
+        ? `Política v${plannedPolicy.version} de ${plannedPolicy.presentialHours}h presenciais e ${plannedPolicy.remoteHours}h remotas aprovada para ${plannedPolicy.intendedSemester ?? "vigência futura"}; aguarda a data oficial. Não há exigência nem saldo para esta semana.`
+        : plannedPolicy && plannedPolicy.effectiveFrom
+          ? `Política v${plannedPolicy.version} de ${plannedPolicy.presentialHours}h presenciais e ${plannedPolicy.remoteHours}h remotas ${plannedPolicy.status === "ATIVADA_PARA_FUTURO" ? "ativada" : "aprovada, aguardando ativação"} para ${date(plannedPolicy.effectiveFrom)}; ainda não aplicável a esta semana. Exigência e saldo não são exibidos.`
+          : `Parâmetros institucionais confirmados: ${summary.loadPolicy.institutionalConfirmation.presentialHours}h presenciais e ${summary.loadPolicy.institutionalConfirmation.remoteHours}h remotas. Não há política aplicável a esta semana; exigência e saldo não são exibidos.`
+      : "A configuração não cobre integralmente esta semana; exigência e saldo não são exibidos.";
   return <section id="participation" aria-labelledby="participation-heading" className="min-w-0 scroll-mt-24">
     <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
       <h2 id="participation-heading" className="font-display text-type-component-title text-nite-text-primary">Minha participação no período</h2>
       <span className="text-type-metadata text-nite-text-muted">{dateRange(summary.weekStart, summary.weekEnd)} · {timeZone}</span>
     </div>
+    <p className="mb-3 text-type-metadata text-nite-text-muted">{policyMessage}</p>
     <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
       {modalities.map(({ key, label, value }) => <Surface key={key} padding="compact">
         <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-nite-border-soft pb-3">
           <h3 className="font-display text-type-body-compact font-semibold text-nite-text-primary">{label}</h3>
-          <span className="text-type-metadata text-nite-text-muted">Horas exigidas após dispensas</span>
+          <span className="text-type-metadata text-nite-text-muted">{applicablePolicy ? "Horas após dispensas" : "Participação registrada"}</span>
         </div>
         <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-3 min-[420px]:grid-cols-3">
-          <div><dt className="text-type-metadata text-nite-text-muted">Exigido</dt><dd className="mt-1 text-type-body-compact font-semibold tabular-nums text-nite-text-primary">{formatDuration(value.requiredSeconds)}</dd></div>
+          {applicablePolicy && value.requiredSeconds !== null ? <div><dt className="text-type-metadata text-nite-text-muted">Exigido</dt><dd className="mt-1 text-type-body-compact font-semibold tabular-nums text-nite-text-primary">{formatDuration(value.requiredSeconds)}</dd></div> : null}
           <div><dt className="text-type-metadata text-nite-text-muted">Validado</dt><dd className="mt-1 text-type-body-compact font-semibold tabular-nums text-nite-text-primary">{formatDuration(value.validatedSeconds)}</dd></div>
-          <div><dt className="text-type-metadata text-nite-text-muted">Saldo</dt><dd className="mt-1 text-type-body-compact font-semibold tabular-nums text-nite-text-primary">{formatDuration(value.remainingSeconds)}</dd></div>
+          {applicablePolicy && value.remainingSeconds !== null ? <div><dt className="text-type-metadata text-nite-text-muted">Saldo</dt><dd className="mt-1 text-type-body-compact font-semibold tabular-nums text-nite-text-primary">{formatDuration(value.remainingSeconds)}</dd></div> : null}
           <div><dt className="text-type-metadata text-nite-text-muted">Registrado</dt><dd className="mt-1 text-type-body-compact tabular-nums text-nite-text-secondary">{formatDuration(value.registeredSeconds)}</dd></div>
           <div><dt className="text-type-metadata text-nite-text-muted">Pendente</dt><dd className={`mt-1 text-type-body-compact tabular-nums ${value.pendingSeconds > 0 ? "text-status-warning" : "text-nite-text-secondary"}`}>{formatDuration(value.pendingSeconds)}</dd></div>
           <div><dt className="text-type-metadata text-nite-text-muted">Recusado</dt><dd className={`mt-1 text-type-body-compact tabular-nums ${value.refusedSeconds > 0 ? "text-status-error" : "text-nite-text-secondary"}`}>{formatDuration(value.refusedSeconds)}</dd></div>

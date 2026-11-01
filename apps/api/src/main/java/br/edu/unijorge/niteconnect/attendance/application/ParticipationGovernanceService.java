@@ -11,6 +11,7 @@ import br.edu.unijorge.niteconnect.attendance.domain.Participation.PeriodKind;
 import br.edu.unijorge.niteconnect.attendance.domain.Participation.ReviewStatus;
 import br.edu.unijorge.niteconnect.attendance.infrastructure.AttendanceRepository;
 import br.edu.unijorge.niteconnect.attendance.infrastructure.ParticipationGovernanceRepository;
+import br.edu.unijorge.niteconnect.attendance.infrastructure.ParticipationLoadPolicyRepository;
 import br.edu.unijorge.niteconnect.shared.api.ApiException;
 import br.edu.unijorge.niteconnect.shared.api.PageResult;
 import br.edu.unijorge.niteconnect.shared.security.AdministrativeTransactions;
@@ -32,19 +33,109 @@ public class ParticipationGovernanceService {
     private final ParticipationGovernanceRepository repo;
     private final AttendanceRepository attendance;
     private final ParticipationReviewService reviews;
+    private final ParticipationLoadPolicyRepository loadPolicies;
     private final AccessService access;
     private final AdministrativeTransactions transactions;
     private final Clock clock;
 
     public ParticipationGovernanceService(ParticipationGovernanceRepository repo, AttendanceRepository attendance,
-                                          ParticipationReviewService reviews, AccessService access,
+                                          ParticipationReviewService reviews, ParticipationLoadPolicyRepository loadPolicies,
+                                          AccessService access,
                                           AdministrativeTransactions transactions, Clock clock) {
         this.repo = repo;
         this.attendance = attendance;
         this.reviews = reviews;
+        this.loadPolicies = loadPolicies;
         this.access = access;
         this.transactions = transactions;
         this.clock = clock;
+    }
+
+    @Transactional(readOnly = true)
+    public PageResult<LoadPolicyAdministrationView> loadPolicyHistory(UUID actor, int page, int size) {
+        access.requireAdministrator(actor);
+        return loadPolicies.history(page, size);
+    }
+
+    @Transactional
+    public LoadPolicyAdministrationView createLoadPolicyDraft(UUID actor, CreateLoadPolicyDraft request) {
+        access.requireAdministrator(actor);
+        transactions.lock();
+        if (loadPolicies.hasUnfinishedDraft()) throw ApiException.conflict("Conclua ou substitua o rascunho atual antes de criar outra versão");
+        validateInitialConfirmedValues(request.presentialHours(), request.remoteHours());
+        validatePolicySchedule(request.effectiveFrom(), request.intendedSemester(), request.effectiveWindow());
+        Instant now = clock.instant();
+        var draft = new ParticipationLoadPolicyRepository.Draft(UUID.randomUUID(), loadPolicies.nextVersion(),
+                request.presentialHours(), request.remoteHours(), request.effectiveFrom(), actor, now,
+                request.intendedSemester(), request.effectiveWindow(),
+                request.reason().strip(), null);
+        loadPolicies.createDraft(draft);
+        loadPolicies.appendEvent(UUID.randomUUID(), draft.id(), "CRIADA", actor, now, request.reason().strip(), null);
+        return loadPolicies.administration(draft.id());
+    }
+
+    @Transactional
+    public LoadPolicyAdministrationView reviseLoadPolicyDraft(UUID actor, UUID id, ReviseLoadPolicyDraft request) {
+        access.requireAdministrator(actor);
+        transactions.lock();
+        var previous = loadPolicies.draft(id);
+        if (previous.version() != request.expectedVersion()) throw ApiException.conflict("Política alterada; consulte a versão atual");
+        String status = loadPolicies.status(id);
+        if (!status.equals("CRIADA") && !status.equals("APROVADA")) throw ApiException.conflict("Somente um rascunho ainda não ativado pode ser substituído");
+        validateInitialConfirmedValues(request.presentialHours(), request.remoteHours());
+        validatePolicySchedule(request.effectiveFrom(), request.intendedSemester(), request.effectiveWindow());
+        Instant now = clock.instant();
+        var draft = new ParticipationLoadPolicyRepository.Draft(UUID.randomUUID(), loadPolicies.nextVersion(),
+                request.presentialHours(), request.remoteHours(), request.effectiveFrom(), actor, now,
+                request.intendedSemester(), request.effectiveWindow(),
+                request.reason().strip(), previous.id());
+        loadPolicies.createDraft(draft);
+        loadPolicies.appendEvent(UUID.randomUUID(), draft.id(), "CRIADA", actor, now, request.reason().strip(), null);
+        loadPolicies.appendEvent(UUID.randomUUID(), previous.id(), "SUBSTITUIDA", actor, now,
+                "Substituída pela versão " + draft.version() + ": " + request.reason().strip(), null);
+        return loadPolicies.administration(draft.id());
+    }
+
+    @Transactional
+    public LoadPolicyAdministrationView approveLoadPolicyDraft(UUID actor, UUID id, ApproveLoadPolicyDraft request) {
+        access.requireAdministrator(actor);
+        transactions.lock();
+        var draft = loadPolicies.draft(id);
+        if (draft.version() != request.expectedVersion()) throw ApiException.conflict("Política alterada; consulte a versão atual");
+        if (!loadPolicies.status(id).equals("CRIADA")) throw ApiException.conflict("Somente um rascunho atual pode ser aprovado");
+        loadPolicies.appendEvent(UUID.randomUUID(), id, "APROVADA", actor, clock.instant(),
+                request.reason().strip(), request.sourceReference().strip());
+        return loadPolicies.administration(id);
+    }
+
+    @Transactional
+    public LoadPolicyAdministrationView activateLoadPolicyDraft(UUID actor, UUID id, ActivateLoadPolicyDraft request) {
+        access.requireAdministrator(actor);
+        transactions.lock();
+        var draft = loadPolicies.draft(id);
+        if (draft.version() != request.expectedVersion()) throw ApiException.conflict("Política alterada; consulte a versão atual");
+        if (!loadPolicies.status(id).equals("APROVADA")) throw ApiException.conflict("A política precisa ser aprovada antes da ativação");
+        if (draft.effectiveFrom() == null) throw ApiException.conflict("Defina a data oficial de vigência em uma nova versão antes da ativação");
+        var approval = loadPolicies.approval(id).orElseThrow(() -> ApiException.conflict("A aprovação da política não está disponível"));
+        var previous = loadPolicies.latestActivated();
+        if (previous.isPresent()) {
+            var current = previous.get();
+            if (!draft.effectiveFrom().isAfter(current.effectiveFrom())) {
+                throw ApiException.conflict("A nova vigência deve suceder a última versão ativada");
+            }
+            if (current.effectiveUntil() != null && draft.effectiveFrom().isBefore(current.effectiveUntil())) {
+                throw ApiException.conflict("A nova vigência sobreporia uma versão já encerrada");
+            }
+            if (current.effectiveUntil() == null) {
+                loadPolicies.closeVersion(current.id(), draft.effectiveFrom());
+                loadPolicies.appendEvent(UUID.randomUUID(), current.id(), "SUBSTITUIDA", actor, clock.instant(),
+                        "Vigência encerrada pela ativação da versão " + draft.version() + ": " + request.reason().strip(), null);
+            }
+        }
+        Instant now = clock.instant();
+        loadPolicies.activate(draft, approval, now);
+        loadPolicies.appendEvent(UUID.randomUUID(), id, "ATIVADA", actor, now, request.reason().strip(), null);
+        return loadPolicies.administration(id);
     }
 
     @Transactional
@@ -110,6 +201,12 @@ public class ParticipationGovernanceService {
         return repo.reviewRequests(actor, page, size);
     }
 
+    @Transactional(readOnly = true)
+    public PageResult<AdministrativeReviewRequest> reviewRequestsAdmin(UUID actor,UUID member,int page,int size) {
+        access.requireAdministrator(actor);
+        return repo.reviewRequestsAdmin(member,page,size);
+    }
+
     @Transactional
     public AdjustmentView requestReplacement(UUID actor, ReplacementRequest request) {
         access.requireActive(actor);
@@ -160,6 +257,12 @@ public class ParticipationGovernanceService {
             member = actor;
         }
         return repo.adjustments(member, page, size);
+    }
+
+    @Transactional(readOnly = true)
+    public PageResult<ReplacementView> replacements(UUID actor,int page,int size) {
+        access.requireActive(actor);
+        return repo.replacements(actor,page,size);
     }
 
     @Transactional
@@ -213,12 +316,11 @@ public class ParticipationGovernanceService {
         BigDecimal presential = change.presentialHoursRelieved();
         BigDecimal remote = change.remoteHoursRelieved();
         boolean valid = switch (change.type()) {
-            case CANCELAMENTO_PRESENCIAL, SUSPENSAO_PRESENCIAL -> presential.compareTo(BigDecimal.valueOf(5)) == 0
-                    && remote.signum() == 0 && change.affectedEventId() != null
-                    == (change.type() == CalendarExceptionType.CANCELAMENTO_PRESENCIAL)
-                    && change.replacementEventId() == null;
-            case RECESSO_INTEGRAL -> presential.compareTo(BigDecimal.valueOf(5)) == 0
-                    && remote.compareTo(BigDecimal.valueOf(4)) == 0
+            case CANCELAMENTO_PRESENCIAL -> presential.signum()>0 && remote.signum()==0
+                    && change.affectedEventId()!=null && change.replacementEventId()==null;
+            case SUSPENSAO_PRESENCIAL -> presential.signum()>0 && remote.signum()==0
+                    && change.affectedEventId()==null && change.replacementEventId()==null;
+            case RECESSO_INTEGRAL -> presential.signum()>0 && remote.signum()>0
                     && change.affectedEventId() == null && change.replacementEventId() == null;
             case SUSPENSAO_PARCIAL -> (presential.signum() > 0 || remote.signum() > 0)
                     && change.affectedEventId() == null && change.replacementEventId() == null;
@@ -230,16 +332,37 @@ public class ParticipationGovernanceService {
 
     private static void validateHours(BigDecimal presential, BigDecimal remote) {
         if (presential == null || remote == null || presential.signum() < 0 || remote.signum() < 0
-                || presential.compareTo(BigDecimal.valueOf(5)) > 0 || remote.compareTo(BigDecimal.valueOf(4)) > 0
                 || presential.scale() > 2 || remote.scale() > 2) {
-            throw ApiException.invalid("Horas dispensadas devem ser não negativas, com até duas casas, e não exceder 5h presenciais/4h remotas");
+            throw ApiException.invalid("Horas dispensadas devem ser não negativas e ter até duas casas decimais");
+        }
+    }
+
+    private void validateInitialConfirmedValues(BigDecimal presential, BigDecimal remote) {
+        if (presential == null || remote == null || presential.signum() < 0 || remote.signum() < 0
+                || presential.scale() > 2 || remote.scale() > 2) {
+            throw ApiException.invalid("A política exige horas não negativas com até duas casas decimais");
+        }
+        if (!loadPolicies.hasActivatedPolicies()
+                && (presential.compareTo(new BigDecimal("5.00")) != 0 || remote.compareTo(new BigDecimal("4.00")) != 0)) {
+            throw ApiException.invalid("A primeira política deve usar os valores institucionais confirmados de 5h presencial e 4h remota");
+        }
+    }
+
+    private static void validatePolicySchedule(LocalDate effectiveFrom, String intendedSemester,
+                                               LoadPolicyEffectiveWindow effectiveWindow) {
+        boolean hasSemester = intendedSemester != null && !intendedSemester.isBlank();
+        boolean hasWindow = effectiveWindow != null;
+        if (effectiveFrom == null && !(hasSemester && hasWindow)) {
+            throw ApiException.invalid("Informe a data de vigência ou o semestre e a janela oficial previstos");
+        }
+        if (effectiveFrom != null && hasSemester != hasWindow) {
+            throw ApiException.invalid("Semestre previsto e janela oficial devem ser informados juntos");
         }
     }
 
     private static void validateAmount(Modality modality, BigDecimal hours) {
-        if (modality == null || hours == null || hours.signum() <= 0 || hours.scale() > 2
-                || hours.compareTo(BigDecimal.valueOf(modality == Modality.PRESENCIAL ? 5 : 4)) > 0) {
-            throw ApiException.invalid("Quantidade de horas deve ser positiva e caber na carga da modalidade autorizada");
+        if (modality == null || hours == null || hours.signum() <= 0 || hours.scale() > 2) {
+            throw ApiException.invalid("Quantidade de horas deve ser positiva e ter até duas casas decimais");
         }
     }
 

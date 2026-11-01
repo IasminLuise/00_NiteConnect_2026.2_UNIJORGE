@@ -25,6 +25,21 @@ public class ParticipationController {
     Period workLog(@AuthenticationPrincipal Jwt jwt,@Valid @RequestBody WorkLog c) { return service.workLog(identities.member(jwt),c); }
     @GetMapping("/api/v1/me/attendance") PageResult<AttendanceView> attendance(@AuthenticationPrincipal Jwt jwt,@RequestParam(required=false) LocalDate from,@RequestParam(required=false) LocalDate to,
             @RequestParam(defaultValue="0") int page,@RequestParam(defaultValue="20") int size) { return queries.attendance(identities.member(jwt),from,to,page,size); }
+    @GetMapping("/api/v1/me/participation/expected-events") PageResult<ExpectedEvent> expectedEvents(@AuthenticationPrincipal Jwt jwt,
+            @RequestParam(required=false) LocalDate from,@RequestParam(required=false) LocalDate to,
+            @RequestParam(defaultValue="0") int page,@RequestParam(defaultValue="20") int size) {
+        return queries.expectedEvents(identities.member(jwt),from,to,page,size);
+    }
+    @GetMapping("/api/v1/me/participation/timeline") PageResult<TimelineItem> timeline(@AuthenticationPrincipal Jwt jwt,
+            @RequestParam(required=false) LocalDate from,@RequestParam(required=false) LocalDate to,
+            @RequestParam(defaultValue="0") int page,@RequestParam(defaultValue="20") int size) {
+        return queries.timeline(identities.member(jwt),from,to,page,size);
+    }
+    @GetMapping("/api/v1/me/participation/calendar-exceptions") PageResult<ParticipationGovernanceContracts.PersonalCalendarVersion> calendarExceptions(
+            @AuthenticationPrincipal Jwt jwt,@RequestParam(required=false) LocalDate from,@RequestParam(required=false) LocalDate to,
+            @RequestParam(defaultValue="0") int page,@RequestParam(defaultValue="20") int size) {
+        return queries.personalCalendarHistory(identities.member(jwt),from,to,page,size);
+    }
     @GetMapping("/api/v1/me/work-logs") PageResult<Period> logs(@AuthenticationPrincipal Jwt jwt,@RequestParam(required=false) LocalDate from,@RequestParam(required=false) LocalDate to,
             @RequestParam(defaultValue="0") int page,@RequestParam(defaultValue="20") int size) { return queries.periods(identities.member(jwt),false,null,PeriodKind.WORK_LOG,from,to,page,size); }
     @GetMapping("/api/v1/attendance/records") PageResult<Period> records(@AuthenticationPrincipal Jwt jwt,@RequestParam(required=false) UUID memberId,@RequestParam(required=false) PeriodKind kind,

@@ -84,12 +84,23 @@ const weekly: ParticipationWeeklySummary = {
     presential: { requiredSeconds: 18_000, registeredSeconds: 10_800, pendingSeconds: 3_600, validatedSeconds: 3_600, refusedSeconds: 3_600, openPeriods: 0, remainingSeconds: 14_400 },
     remote: { requiredSeconds: 14_400, registeredSeconds: 7_200, pendingSeconds: 0, validatedSeconds: 3_600, refusedSeconds: 3_600, openPeriods: 0, remainingSeconds: 10_800 },
   },
+  loadPolicy: {
+    status: "HOMOLOGADA_NO_PERIODO", currentConfiguration: null,
+    applicableToWeek: { id: "policy-1", version: 1, effectiveFrom: from, effectiveUntil: null, presentialHours: 5, remoteHours: 4 },
+    institutionalConfirmation: { presentialHours: 5, remoteHours: 4, status: "CONFIRMADA" },
+    plannedConfiguration: null,
+  },
 };
 const emptyWeekly: ParticipationWeeklySummary = {
   ...weekly,
+  loadPolicy: {
+    status: "SEM_POLITICA_APLICAVEL", currentConfiguration: null, applicableToWeek: null,
+    institutionalConfirmation: { presentialHours: 5, remoteHours: 4, status: "CONFIRMADA" },
+    plannedConfiguration: null,
+  },
   modalities: {
-    presential: { ...weekly.modalities.presential, registeredSeconds: 0, pendingSeconds: 0, validatedSeconds: 0, refusedSeconds: 0, remainingSeconds: 18_000 },
-    remote: { ...weekly.modalities.remote, registeredSeconds: 0, pendingSeconds: 0, validatedSeconds: 0, refusedSeconds: 0, remainingSeconds: 14_400 },
+    presential: { ...weekly.modalities.presential, requiredSeconds: null, registeredSeconds: 0, pendingSeconds: 0, validatedSeconds: 0, refusedSeconds: 0, remainingSeconds: null },
+    remote: { ...weekly.modalities.remote, requiredSeconds: null, registeredSeconds: 0, pendingSeconds: 0, validatedSeconds: 0, refusedSeconds: 0, remainingSeconds: null },
   },
 };
 const history: DashboardHistory = {

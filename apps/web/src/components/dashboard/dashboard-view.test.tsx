@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { DashboardView, priorityEmptyMessage, recentEventLabel } from "./dashboard-view";
-import type { DashboardResponse } from "../../lib/dashboard/contracts";
+import type { DashboardResponse, ParticipationWeeklySummary } from "../../lib/dashboard/contracts";
 
 describe("mensagem de prioridades do painel", () => {
   it("não interpreta indicadores ausentes como zero", () => {
@@ -71,5 +71,71 @@ describe("filtros do painel", () => {
     expect(markup).toContain("Preparar oficina");
     expect(markup).not.toContain("Revisar proposta");
     expect(markup).toContain("sm:max-w-[24rem]");
+  });
+});
+
+describe("carga horária do painel pessoal", () => {
+  it("não mostra exigência nem saldo sem política aplicável e preserva as horas por situação", () => {
+    const dashboard: DashboardResponse = {
+      from: "2026-10-25", to: "2026-10-31", generatedAt: "2026-10-31T12:00:00Z", scope: "integrante",
+      indicators: {}, columns: [], rows: [], unavailableMetrics: [],
+    };
+    const weekly: ParticipationWeeklySummary = {
+      zone: "America/Bahia", weekStart: "2026-10-25", weekEnd: "2026-10-31",
+      modalities: {
+        presential: { requiredSeconds: null, registeredSeconds: 3_600, pendingSeconds: 1_800, validatedSeconds: 1_800, refusedSeconds: 0, openPeriods: 1, remainingSeconds: null },
+        remote: { requiredSeconds: null, registeredSeconds: 0, pendingSeconds: 0, validatedSeconds: 0, refusedSeconds: 0, openPeriods: 0, remainingSeconds: null },
+      },
+      loadPolicy: {
+        status: "SEM_POLITICA_APLICAVEL", currentConfiguration: null, applicableToWeek: null,
+        institutionalConfirmation: { presentialHours: 5, remoteHours: 4, status: "CONFIRMADA" },
+        plannedConfiguration: null,
+      },
+    };
+    const markup = renderToStaticMarkup(<DashboardView
+      result={{ data: dashboard, issue: null }} historyResult={null} weeklyResult={{ data: weekly, issue: null }}
+      scope="personal" scopeLabel="Meu espaço" contextValue="personal" from={weekly.weekStart} to={weekly.weekEnd} search=""
+    />);
+
+    expect(markup).toContain("5h presenciais e 4h remotas");
+    expect(markup).toContain("Não há política aplicável a esta semana; exigência e saldo não são exibidos.");
+    expect(markup).toContain("Registrado");
+    expect(markup).toContain("Pendente");
+    expect(markup).toContain("Validado");
+    expect(markup).not.toContain("Exigido");
+    expect(markup).not.toContain("Saldo");
+    expect(markup).toContain("1h 00min");
+    expect(markup).toContain("30min");
+  });
+
+  it("explica que a política aprovada aguarda a data oficial sem exibir saldo", () => {
+    const dashboard: DashboardResponse = {
+      from: "2026-10-25", to: "2026-10-31", generatedAt: "2026-10-31T12:00:00Z", scope: "integrante",
+      indicators: {}, columns: [], rows: [], unavailableMetrics: [],
+    };
+    const weekly: ParticipationWeeklySummary = {
+      zone: "America/Bahia", weekStart: "2026-10-25", weekEnd: "2026-10-31",
+      modalities: {
+        presential: { requiredSeconds: null, registeredSeconds: 0, pendingSeconds: 0, validatedSeconds: 0, refusedSeconds: 0, openPeriods: 0, remainingSeconds: null },
+        remote: { requiredSeconds: null, registeredSeconds: 0, pendingSeconds: 0, validatedSeconds: 0, refusedSeconds: 0, openPeriods: 0, remainingSeconds: null },
+      },
+      loadPolicy: {
+        status: "SEM_POLITICA_APLICAVEL", currentConfiguration: null, applicableToWeek: null,
+        institutionalConfirmation: { presentialHours: 5, remoteHours: 4, status: "CONFIRMADA" },
+        plannedConfiguration: {
+          id: "policy-2027", version: 2, presentialHours: 5, remoteHours: 4,
+          effectiveFrom: null, intendedSemester: "2027.1",
+          effectiveWindow: "PRIMEIRA_SEMANA_OFICIAL_DE_ATIVIDADES", status: "SEM_VIGENCIA_DEFINIDA",
+        },
+      },
+    };
+    const markup = renderToStaticMarkup(<DashboardView
+      result={{ data: dashboard, issue: null }} historyResult={null} weeklyResult={{ data: weekly, issue: null }}
+      scope="personal" scopeLabel="Meu espaço" contextValue="personal" from={weekly.weekStart} to={weekly.weekEnd} search=""
+    />);
+
+    expect(markup).toContain("Política v2 de 5h presenciais e 4h remotas aprovada para 2027.1; aguarda a data oficial.");
+    expect(markup).not.toContain("Exigido");
+    expect(markup).not.toContain("Saldo");
   });
 });
