@@ -4,6 +4,7 @@ import br.edu.unijorge.niteconnect.access.application.AccessService;
 import br.edu.unijorge.niteconnect.attendance.domain.Attendance.View;
 import br.edu.unijorge.niteconnect.attendance.domain.Agenda.ExpectedEvent;
 import br.edu.unijorge.niteconnect.attendance.infrastructure.AttendanceRepository;
+import br.edu.unijorge.niteconnect.attendance.infrastructure.FrequencyRepository;
 import br.edu.unijorge.niteconnect.shared.api.ApiException;
 import br.edu.unijorge.niteconnect.shared.api.PageResult;
 import org.springframework.stereotype.Service;
@@ -22,12 +23,15 @@ public class AttendanceQueries {
     private final AttendanceRepository repo;
     private final AccessService access;
     private final AttendanceService attendance;
+    private final FrequencyRepository frequency;
     private final Clock clock;
 
-    public AttendanceQueries(AttendanceRepository repo, AccessService access, AttendanceService attendance, Clock clock) {
+    public AttendanceQueries(AttendanceRepository repo, AccessService access, AttendanceService attendance,
+                             FrequencyRepository frequency, Clock clock) {
         this.repo = repo;
         this.access = access;
         this.attendance = attendance;
+        this.frequency = frequency;
         this.clock = clock;
     }
 
@@ -35,7 +39,8 @@ public class AttendanceQueries {
         access.requireActive(actor);
         var args = new ArrayList<Object>();
         args.add(actor);
-        String where = "from nite_connect.attendance_records a where a.member_id=?";
+        String where = "from nite_connect.attendance_records a where a.member_id=? and a.created_at<?";
+        args.add(ts(frequency.activatedAt()));
         if (from != null || to != null) {
             Range range = range(from, to);
             where += " and exists(select 1 from nite_connect.attendance_segments p where p.attendance_id=a.id and p.starts_at<? and (p.ends_at is null or p.ends_at>?))";

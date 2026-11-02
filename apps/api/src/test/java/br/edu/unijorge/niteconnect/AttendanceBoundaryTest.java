@@ -9,25 +9,28 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class AttendanceBoundaryTest extends AttendanceTestSupport {
     @Test void agendaRequiresAdministrationAndDoesNotExposeParticipantsOrQrToMembers() throws Exception {
-        UUID event=event();qr(event);
+        UUID event=event();
         mvc.perform(get("/api/v1/agenda/events/"+event).with(token(MEMBER))).andExpect(status().isOk())
                 .andExpect(jsonPath("$.payload").doesNotExist()).andExpect(jsonPath("$.expectedMemberIds").doesNotExist());
         mvc.perform(post("/api/v1/agenda/events/"+event+"/session").with(token(LEADER)).contentType("application/json")
                 .content("{\"expectedVersion\":1,\"reason\":\"Abrir\"}")).andExpect(status().isForbidden());
+        mvc.perform(post("/api/v1/agenda/events/"+event+"/session").with(token(ADMIN)).contentType("application/json")
+                .content("{\"expectedVersion\":0,\"reason\":\"Abrir\"}")).andExpect(status().isGone());
     }
     @Test void qrCheckInIsUniqueAndRenewalInvalidatesPreviousPayload() throws Exception {
-        UUID event=event();String old=qr(event);String current=qr(event);
+        UUID event=event(),list=openList(event);String old=qrForList(list);String current=qrForList(list);
         mvc.perform(post("/api/v1/me/attendance/check-in").with(token(MEMBER)).contentType("application/json")
                 .content(json.writeValueAsString(Map.of("eventId",event,"payload",old)))).andExpect(status().isConflict());
         checkIn(event,current);
         mvc.perform(post("/api/v1/me/attendance/check-in").with(token(MEMBER)).contentType("application/json")
-                .content(json.writeValueAsString(Map.of("eventId",event,"payload",current)))).andExpect(status().isConflict());
+                .content(json.writeValueAsString(Map.of("eventId",event,"payload",current)))).andExpect(status().isOk())
+                .andExpect(jsonPath("$.alreadyRegistered").value(true));
         mvc.perform(get("/api/v1/me/attendance").with(token(OTHER))).andExpect(status().isOk()).andExpect(jsonPath("$.total").value(0));
         mvc.perform(get("/api/v1/attendance/records").with(token(LEADER))).andExpect(status().isForbidden());
     }
     @Test void checkOutWithoutEntryAndInactiveMemberAreDenied() throws Exception {
         mvc.perform(post("/api/v1/me/attendance/check-out").with(token(MEMBER)).contentType("application/json")
-                .content("{\"expectedVersion\":0}")).andExpect(status().isConflict());
+                .content("{\"expectedVersion\":0}")).andExpect(status().isGone());
         UUID event=event();String qr=qr(event);
         jdbc.update("update nite_connect.members set status='AFASTADO' where id=?",MEMBER);
         mvc.perform(post("/api/v1/me/attendance/check-in").with(token(MEMBER)).contentType("application/json")

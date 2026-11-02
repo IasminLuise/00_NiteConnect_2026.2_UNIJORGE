@@ -88,38 +88,6 @@ public class AttendanceRepository {
                 ATTENDANCE_SEGMENT, attendance);
     }
 
-    public Optional<AttendanceSegment> openSegment(UUID member) {
-        return jdbc.query("select * from nite_connect.attendance_segments where member_id=? and ends_at is null",
-                ATTENDANCE_SEGMENT, member).stream().findFirst();
-    }
-
-    public void qr(UUID event, String hash, Instant now) {
-        boolean valid = Boolean.TRUE.equals(jdbc.queryForObject("""
-                select exists(select 1 from nite_connect.calendar_events where id=? and status='ABERTO' and qr_hash=?
-                 and qr_expires_at>? and starts_at<=? and ends_at>?)
-                """, Boolean.class, event, hash, ts(now), ts(now), ts(now)));
-        if (!valid) throw ApiException.conflict("Sessão de presença indisponível ou QR expirado");
-    }
-
-    public UUID createAttendance(UUID event, UUID member) {
-        UUID id = UUID.randomUUID();
-        update("insert into nite_connect.attendance_records(id,event_id,member_id) values (?,?,?)", id, event, member);
-        return id;
-    }
-
-    public UUID createSegment(UUID member, UUID attendance, Instant start) {
-        UUID id = UUID.randomUUID();
-        update("""
-                insert into nite_connect.attendance_segments(id,member_id,attendance_id,starts_at,ends_at)
-                values (?,?,?,?,?)
-                """, id, member, attendance, ts(start), null);
-        return id;
-    }
-
-    public void touchAttendance(UUID id, long version) {
-        changed(update("update nite_connect.attendance_records set version=version+1 where id=? and version=?", id, version));
-    }
-
     public <T> PageResult<T> page(String columns, String from, List<Object> args, String order,
                                   RowMapper<T> mapper, int page, int size) {
         PageResult.validate(page, size);

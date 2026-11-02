@@ -33,6 +33,7 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/frequency/qr/handoffs").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/academic/enrollments/*/homologation", "/api/v1/academic/enrollments/*/reviews", "/api/v1/me/academic/enrollments/*/reviews", "/api/v1/academic/enrollments/*/history", "/api/v1/academic/homologations/*/forwardings").access(authenticatedJwt)
                         .requestMatchers(HttpMethod.GET, "/api/v1/me/dashboard", "/api/v1/projects/*/dashboard", "/api/v1/analytics/dashboard",
                                 "/api/v1/me/reports/*", "/api/v1/me/reports/*/export",
@@ -53,9 +54,17 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.GET, "/api/v1/academic/terms", "/api/v1/academic/terms/*/policies").access(authenticatedJwt)
                         .requestMatchers(HttpMethod.POST, "/api/v1/academic/terms", "/api/v1/academic/terms/*/policies", "/api/v1/academic/policies/*/confirmation").access(authenticatedJwt)
                         .requestMatchers(HttpMethod.GET, "/api/v1/agenda/events", "/api/v1/agenda/events/*", "/api/v1/agenda/events/*/participants",
-                                "/api/v1/me/agenda/expected-events", "/api/v1/me/attendance").access(authenticatedJwt)
+                                "/api/v1/me/agenda/expected-events", "/api/v1/me/attendance",
+                                "/api/v1/attendance/lists", "/api/v1/attendance/lists/*", "/api/v1/attendance/lists/*/participants",
+                                "/api/v1/attendance/lists/*/updates", "/api/v1/attendance/frequency/summary",
+                                "/api/v1/attendance/frequency/members/*/history",
+                                "/api/v1/me/frequency/summary", "/api/v1/me/frequency/history").access(authenticatedJwt)
                         .requestMatchers(HttpMethod.POST, "/api/v1/agenda/events", "/api/v1/agenda/events/*/session", "/api/v1/agenda/events/*/close", "/api/v1/agenda/events/*/cancel",
-                                "/api/v1/me/attendance/check-in", "/api/v1/me/attendance/check-out", "/api/v1/me/attendance/*/return").access(authenticatedJwt)
+                                "/api/v1/me/attendance/check-in", "/api/v1/me/attendance/check-out", "/api/v1/me/attendance/*/return",
+                                "/api/v1/attendance/lists", "/api/v1/attendance/lists/*/qr/renew",
+                                "/api/v1/attendance/lists/*/finalize", "/api/v1/attendance/lists/*/cancel",
+                                "/api/v1/me/frequency/confirmations").access(authenticatedJwt)
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/attendance/lists/*/participants/*").access(authenticatedJwt)
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/agenda/events/*").access(authenticatedJwt)
                         .requestMatchers(HttpMethod.GET, "/api/v1/activities", "/api/v1/activities/*",
                                 "/api/v1/me/activities", "/api/v1/me/activities/history", "/api/v1/me/activities/capabilities", "/api/v1/activities/*/history", "/api/v1/activities/*/capabilities",

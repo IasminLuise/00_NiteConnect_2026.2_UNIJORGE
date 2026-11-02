@@ -60,6 +60,13 @@ public class MemberDirectory {
     }
     public record Candidate(UUID id, String name) {}
 
+    /** Frequency snapshot contract: active identities and their display names only. */
+    public java.util.List<RosterMember> activeRoster() {
+        return jdbc.query("select id,name from nite_connect.members where status='ATIVO' order by id",
+                (rs, row) -> new RosterMember(rs.getObject("id", UUID.class), rs.getString("name")));
+    }
+    public record RosterMember(UUID id, String displayName) {}
+
     /** Assignment selection differs from team recruitment: require existing project participation. */
     public PageResult<Candidate> activityCandidates(UUID project, String query, Collection<UUID> excluded, int page, int size) {
         PageResult.validate(page, size);

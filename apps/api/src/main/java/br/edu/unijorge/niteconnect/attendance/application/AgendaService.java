@@ -9,8 +9,6 @@ import br.edu.unijorge.niteconnect.shared.api.*;
 import br.edu.unijorge.niteconnect.shared.security.AdministrativeTransactions;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.nio.charset.StandardCharsets;
-import java.security.*;
 import java.time.*;
 import java.util.*;
 import static br.edu.unijorge.niteconnect.attendance.infrastructure.AttendanceRepository.ts;
@@ -20,9 +18,9 @@ import static br.edu.unijorge.niteconnect.attendance.application.AgendaRules.*;
 public class AgendaService {
     private final AttendanceRepository repo; private final AccessService access; private final MemberDirectory members;
     private final AdministrativeTransactions tx; private final AttendanceJournal journal; private final Clock clock;
-    private final SecureRandom random=new SecureRandom();
-    public AgendaService(AttendanceRepository repo,AccessService access,MemberDirectory members,AdministrativeTransactions tx,AttendanceJournal journal,Clock clock) {
-        this.repo=repo;this.access=access;this.members=members;this.tx=tx;this.journal=journal;this.clock=clock;
+    private final FrequencyService frequency;
+    public AgendaService(AttendanceRepository repo,AccessService access,MemberDirectory members,AdministrativeTransactions tx,AttendanceJournal journal,Clock clock,FrequencyService frequency) {
+        this.repo=repo;this.access=access;this.members=members;this.tx=tx;this.journal=journal;this.clock=clock;this.frequency=frequency;
     }
     @Transactional public Event create(UUID actor,EventCreate c) {
         tx.lock();access.requireAdministrator(actor);interval(c.startsAt(),c.endsAt());validateExpected(c.expectedMemberIds(),c.kind());
@@ -46,17 +44,15 @@ public class AgendaService {
         Event after=repo.event(id);journal.record(actor,null,"CALENDAR_EVENT",id,after.version(),"UPDATED",previous,snapshot(after),c.reason());return after;
     }
     @Transactional public SessionPayload session(UUID actor,UUID id,Command c) {
-        Event before=write(actor,id,c.expectedVersion());Instant now=clock.instant();
-        if(before.kind()==EventKind.FERIADO || before.status()==EventStatus.CANCELADO || before.status()==EventStatus.ENCERRADO
-                || now.isBefore(before.startsAt()) || !now.isBefore(before.endsAt())) throw ApiException.conflict("Encontro indisponível para presença");
-        byte[] bytes=new byte[32];random.nextBytes(bytes);String payload=Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
-        Instant expiry=now.plusSeconds(120);if(expiry.isAfter(before.endsAt())) expiry=before.endsAt();
-        repo.changed(repo.update("update nite_connect.calendar_events set status='ABERTO',qr_hash=?,qr_expires_at=?,version=version+1 where id=? and version=?",hash(payload),ts(expiry),id,c.expectedVersion()));
-        Event after=repo.event(id);journal.record(actor,null,"CALENDAR_EVENT",id,after.version(),"SESSION_OPENED",before,after,c.reason());
-        return new SessionPayload(id,payload,expiry,after.version());
+        tx.lock();access.requireAdministrator(actor);
+        throw ApiException.gone("LEGACY_SESSION_DISABLED");
     }
     @Transactional public Event close(UUID actor,UUID id,Command c,boolean cancel) {
         Event before=write(actor,id,c.expectedVersion());
+        if(frequency.hasListForEvent(id)) {
+            if(!cancel) throw ApiException.conflict("Encontro vinculado à Frequência; use a finalização da lista");
+            return frequency.cancelForAgenda(actor,id,c.expectedVersion(),c.reason(),c.confirmed()).orElseThrow(ApiException::notFound);
+        }
         if(cancel) { confirm(c.confirmed());if(before.status()==EventStatus.CANCELADO || before.status()==EventStatus.ENCERRADO) throw ApiException.conflict("Encontro já encerrado"); }
         else if(before.status()!=EventStatus.ABERTO && !(before.status()==EventStatus.AGENDADO && !clock.instant().isBefore(before.endsAt())))
             throw ApiException.conflict("Encontro não possui sessão aberta e ainda não terminou");
@@ -69,7 +65,7 @@ public class AgendaService {
         access.requireActive(actor);if(from!=null && to!=null && from.isAfter(to)) throw ApiException.invalid("Período invertido");
         if(LocalDate.MAX.equals(to)) throw ApiException.invalid("Data final fora do intervalo permitido");
         String where="from nite_connect.calendar_events where true";var args=new ArrayList<Object>();
-        if(from!=null) { where+=" and ends_at>?";args.add(ts(from.atStartOfDay(clock.getZone()).toInstant())); }
+        if(from!=null) { where+=" and (ends_at is null or ends_at>?)";args.add(ts(from.atStartOfDay(clock.getZone()).toInstant())); }
         if(to!=null) { where+=" and starts_at<?";args.add(ts(to.plusDays(1).atStartOfDay(clock.getZone()).toInstant())); }
         return repo.page("*",where,args,"starts_at,id",AttendanceRepository.EVENT,page,size);
     }
@@ -94,8 +90,4 @@ public class AgendaService {
     }
     private void participants(UUID id,List<UUID> members) { for(UUID member:members) repo.update("insert into nite_connect.event_participants(event_id,member_id) values (?,?)",id,member); }
     private Object snapshot(Event event) { return Map.of("event",event,"expectedMemberIds",repo.expected(event.id())); }
-    public static String hash(String payload) {
-        try { return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(payload.getBytes(StandardCharsets.UTF_8))); }
-        catch(NoSuchAlgorithmException e) { throw new IllegalStateException("SHA-256 indisponível",e); }
-    }
 }

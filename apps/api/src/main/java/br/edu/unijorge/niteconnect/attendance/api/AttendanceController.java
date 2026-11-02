@@ -6,11 +6,13 @@ import br.edu.unijorge.niteconnect.attendance.api.AttendanceContracts.Return;
 import br.edu.unijorge.niteconnect.attendance.application.AttendanceQueries;
 import br.edu.unijorge.niteconnect.attendance.application.AttendanceService;
 import br.edu.unijorge.niteconnect.attendance.domain.Attendance.View;
+import br.edu.unijorge.niteconnect.attendance.domain.Frequency.Confirmation;
 import br.edu.unijorge.niteconnect.attendance.domain.Agenda.ExpectedEvent;
 import br.edu.unijorge.niteconnect.identity.application.IdentityDirectory;
 import br.edu.unijorge.niteconnect.shared.api.PageResult;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
@@ -31,9 +33,9 @@ public class AttendanceController {
     }
 
     @PostMapping("/api/v1/me/attendance/check-in")
-    @ResponseStatus(HttpStatus.CREATED)
-    View checkIn(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody CheckIn command) {
-        return attendance.checkIn(identities.member(jwt), command);
+    ResponseEntity<Confirmation> checkIn(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody CheckIn command) {
+        Confirmation result = attendance.checkIn(identities.member(jwt), command);
+        return ResponseEntity.status(result.alreadyRegistered() ? HttpStatus.OK : HttpStatus.CREATED).body(result);
     }
 
     @PostMapping("/api/v1/me/attendance/check-out")

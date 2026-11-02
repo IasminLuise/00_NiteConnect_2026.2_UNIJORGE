@@ -25,6 +25,8 @@ Este diretório é a fonte de execução do Flyway, configurada em `application.
 | V19 | [`V19__justification_attachment_limits_and_minimum_grace.sql`](V19__justification_attachment_limits_and_minimum_grace.sql) | Migração histórica de limites/metadados de anexos, removida por V21. |
 | V20 | [`V20__retire_work_hour_contracts_preserve_history.sql`](V20__retire_work_hour_contracts_preserve_history.sql) | Marco histórico que documentou a aposentadoria sem apagar dados; V21 executa a separação e remoção aprovadas. |
 | V21 | [`V21__remove_retired_participation_scope.sql`](V21__remove_retired_participation_scope.sql) | Remove tabelas e dados legados de horas, políticas, solicitações, justificativas, comprovantes e auditorias B04; migra segmentos e auditoria de Agenda/presença para tabelas próprias. Falha se eventos de período não puderem ser classificados. |
+| V22 | [`V22__frequency_attendance_lists.sql`](V22__frequency_attendance_lists.sql) | B04 Frequência: listas e snapshots imutáveis, QR temporário e handoff, trilha administrativa, corte oficial `activated_at` e suporte a eventos rápidos com término nulo. Preserva encontros e presenças legados, revogando QRs de sessão anteriores. |
+| V23 | [`V23__frequency_handoff_retention_index.sql`](V23__frequency_handoff_retention_index.sql) | B04 Frequência: índice por expiração para o expurgo global, limitado e concorrente de handoffs após o período de retenção. |
 
 ## Aplicação
 
